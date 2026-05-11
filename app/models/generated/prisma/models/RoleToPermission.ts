@@ -406,6 +406,7 @@ export type RoleToPermissionCreateOrConnectWithoutRoleInput = {
 
 export type RoleToPermissionCreateManyRoleInputEnvelope = {
   data: Prisma.RoleToPermissionCreateManyRoleInput | Prisma.RoleToPermissionCreateManyRoleInput[]
+  skipDuplicates?: boolean
 }
 
 export type RoleToPermissionUpsertWithWhereUniqueWithoutRoleInput = {
@@ -453,6 +454,7 @@ export type RoleToPermissionCreateOrConnectWithoutPermissionInput = {
 
 export type RoleToPermissionCreateManyPermissionInputEnvelope = {
   data: Prisma.RoleToPermissionCreateManyPermissionInput | Prisma.RoleToPermissionCreateManyPermissionInput[]
+  skipDuplicates?: boolean
 }
 
 export type RoleToPermissionUpsertWithWhereUniqueWithoutPermissionInput = {
@@ -1243,6 +1245,7 @@ export type RoleToPermissionCreateManyArgs<ExtArgs extends runtime.Types.Extensi
    * The data used to create many RoleToPermissions.
    */
   data: Prisma.RoleToPermissionCreateManyInput | Prisma.RoleToPermissionCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1261,6 +1264,7 @@ export type RoleToPermissionCreateManyAndReturnArgs<ExtArgs extends runtime.Type
    * The data used to create many RoleToPermissions.
    */
   data: Prisma.RoleToPermissionCreateManyInput | Prisma.RoleToPermissionCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

@@ -61,7 +61,7 @@ export class Application extends RailsApplication {
    * Hiện thực hóa logic Worker cho BullMQ tại đây
    */
   protected startBackgroundProcessor() {
-    setupBullMQWorker();
+    // setupBullMQWorker();
   }
 
   protected setupViewEngine() {

@@ -520,6 +520,7 @@ export type RequestCreateOrConnectWithoutRequesterInput = {
 
 export type RequestCreateManyRequesterInputEnvelope = {
   data: Prisma.RequestCreateManyRequesterInput | Prisma.RequestCreateManyRequesterInput[]
+  skipDuplicates?: boolean
 }
 
 export type RequestCreateWithoutApproverInput = {
@@ -551,6 +552,7 @@ export type RequestCreateOrConnectWithoutApproverInput = {
 
 export type RequestCreateManyApproverInputEnvelope = {
   data: Prisma.RequestCreateManyApproverInput | Prisma.RequestCreateManyApproverInput[]
+  skipDuplicates?: boolean
 }
 
 export type RequestUpsertWithWhereUniqueWithoutRequesterInput = {
@@ -1442,6 +1444,7 @@ export type RequestCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * The data used to create many Requests.
    */
   data: Prisma.RequestCreateManyInput | Prisma.RequestCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1460,6 +1463,7 @@ export type RequestCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensi
    * The data used to create many Requests.
    */
   data: Prisma.RequestCreateManyInput | Prisma.RequestCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

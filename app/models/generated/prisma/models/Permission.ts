@@ -663,6 +663,7 @@ export type PermissionCreateOrConnectWithoutCreatedByInput = {
 
 export type PermissionCreateManyCreatedByInputEnvelope = {
   data: Prisma.PermissionCreateManyCreatedByInput | Prisma.PermissionCreateManyCreatedByInput[]
+  skipDuplicates?: boolean
 }
 
 export type PermissionCreateWithoutUpdatedByInput = {
@@ -702,6 +703,7 @@ export type PermissionCreateOrConnectWithoutUpdatedByInput = {
 
 export type PermissionCreateManyUpdatedByInputEnvelope = {
   data: Prisma.PermissionCreateManyUpdatedByInput | Prisma.PermissionCreateManyUpdatedByInput[]
+  skipDuplicates?: boolean
 }
 
 export type PermissionUpsertWithWhereUniqueWithoutCreatedByInput = {
@@ -790,6 +792,7 @@ export type PermissionCreateOrConnectWithoutFeatureInput = {
 
 export type PermissionCreateManyFeatureInputEnvelope = {
   data: Prisma.PermissionCreateManyFeatureInput | Prisma.PermissionCreateManyFeatureInput[]
+  skipDuplicates?: boolean
 }
 
 export type PermissionUpsertWithWhereUniqueWithoutFeatureInput = {
@@ -1950,6 +1953,7 @@ export type PermissionCreateManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * The data used to create many Permissions.
    */
   data: Prisma.PermissionCreateManyInput | Prisma.PermissionCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1968,6 +1972,7 @@ export type PermissionCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Exte
    * The data used to create many Permissions.
    */
   data: Prisma.PermissionCreateManyInput | Prisma.PermissionCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

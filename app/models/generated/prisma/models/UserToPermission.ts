@@ -406,6 +406,7 @@ export type UserToPermissionCreateOrConnectWithoutUserInput = {
 
 export type UserToPermissionCreateManyUserInputEnvelope = {
   data: Prisma.UserToPermissionCreateManyUserInput | Prisma.UserToPermissionCreateManyUserInput[]
+  skipDuplicates?: boolean
 }
 
 export type UserToPermissionUpsertWithWhereUniqueWithoutUserInput = {
@@ -453,6 +454,7 @@ export type UserToPermissionCreateOrConnectWithoutPermissionInput = {
 
 export type UserToPermissionCreateManyPermissionInputEnvelope = {
   data: Prisma.UserToPermissionCreateManyPermissionInput | Prisma.UserToPermissionCreateManyPermissionInput[]
+  skipDuplicates?: boolean
 }
 
 export type UserToPermissionUpsertWithWhereUniqueWithoutPermissionInput = {
@@ -1243,6 +1245,7 @@ export type UserToPermissionCreateManyArgs<ExtArgs extends runtime.Types.Extensi
    * The data used to create many UserToPermissions.
    */
   data: Prisma.UserToPermissionCreateManyInput | Prisma.UserToPermissionCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1261,6 +1264,7 @@ export type UserToPermissionCreateManyAndReturnArgs<ExtArgs extends runtime.Type
    * The data used to create many UserToPermissions.
    */
   data: Prisma.UserToPermissionCreateManyInput | Prisma.UserToPermissionCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

@@ -746,6 +746,7 @@ export type FeatureCreateOrConnectWithoutCreatedByInput = {
 
 export type FeatureCreateManyCreatedByInputEnvelope = {
   data: Prisma.FeatureCreateManyCreatedByInput | Prisma.FeatureCreateManyCreatedByInput[]
+  skipDuplicates?: boolean
 }
 
 export type FeatureCreateWithoutUpdatedByInput = {
@@ -787,6 +788,7 @@ export type FeatureCreateOrConnectWithoutUpdatedByInput = {
 
 export type FeatureCreateManyUpdatedByInputEnvelope = {
   data: Prisma.FeatureCreateManyUpdatedByInput | Prisma.FeatureCreateManyUpdatedByInput[]
+  skipDuplicates?: boolean
 }
 
 export type FeatureUpsertWithWhereUniqueWithoutCreatedByInput = {
@@ -915,6 +917,7 @@ export type FeatureCreateOrConnectWithoutParentInput = {
 
 export type FeatureCreateManyParentInputEnvelope = {
   data: Prisma.FeatureCreateManyParentInput | Prisma.FeatureCreateManyParentInput[]
+  skipDuplicates?: boolean
 }
 
 export type FeatureUpsertWithoutChildsInput = {
@@ -2064,6 +2067,7 @@ export type FeatureCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * The data used to create many Features.
    */
   data: Prisma.FeatureCreateManyInput | Prisma.FeatureCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -2082,6 +2086,7 @@ export type FeatureCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensi
    * The data used to create many Features.
    */
   data: Prisma.FeatureCreateManyInput | Prisma.FeatureCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

@@ -428,6 +428,7 @@ export type PasswordCreateOrConnectWithoutUserInput = {
 
 export type PasswordCreateManyUserInputEnvelope = {
   data: Prisma.PasswordCreateManyUserInput | Prisma.PasswordCreateManyUserInput[]
+  skipDuplicates?: boolean
 }
 
 export type PasswordUpsertWithWhereUniqueWithoutUserInput = {
@@ -1229,6 +1230,7 @@ export type PasswordCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * The data used to create many Passwords.
    */
   data: Prisma.PasswordCreateManyInput | Prisma.PasswordCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1247,6 +1249,7 @@ export type PasswordCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extens
    * The data used to create many Passwords.
    */
   data: Prisma.PasswordCreateManyInput | Prisma.PasswordCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

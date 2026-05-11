@@ -9,6 +9,6 @@ export default defineConfig({
     path: "configs/db/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env.DATABASE_URL,
   },
 });
