@@ -1,5 +1,6 @@
-import { AuthGoogleVerifyService, AuthRefreshTokenService } from "@services";
+import { AuthGoogleVerifyService, AuthRefreshTokenService, GoogleOAuthCallbackService } from "@services";
 import {
+  GoogleOAuthCallbackValidator,
   GoogleVerifyValidator,
   RefreshTokenValidator,
 } from "@validators/auth.validator";
@@ -11,6 +12,14 @@ export class AuthController extends ApiV1Controller {
       "idToken",
     );
     const result = await new AuthGoogleVerifyService().execute(idToken);
+    this.renderJson(result);
+  }
+
+  async googleOAuthCallback() {
+    const { code } = await this.params(GoogleOAuthCallbackValidator).permit(
+      "code",
+    );
+    const result = await new GoogleOAuthCallbackService().execute(code);
     this.renderJson(result);
   }
 
