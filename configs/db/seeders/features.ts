@@ -65,6 +65,13 @@ export async function seedFeatures() {
     "Full access to admin and user management",
   );
 
+  // Role CUSTOMER (cho người dùng thường)
+  await ensureRole(
+    "CUSTOMER",
+    "Customer",
+    "Standard user role for customers",
+  );
+
   // ADMIN role có full quyền AM và UM
   await assignPermissionToRole("ADMIN", "AM");
   await assignPermissionToRole("ADMIN", "UM");

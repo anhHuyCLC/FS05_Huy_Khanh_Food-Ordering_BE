@@ -1,3 +1,4 @@
+import { PasswordType, UserStatus } from "@configs/db/enums";
 import env from "@configs/env";
 import { generateToken } from "@lib";
 import models from "@models";
@@ -24,27 +25,53 @@ export interface GoogleOAuthCallbackResult {
 }
 
 export class GoogleOAuthCallbackService extends ApplicationService {
-  async execute(code: string): Promise<GoogleOAuthCallbackResult> {
-    // 1. Exchange authorization code with Google
-    const {
-      data: { access_token },
-    } = await axios.post("https://oauth2.googleapis.com/token", {
-      client_id: env.googleClientId,
-      client_secret: env.googleClientSecret,
-      code,
-      redirect_uri: env.googleRedirectUri,
-      grant_type: "authorization_code",
-    });
+  async execute(code: string, redirectUri?: string): Promise<GoogleOAuthCallbackResult> {
+    let access_token: string;
+    try {
+      const { data } = await axios.post("https://oauth2.googleapis.com/token", {
+        client_id: env.googleClientId,
+        client_secret: env.googleClientSecret,
+        code,
+        redirect_uri: redirectUri || env.googleRedirectUri,
+        grant_type: "authorization_code",
+      });
+      access_token = data.access_token;
+    } catch (error: any) {
+      console.error("[Google OAuth] Token exchange failed:", error.response?.data || error.message);
+      const details = error.response?.data ? JSON.stringify(error.response.data) : error.message;
+      throw new Error(`Token exchange failed. Details: ${details}`);
+    }
 
     // 2. Get user info from Google
-    const { data: googleUser } = (await axios.get(
-      "https://www.googleapis.com/oauth2/v1/userinfo",
-      {
+    let googleUser: GoogleUser;
+    try {
+      const { data } = await axios.get("https://www.googleapis.com/oauth2/v1/userinfo", {
         headers: {
           Authorization: `Bearer ${access_token}`,
         },
-      },
-    )) as { data: GoogleUser };
+      });
+      googleUser = data as GoogleUser;
+    } catch (error: any) {
+      console.error("[Google OAuth] Fetch user info failed:", error.response?.data || error.message);
+      throw new Error("Failed to fetch user info from Google.");
+    }
+
+    // 2.5 Ensure CUSTOMER role exists (fix for missing role error)
+    let customerRole = await this.models.role.findFirst({
+      where: { code: "CUSTOMER", deleted: false },
+    });
+
+    if (!customerRole) {
+      customerRole = await this.models.role.create({
+        data: {
+          code: "CUSTOMER",
+          name: "Customer",
+          description: "Standard user role for customers",
+          isReadOnly: true,
+        },
+      });
+      console.log("[GoogleOAuthCallback] Created missing CUSTOMER role");
+    }
 
     // 3. Find or create user
     let user = await this.models.user.findUnique({
@@ -59,10 +86,10 @@ export class GoogleOAuthCallbackService extends ApplicationService {
           firstName: googleUser.given_name || "",
           lastName: googleUser.family_name || "",
           avatarUrl: googleUser.picture || "",
-          status: "ACTIVE",
+          status: UserStatus.ACTIVE,
           googleId: googleUser.id,
           roles: {
-            create: [{ role: { connect: { code: "CUSTOMER" } } }],
+            create: [{ roleId: customerRole.id }],
           },
         },
         include: { roles: { include: { role: true } } },
@@ -79,6 +106,30 @@ export class GoogleOAuthCallbackService extends ApplicationService {
         },
         include: { roles: { include: { role: true } } },
       });
+
+      // Ensure user has CUSTOMER role (assign if not already assigned)
+      const hasCustomerRole = user.roles.some(
+        (r: { role: { code: string } }) => r.role.code === "CUSTOMER",
+      );
+
+      if (!hasCustomerRole) {
+        await this.models.userToRole.create({
+          data: {
+            userId: user.id,
+            roleId: customerRole.id,
+          },
+        });
+
+        // Refresh user data with roles
+        user = await this.models.user.findUnique({
+          where: { id: user.id },
+          include: { roles: { include: { role: true } } },
+        }) as any;
+      }
+    }
+
+    if (!user) {
+      throw new Error("Failed to find or create user");
     }
 
     // 4. Generate JWT tokens
@@ -106,23 +157,25 @@ export class GoogleOAuthCallbackService extends ApplicationService {
       this.models.password.deleteMany({
         where: {
           userId: user.id,
-          type: "REFRESH_TOKEN",
+          type: PasswordType.REFRESH_TOKEN,
         },
       }),
       this.models.password.create({
         data: {
           userId: user.id,
           password: refreshToken,
-          type: "REFRESH_TOKEN",
+          type: PasswordType.REFRESH_TOKEN,
         },
       }),
     ]);
 
+    // 6. Return clean response to FE
+    const { roles: _, ...userWithoutRoles } = user;
     return {
       accessToken,
       refreshToken,
       user: {
-        ...user,
+        ...userWithoutRoles,
         fullName: `${user.firstName} ${user.lastName}`,
         roles: userRoles,
       },
