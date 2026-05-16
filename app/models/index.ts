@@ -1,16 +1,22 @@
 import env from "@configs/env";
 import { PrismaClient } from "@db";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+
+import pg from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 const prismaClientSingleton = () => {
-  const dbPath = env.databaseUrl.replace("file:", "");
-  const adapter = new PrismaBetterSqlite3({
-    url: dbPath,
+  const pool = new pg.Pool({
+    connectionString: env.databaseUrl,
   });
+
+  const adapter = new PrismaPg(pool);
 
   return new PrismaClient({
     adapter,
-    log: env.nodeEnv === "development" ? ["query", "error", "warn"] : ["error"],
+    log:
+      env.nodeEnv === "development"
+        ? ["query", "error", "warn"]
+        : ["error"],
   });
 };
 
@@ -24,4 +30,6 @@ const models = globalForPrisma.prisma ?? prismaClientSingleton();
 
 export default models;
 
-if (env.nodeEnv !== "production") globalForPrisma.prisma = models;
+if (env.nodeEnv !== "production") {
+  globalForPrisma.prisma = models;
+}
