@@ -10,9 +10,9 @@ import {
   LoginValidator,
   UpdatePasswordValidator,
 } from "@validators/auth.validator";
-import axios from "axios";
 import { Security } from "ts-rails";
 import { ApplicationController } from ".";
+import { GoogleOAuthCallbackService } from "../services/auth";
 
 export type GoogleUser = {
   email: string;
@@ -32,84 +32,31 @@ export class AuthController extends ApplicationController {
   }
 
   async loginWithGoogleRedirect() {
-    const { code } = this.req.query;
-    const {
-      data: { access_token },
-    } = await axios.post("https://oauth2.googleapis.com/token", {
-      client_id: env.googleClientId,
-      client_secret: env.googleClientSecret,
-      code,
-      redirect_uri: env.googleRedirectUri,
-      grant_type: "authorization_code",
-    });
+    try {
+      const code = this.req.body?.code || this.req.query?.code;
+      const redirectUri = this.req.body?.redirectUri || this.req.query?.redirectUri;
 
-    const { data: googleUser } = (await axios.get(
-      "https://www.googleapis.com/oauth2/v1/userinfo",
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
-      },
-    )) as { data: GoogleUser };
+      if (!code) {
+        return this.res.status(400).json({ error: "Missing authorization code from Google" });
+      }
 
-    const loginUser = await models.user.findUnique({
-      where: { email: googleUser.email },
-    });
+      const service = new GoogleOAuthCallbackService();
+      const result = await service.execute(code as string, redirectUri as string);
+      console.log(result.user);
 
-    if (!loginUser) {
-      const newUser = await models.user.create({
-        data: {
-          firstName: googleUser.given_name,
-          lastName: googleUser.family_name,
-          email: googleUser.email,
-          avatarUrl: googleUser.picture,
-          googleId: googleUser.id,
-        },
+      // Lưu user ID vào session để đánh dấu đã đăng nhập
+      return this.res.json({
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        user: result.user,
       });
-      this.req.session!.userId = newUser.id;
-      this.req.session!.save((err) => {
-        // Nếu anh muốn dùng Token thay vì Session, anh có thể trả về JSON tại đây
-        // const tokens = this.generateAuthTokens(newUser.id);
-        if (err) return this.redirect("/auth");
-        this.flash(FlashType.Success, { msg: this.t("flash.login_success") });
-        this.redirect("/");
+    } catch (error: any) {
+      console.error("Google login error:", error?.response?.data || error?.message || error);
+      return this.res.status(500).json({ 
+        error: "Google login failed",
+        details: error?.message || "Unknown error" 
       });
-      return;
     }
-    if (loginUser.deleted) {
-      this.flash(FlashType.Errors, { msg: this.t("flash.user_deleted") });
-      return this.redirect("/auth");
-    }
-    if (loginUser.status === UserStatus.INACTIVE) {
-      this.flash(FlashType.Errors, { msg: "User is banned." });
-      return this.redirect("/auth");
-    }
-    if (loginUser.status === UserStatus.PENDING) {
-      this.flash(FlashType.Errors, {
-        msg: this.t("flash.admin_reviewing_full"),
-      });
-      return this.redirect("/auth");
-    }
-
-    await models.user.update({
-      where: { id: loginUser.id },
-      data: {
-        firstName: googleUser.given_name,
-        lastName: googleUser.family_name,
-        email: googleUser.email,
-        avatarUrl: googleUser.picture,
-        googleId: loginUser.googleId ? loginUser.googleId : googleUser.id,
-      },
-    });
-    this.req.session!.userId = loginUser.id;
-
-    // const tokens = this.generateAuthTokens(loginUser.id);
-
-    this.req.session!.save((err) => {
-      if (err) return this.redirect("/auth");
-      this.flash(FlashType.Success, { msg: this.t("flash.login_success") });
-      this.redirect("/");
-    });
   }
 
   async index() {
