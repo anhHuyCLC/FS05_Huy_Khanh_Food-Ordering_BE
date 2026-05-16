@@ -3,8 +3,9 @@
  */
 import { AuthController } from "@controllers/api";
 import {
-  GoogleVerifyValidator,
-  RefreshTokenValidator,
+    GoogleOAuthCallbackValidator,
+    GoogleVerifyValidator,
+    RefreshTokenValidator,
 } from "@validators/auth.validator";
 import { action, RailsRoute } from "ts-rails";
 
@@ -31,6 +32,19 @@ export class AuthRoute extends RailsRoute {
         responses: {
           200: "Success",
           401: "Invalid token",
+          422: "Validation failed",
+        },
+      },
+    });
+
+    this.post("/google/callback", action(AuthController, "googleOAuthCallback"), {
+      document: {
+        summary: "Google OAuth callback - Exchange authorization code for tokens",
+        tags: ["Auth"],
+        body: GoogleOAuthCallbackValidator,
+        responses: {
+          200: "Success - returns accessToken, refreshToken, and user",
+          401: "Invalid authorization code",
           422: "Validation failed",
         },
       },
