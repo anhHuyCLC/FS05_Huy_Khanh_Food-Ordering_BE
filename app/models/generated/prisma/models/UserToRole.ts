@@ -170,8 +170,8 @@ export type UserToRoleWhereInput = {
   AND?: Prisma.UserToRoleWhereInput | Prisma.UserToRoleWhereInput[]
   OR?: Prisma.UserToRoleWhereInput[]
   NOT?: Prisma.UserToRoleWhereInput | Prisma.UserToRoleWhereInput[]
-  userId?: Prisma.StringFilter<"UserToRole"> | string
-  roleId?: Prisma.StringFilter<"UserToRole"> | string
+  userId?: Prisma.UuidFilter<"UserToRole"> | string
+  roleId?: Prisma.UuidFilter<"UserToRole"> | string
   createdAt?: Prisma.DateTimeFilter<"UserToRole"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"UserToRole"> | Date | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -192,8 +192,8 @@ export type UserToRoleWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.UserToRoleWhereInput | Prisma.UserToRoleWhereInput[]
   OR?: Prisma.UserToRoleWhereInput[]
   NOT?: Prisma.UserToRoleWhereInput | Prisma.UserToRoleWhereInput[]
-  userId?: Prisma.StringFilter<"UserToRole"> | string
-  roleId?: Prisma.StringFilter<"UserToRole"> | string
+  userId?: Prisma.UuidFilter<"UserToRole"> | string
+  roleId?: Prisma.UuidFilter<"UserToRole"> | string
   createdAt?: Prisma.DateTimeFilter<"UserToRole"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"UserToRole"> | Date | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -214,8 +214,8 @@ export type UserToRoleScalarWhereWithAggregatesInput = {
   AND?: Prisma.UserToRoleScalarWhereWithAggregatesInput | Prisma.UserToRoleScalarWhereWithAggregatesInput[]
   OR?: Prisma.UserToRoleScalarWhereWithAggregatesInput[]
   NOT?: Prisma.UserToRoleScalarWhereWithAggregatesInput | Prisma.UserToRoleScalarWhereWithAggregatesInput[]
-  userId?: Prisma.StringWithAggregatesFilter<"UserToRole"> | string
-  roleId?: Prisma.StringWithAggregatesFilter<"UserToRole"> | string
+  userId?: Prisma.UuidWithAggregatesFilter<"UserToRole"> | string
+  roleId?: Prisma.UuidWithAggregatesFilter<"UserToRole"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"UserToRole"> | Date | string
   updatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"UserToRole"> | Date | string | null
 }
@@ -429,8 +429,8 @@ export type UserToRoleScalarWhereInput = {
   AND?: Prisma.UserToRoleScalarWhereInput | Prisma.UserToRoleScalarWhereInput[]
   OR?: Prisma.UserToRoleScalarWhereInput[]
   NOT?: Prisma.UserToRoleScalarWhereInput | Prisma.UserToRoleScalarWhereInput[]
-  userId?: Prisma.StringFilter<"UserToRole"> | string
-  roleId?: Prisma.StringFilter<"UserToRole"> | string
+  userId?: Prisma.UuidFilter<"UserToRole"> | string
+  roleId?: Prisma.UuidFilter<"UserToRole"> | string
   createdAt?: Prisma.DateTimeFilter<"UserToRole"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"UserToRole"> | Date | string | null
 }
