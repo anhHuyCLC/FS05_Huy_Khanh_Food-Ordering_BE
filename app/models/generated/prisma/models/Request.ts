@@ -32,7 +32,7 @@ export type RequestMinAggregateOutputType = {
   requestType: string | null
   jsonParameters: string | null
   status: string | null
-  approvedById: string | null
+  approvedBy: string | null
   approvedAt: Date | null
 }
 
@@ -44,7 +44,7 @@ export type RequestMaxAggregateOutputType = {
   requestType: string | null
   jsonParameters: string | null
   status: string | null
-  approvedById: string | null
+  approvedBy: string | null
   approvedAt: Date | null
 }
 
@@ -56,7 +56,7 @@ export type RequestCountAggregateOutputType = {
   requestType: number
   jsonParameters: number
   status: number
-  approvedById: number
+  approvedBy: number
   approvedAt: number
   _all: number
 }
@@ -70,7 +70,7 @@ export type RequestMinAggregateInputType = {
   requestType?: true
   jsonParameters?: true
   status?: true
-  approvedById?: true
+  approvedBy?: true
   approvedAt?: true
 }
 
@@ -82,7 +82,7 @@ export type RequestMaxAggregateInputType = {
   requestType?: true
   jsonParameters?: true
   status?: true
-  approvedById?: true
+  approvedBy?: true
   approvedAt?: true
 }
 
@@ -94,7 +94,7 @@ export type RequestCountAggregateInputType = {
   requestType?: true
   jsonParameters?: true
   status?: true
-  approvedById?: true
+  approvedBy?: true
   approvedAt?: true
   _all?: true
 }
@@ -179,7 +179,7 @@ export type RequestGroupByOutputType = {
   requestType: string
   jsonParameters: string
   status: string
-  approvedById: string | null
+  approvedBy: string | null
   approvedAt: Date | null
   _count: RequestCountAggregateOutputType | null
   _min: RequestMinAggregateOutputType | null
@@ -205,14 +205,14 @@ export type RequestWhereInput = {
   AND?: Prisma.RequestWhereInput | Prisma.RequestWhereInput[]
   OR?: Prisma.RequestWhereInput[]
   NOT?: Prisma.RequestWhereInput | Prisma.RequestWhereInput[]
-  id?: Prisma.UuidFilter<"Request"> | string
-  createdById?: Prisma.UuidFilter<"Request"> | string
+  id?: Prisma.StringFilter<"Request"> | string
+  createdById?: Prisma.StringFilter<"Request"> | string
   createdAt?: Prisma.DateTimeFilter<"Request"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"Request"> | Date | string | null
   requestType?: Prisma.StringFilter<"Request"> | string
   jsonParameters?: Prisma.StringFilter<"Request"> | string
   status?: Prisma.StringFilter<"Request"> | string
-  approvedById?: Prisma.UuidNullableFilter<"Request"> | string | null
+  approvedBy?: Prisma.StringNullableFilter<"Request"> | string | null
   approvedAt?: Prisma.DateTimeNullableFilter<"Request"> | Date | string | null
   requester?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   approver?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -226,7 +226,7 @@ export type RequestOrderByWithRelationInput = {
   requestType?: Prisma.SortOrder
   jsonParameters?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  approvedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  approvedBy?: Prisma.SortOrderInput | Prisma.SortOrder
   approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   requester?: Prisma.UserOrderByWithRelationInput
   approver?: Prisma.UserOrderByWithRelationInput
@@ -237,13 +237,13 @@ export type RequestWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.RequestWhereInput | Prisma.RequestWhereInput[]
   OR?: Prisma.RequestWhereInput[]
   NOT?: Prisma.RequestWhereInput | Prisma.RequestWhereInput[]
-  createdById?: Prisma.UuidFilter<"Request"> | string
+  createdById?: Prisma.StringFilter<"Request"> | string
   createdAt?: Prisma.DateTimeFilter<"Request"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"Request"> | Date | string | null
   requestType?: Prisma.StringFilter<"Request"> | string
   jsonParameters?: Prisma.StringFilter<"Request"> | string
   status?: Prisma.StringFilter<"Request"> | string
-  approvedById?: Prisma.UuidNullableFilter<"Request"> | string | null
+  approvedBy?: Prisma.StringNullableFilter<"Request"> | string | null
   approvedAt?: Prisma.DateTimeNullableFilter<"Request"> | Date | string | null
   requester?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   approver?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -257,7 +257,7 @@ export type RequestOrderByWithAggregationInput = {
   requestType?: Prisma.SortOrder
   jsonParameters?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  approvedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  approvedBy?: Prisma.SortOrderInput | Prisma.SortOrder
   approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.RequestCountOrderByAggregateInput
   _max?: Prisma.RequestMaxOrderByAggregateInput
@@ -268,14 +268,14 @@ export type RequestScalarWhereWithAggregatesInput = {
   AND?: Prisma.RequestScalarWhereWithAggregatesInput | Prisma.RequestScalarWhereWithAggregatesInput[]
   OR?: Prisma.RequestScalarWhereWithAggregatesInput[]
   NOT?: Prisma.RequestScalarWhereWithAggregatesInput | Prisma.RequestScalarWhereWithAggregatesInput[]
-  id?: Prisma.UuidWithAggregatesFilter<"Request"> | string
-  createdById?: Prisma.UuidWithAggregatesFilter<"Request"> | string
+  id?: Prisma.StringWithAggregatesFilter<"Request"> | string
+  createdById?: Prisma.StringWithAggregatesFilter<"Request"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Request"> | Date | string
   updatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Request"> | Date | string | null
   requestType?: Prisma.StringWithAggregatesFilter<"Request"> | string
   jsonParameters?: Prisma.StringWithAggregatesFilter<"Request"> | string
   status?: Prisma.StringWithAggregatesFilter<"Request"> | string
-  approvedById?: Prisma.UuidNullableWithAggregatesFilter<"Request"> | string | null
+  approvedBy?: Prisma.StringNullableWithAggregatesFilter<"Request"> | string | null
   approvedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Request"> | Date | string | null
 }
 
@@ -299,7 +299,7 @@ export type RequestUncheckedCreateInput = {
   requestType: string
   jsonParameters: string
   status?: string
-  approvedById?: string | null
+  approvedBy?: string | null
   approvedAt?: Date | string | null
 }
 
@@ -323,7 +323,7 @@ export type RequestUncheckedUpdateInput = {
   requestType?: Prisma.StringFieldUpdateOperationsInput | string
   jsonParameters?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -335,7 +335,7 @@ export type RequestCreateManyInput = {
   requestType: string
   jsonParameters: string
   status?: string
-  approvedById?: string | null
+  approvedBy?: string | null
   approvedAt?: Date | string | null
 }
 
@@ -357,7 +357,7 @@ export type RequestUncheckedUpdateManyInput = {
   requestType?: Prisma.StringFieldUpdateOperationsInput | string
   jsonParameters?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -379,7 +379,7 @@ export type RequestCountOrderByAggregateInput = {
   requestType?: Prisma.SortOrder
   jsonParameters?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  approvedById?: Prisma.SortOrder
+  approvedBy?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrder
 }
 
@@ -391,7 +391,7 @@ export type RequestMaxOrderByAggregateInput = {
   requestType?: Prisma.SortOrder
   jsonParameters?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  approvedById?: Prisma.SortOrder
+  approvedBy?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrder
 }
 
@@ -403,7 +403,7 @@ export type RequestMinOrderByAggregateInput = {
   requestType?: Prisma.SortOrder
   jsonParameters?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  approvedById?: Prisma.SortOrder
+  approvedBy?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrder
 }
 
@@ -509,7 +509,7 @@ export type RequestUncheckedCreateWithoutRequesterInput = {
   requestType: string
   jsonParameters: string
   status?: string
-  approvedById?: string | null
+  approvedBy?: string | null
   approvedAt?: Date | string | null
 }
 
@@ -575,14 +575,14 @@ export type RequestScalarWhereInput = {
   AND?: Prisma.RequestScalarWhereInput | Prisma.RequestScalarWhereInput[]
   OR?: Prisma.RequestScalarWhereInput[]
   NOT?: Prisma.RequestScalarWhereInput | Prisma.RequestScalarWhereInput[]
-  id?: Prisma.UuidFilter<"Request"> | string
-  createdById?: Prisma.UuidFilter<"Request"> | string
+  id?: Prisma.StringFilter<"Request"> | string
+  createdById?: Prisma.StringFilter<"Request"> | string
   createdAt?: Prisma.DateTimeFilter<"Request"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"Request"> | Date | string | null
   requestType?: Prisma.StringFilter<"Request"> | string
   jsonParameters?: Prisma.StringFilter<"Request"> | string
   status?: Prisma.StringFilter<"Request"> | string
-  approvedById?: Prisma.UuidNullableFilter<"Request"> | string | null
+  approvedBy?: Prisma.StringNullableFilter<"Request"> | string | null
   approvedAt?: Prisma.DateTimeNullableFilter<"Request"> | Date | string | null
 }
 
@@ -609,7 +609,7 @@ export type RequestCreateManyRequesterInput = {
   requestType: string
   jsonParameters: string
   status?: string
-  approvedById?: string | null
+  approvedBy?: string | null
   approvedAt?: Date | string | null
 }
 
@@ -642,7 +642,7 @@ export type RequestUncheckedUpdateWithoutRequesterInput = {
   requestType?: Prisma.StringFieldUpdateOperationsInput | string
   jsonParameters?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -653,7 +653,7 @@ export type RequestUncheckedUpdateManyWithoutRequesterInput = {
   requestType?: Prisma.StringFieldUpdateOperationsInput | string
   jsonParameters?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -700,7 +700,7 @@ export type RequestSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   requestType?: boolean
   jsonParameters?: boolean
   status?: boolean
-  approvedById?: boolean
+  approvedBy?: boolean
   approvedAt?: boolean
   requester?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   approver?: boolean | Prisma.Request$approverArgs<ExtArgs>
@@ -714,7 +714,7 @@ export type RequestSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   requestType?: boolean
   jsonParameters?: boolean
   status?: boolean
-  approvedById?: boolean
+  approvedBy?: boolean
   approvedAt?: boolean
   requester?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   approver?: boolean | Prisma.Request$approverArgs<ExtArgs>
@@ -728,7 +728,7 @@ export type RequestSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   requestType?: boolean
   jsonParameters?: boolean
   status?: boolean
-  approvedById?: boolean
+  approvedBy?: boolean
   approvedAt?: boolean
   requester?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   approver?: boolean | Prisma.Request$approverArgs<ExtArgs>
@@ -742,11 +742,11 @@ export type RequestSelectScalar = {
   requestType?: boolean
   jsonParameters?: boolean
   status?: boolean
-  approvedById?: boolean
+  approvedBy?: boolean
   approvedAt?: boolean
 }
 
-export type RequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdById" | "createdAt" | "updatedAt" | "requestType" | "jsonParameters" | "status" | "approvedById" | "approvedAt", ExtArgs["result"]["request"]>
+export type RequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdById" | "createdAt" | "updatedAt" | "requestType" | "jsonParameters" | "status" | "approvedBy" | "approvedAt", ExtArgs["result"]["request"]>
 export type RequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   requester?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   approver?: boolean | Prisma.Request$approverArgs<ExtArgs>
@@ -774,7 +774,7 @@ export type $RequestPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     requestType: string
     jsonParameters: string
     status: string
-    approvedById: string | null
+    approvedBy: string | null
     approvedAt: Date | null
   }, ExtArgs["result"]["request"]>
   composites: {}
@@ -1208,7 +1208,7 @@ export interface RequestFieldRefs {
   readonly requestType: Prisma.FieldRef<"Request", 'String'>
   readonly jsonParameters: Prisma.FieldRef<"Request", 'String'>
   readonly status: Prisma.FieldRef<"Request", 'String'>
-  readonly approvedById: Prisma.FieldRef<"Request", 'String'>
+  readonly approvedBy: Prisma.FieldRef<"Request", 'String'>
   readonly approvedAt: Prisma.FieldRef<"Request", 'DateTime'>
 }
     

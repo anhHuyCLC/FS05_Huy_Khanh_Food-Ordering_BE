@@ -219,17 +219,17 @@ export type PermissionWhereInput = {
   AND?: Prisma.PermissionWhereInput | Prisma.PermissionWhereInput[]
   OR?: Prisma.PermissionWhereInput[]
   NOT?: Prisma.PermissionWhereInput | Prisma.PermissionWhereInput[]
-  id?: Prisma.UuidFilter<"Permission"> | string
+  id?: Prisma.StringFilter<"Permission"> | string
   createdAt?: Prisma.DateTimeFilter<"Permission"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"Permission"> | Date | string | null
-  createdById?: Prisma.UuidNullableFilter<"Permission"> | string | null
-  updatedById?: Prisma.UuidNullableFilter<"Permission"> | string | null
+  createdById?: Prisma.StringNullableFilter<"Permission"> | string | null
+  updatedById?: Prisma.StringNullableFilter<"Permission"> | string | null
   deleted?: Prisma.BoolFilter<"Permission"> | boolean
   code?: Prisma.StringFilter<"Permission"> | string
   name?: Prisma.StringFilter<"Permission"> | string
   description?: Prisma.StringNullableFilter<"Permission"> | string | null
   type?: Prisma.StringFilter<"Permission"> | string
-  featureId?: Prisma.UuidFilter<"Permission"> | string
+  featureId?: Prisma.StringFilter<"Permission"> | string
   feature?: Prisma.XOR<Prisma.FeatureScalarRelationFilter, Prisma.FeatureWhereInput>
   users?: Prisma.UserToPermissionListRelationFilter
   roles?: Prisma.RoleToPermissionListRelationFilter
@@ -263,14 +263,14 @@ export type PermissionWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.PermissionWhereInput | Prisma.PermissionWhereInput[]
   createdAt?: Prisma.DateTimeFilter<"Permission"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"Permission"> | Date | string | null
-  createdById?: Prisma.UuidNullableFilter<"Permission"> | string | null
-  updatedById?: Prisma.UuidNullableFilter<"Permission"> | string | null
+  createdById?: Prisma.StringNullableFilter<"Permission"> | string | null
+  updatedById?: Prisma.StringNullableFilter<"Permission"> | string | null
   deleted?: Prisma.BoolFilter<"Permission"> | boolean
   code?: Prisma.StringFilter<"Permission"> | string
   name?: Prisma.StringFilter<"Permission"> | string
   description?: Prisma.StringNullableFilter<"Permission"> | string | null
   type?: Prisma.StringFilter<"Permission"> | string
-  featureId?: Prisma.UuidFilter<"Permission"> | string
+  featureId?: Prisma.StringFilter<"Permission"> | string
   feature?: Prisma.XOR<Prisma.FeatureScalarRelationFilter, Prisma.FeatureWhereInput>
   users?: Prisma.UserToPermissionListRelationFilter
   roles?: Prisma.RoleToPermissionListRelationFilter
@@ -299,17 +299,17 @@ export type PermissionScalarWhereWithAggregatesInput = {
   AND?: Prisma.PermissionScalarWhereWithAggregatesInput | Prisma.PermissionScalarWhereWithAggregatesInput[]
   OR?: Prisma.PermissionScalarWhereWithAggregatesInput[]
   NOT?: Prisma.PermissionScalarWhereWithAggregatesInput | Prisma.PermissionScalarWhereWithAggregatesInput[]
-  id?: Prisma.UuidWithAggregatesFilter<"Permission"> | string
+  id?: Prisma.StringWithAggregatesFilter<"Permission"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Permission"> | Date | string
   updatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Permission"> | Date | string | null
-  createdById?: Prisma.UuidNullableWithAggregatesFilter<"Permission"> | string | null
-  updatedById?: Prisma.UuidNullableWithAggregatesFilter<"Permission"> | string | null
+  createdById?: Prisma.StringNullableWithAggregatesFilter<"Permission"> | string | null
+  updatedById?: Prisma.StringNullableWithAggregatesFilter<"Permission"> | string | null
   deleted?: Prisma.BoolWithAggregatesFilter<"Permission"> | boolean
   code?: Prisma.StringWithAggregatesFilter<"Permission"> | string
   name?: Prisma.StringWithAggregatesFilter<"Permission"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Permission"> | string | null
   type?: Prisma.StringWithAggregatesFilter<"Permission"> | string
-  featureId?: Prisma.UuidWithAggregatesFilter<"Permission"> | string
+  featureId?: Prisma.StringWithAggregatesFilter<"Permission"> | string
 }
 
 export type PermissionCreateInput = {
@@ -726,17 +726,17 @@ export type PermissionScalarWhereInput = {
   AND?: Prisma.PermissionScalarWhereInput | Prisma.PermissionScalarWhereInput[]
   OR?: Prisma.PermissionScalarWhereInput[]
   NOT?: Prisma.PermissionScalarWhereInput | Prisma.PermissionScalarWhereInput[]
-  id?: Prisma.UuidFilter<"Permission"> | string
+  id?: Prisma.StringFilter<"Permission"> | string
   createdAt?: Prisma.DateTimeFilter<"Permission"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"Permission"> | Date | string | null
-  createdById?: Prisma.UuidNullableFilter<"Permission"> | string | null
-  updatedById?: Prisma.UuidNullableFilter<"Permission"> | string | null
+  createdById?: Prisma.StringNullableFilter<"Permission"> | string | null
+  updatedById?: Prisma.StringNullableFilter<"Permission"> | string | null
   deleted?: Prisma.BoolFilter<"Permission"> | boolean
   code?: Prisma.StringFilter<"Permission"> | string
   name?: Prisma.StringFilter<"Permission"> | string
   description?: Prisma.StringNullableFilter<"Permission"> | string | null
   type?: Prisma.StringFilter<"Permission"> | string
-  featureId?: Prisma.UuidFilter<"Permission"> | string
+  featureId?: Prisma.StringFilter<"Permission"> | string
 }
 
 export type PermissionUpsertWithWhereUniqueWithoutUpdatedByInput = {

@@ -170,8 +170,8 @@ export type UserToPermissionWhereInput = {
   AND?: Prisma.UserToPermissionWhereInput | Prisma.UserToPermissionWhereInput[]
   OR?: Prisma.UserToPermissionWhereInput[]
   NOT?: Prisma.UserToPermissionWhereInput | Prisma.UserToPermissionWhereInput[]
-  userId?: Prisma.UuidFilter<"UserToPermission"> | string
-  permissionId?: Prisma.UuidFilter<"UserToPermission"> | string
+  userId?: Prisma.StringFilter<"UserToPermission"> | string
+  permissionId?: Prisma.StringFilter<"UserToPermission"> | string
   createdAt?: Prisma.DateTimeFilter<"UserToPermission"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"UserToPermission"> | Date | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -192,8 +192,8 @@ export type UserToPermissionWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.UserToPermissionWhereInput | Prisma.UserToPermissionWhereInput[]
   OR?: Prisma.UserToPermissionWhereInput[]
   NOT?: Prisma.UserToPermissionWhereInput | Prisma.UserToPermissionWhereInput[]
-  userId?: Prisma.UuidFilter<"UserToPermission"> | string
-  permissionId?: Prisma.UuidFilter<"UserToPermission"> | string
+  userId?: Prisma.StringFilter<"UserToPermission"> | string
+  permissionId?: Prisma.StringFilter<"UserToPermission"> | string
   createdAt?: Prisma.DateTimeFilter<"UserToPermission"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"UserToPermission"> | Date | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -214,8 +214,8 @@ export type UserToPermissionScalarWhereWithAggregatesInput = {
   AND?: Prisma.UserToPermissionScalarWhereWithAggregatesInput | Prisma.UserToPermissionScalarWhereWithAggregatesInput[]
   OR?: Prisma.UserToPermissionScalarWhereWithAggregatesInput[]
   NOT?: Prisma.UserToPermissionScalarWhereWithAggregatesInput | Prisma.UserToPermissionScalarWhereWithAggregatesInput[]
-  userId?: Prisma.UuidWithAggregatesFilter<"UserToPermission"> | string
-  permissionId?: Prisma.UuidWithAggregatesFilter<"UserToPermission"> | string
+  userId?: Prisma.StringWithAggregatesFilter<"UserToPermission"> | string
+  permissionId?: Prisma.StringWithAggregatesFilter<"UserToPermission"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"UserToPermission"> | Date | string
   updatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"UserToPermission"> | Date | string | null
 }
@@ -429,8 +429,8 @@ export type UserToPermissionScalarWhereInput = {
   AND?: Prisma.UserToPermissionScalarWhereInput | Prisma.UserToPermissionScalarWhereInput[]
   OR?: Prisma.UserToPermissionScalarWhereInput[]
   NOT?: Prisma.UserToPermissionScalarWhereInput | Prisma.UserToPermissionScalarWhereInput[]
-  userId?: Prisma.UuidFilter<"UserToPermission"> | string
-  permissionId?: Prisma.UuidFilter<"UserToPermission"> | string
+  userId?: Prisma.StringFilter<"UserToPermission"> | string
+  permissionId?: Prisma.StringFilter<"UserToPermission"> | string
   createdAt?: Prisma.DateTimeFilter<"UserToPermission"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"UserToPermission"> | Date | string | null
 }
