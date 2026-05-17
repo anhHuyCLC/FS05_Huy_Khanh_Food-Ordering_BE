@@ -1,9 +1,9 @@
 import {
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MinLength,
+    IsEmail,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    MinLength,
 } from "class-validator";
 
 export class LoginValidator {
@@ -60,4 +60,11 @@ export class RefreshTokenValidator {
   @IsString()
   @MinLength(1)
   refreshToken!: string;
+}
+
+export class GoogleOAuthCallbackValidator {
+  @IsNotEmpty({ message: "Authorization code is required" })
+  @IsString()
+  @MinLength(1)
+  code!: string;
 }

@@ -11,6 +11,15 @@ const prismaClientSingleton = () => {
 
   const adapter = new PrismaPg(pool);
 
+import { PrismaPg } from "@prisma/adapter-pg";
+
+const connectionString = env.databaseUrl;
+
+const adapter = new PrismaPg({
+  connectionString,
+});
+
+const prismaClientSingleton = () => {
   return new PrismaClient({
     adapter,
     log:
@@ -20,13 +29,16 @@ const prismaClientSingleton = () => {
   });
 };
 
-type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
+type PrismaClientSingleton =
+  ReturnType<typeof prismaClientSingleton>;
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClientSingleton | undefined;
 };
 
-const models = globalForPrisma.prisma ?? prismaClientSingleton();
+const models =
+  globalForPrisma.prisma ??
+  prismaClientSingleton();
 
 export default models;
 
