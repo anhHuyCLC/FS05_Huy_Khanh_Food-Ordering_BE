@@ -212,11 +212,11 @@ export type RoleWhereInput = {
   AND?: Prisma.RoleWhereInput | Prisma.RoleWhereInput[]
   OR?: Prisma.RoleWhereInput[]
   NOT?: Prisma.RoleWhereInput | Prisma.RoleWhereInput[]
-  id?: Prisma.UuidFilter<"Role"> | string
+  id?: Prisma.StringFilter<"Role"> | string
   createdAt?: Prisma.DateTimeFilter<"Role"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"Role"> | Date | string | null
-  createdById?: Prisma.UuidNullableFilter<"Role"> | string | null
-  updatedById?: Prisma.UuidNullableFilter<"Role"> | string | null
+  createdById?: Prisma.StringNullableFilter<"Role"> | string | null
+  updatedById?: Prisma.StringNullableFilter<"Role"> | string | null
   deleted?: Prisma.BoolFilter<"Role"> | boolean
   code?: Prisma.StringFilter<"Role"> | string
   name?: Prisma.StringFilter<"Role"> | string
@@ -253,8 +253,8 @@ export type RoleWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.RoleWhereInput | Prisma.RoleWhereInput[]
   createdAt?: Prisma.DateTimeFilter<"Role"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"Role"> | Date | string | null
-  createdById?: Prisma.UuidNullableFilter<"Role"> | string | null
-  updatedById?: Prisma.UuidNullableFilter<"Role"> | string | null
+  createdById?: Prisma.StringNullableFilter<"Role"> | string | null
+  updatedById?: Prisma.StringNullableFilter<"Role"> | string | null
   deleted?: Prisma.BoolFilter<"Role"> | boolean
   name?: Prisma.StringFilter<"Role"> | string
   description?: Prisma.StringNullableFilter<"Role"> | string | null
@@ -285,11 +285,11 @@ export type RoleScalarWhereWithAggregatesInput = {
   AND?: Prisma.RoleScalarWhereWithAggregatesInput | Prisma.RoleScalarWhereWithAggregatesInput[]
   OR?: Prisma.RoleScalarWhereWithAggregatesInput[]
   NOT?: Prisma.RoleScalarWhereWithAggregatesInput | Prisma.RoleScalarWhereWithAggregatesInput[]
-  id?: Prisma.UuidWithAggregatesFilter<"Role"> | string
+  id?: Prisma.StringWithAggregatesFilter<"Role"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Role"> | Date | string
   updatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Role"> | Date | string | null
-  createdById?: Prisma.UuidNullableWithAggregatesFilter<"Role"> | string | null
-  updatedById?: Prisma.UuidNullableWithAggregatesFilter<"Role"> | string | null
+  createdById?: Prisma.StringNullableWithAggregatesFilter<"Role"> | string | null
+  updatedById?: Prisma.StringNullableWithAggregatesFilter<"Role"> | string | null
   deleted?: Prisma.BoolWithAggregatesFilter<"Role"> | boolean
   code?: Prisma.StringWithAggregatesFilter<"Role"> | string
   name?: Prisma.StringWithAggregatesFilter<"Role"> | string
@@ -656,11 +656,11 @@ export type RoleScalarWhereInput = {
   AND?: Prisma.RoleScalarWhereInput | Prisma.RoleScalarWhereInput[]
   OR?: Prisma.RoleScalarWhereInput[]
   NOT?: Prisma.RoleScalarWhereInput | Prisma.RoleScalarWhereInput[]
-  id?: Prisma.UuidFilter<"Role"> | string
+  id?: Prisma.StringFilter<"Role"> | string
   createdAt?: Prisma.DateTimeFilter<"Role"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"Role"> | Date | string | null
-  createdById?: Prisma.UuidNullableFilter<"Role"> | string | null
-  updatedById?: Prisma.UuidNullableFilter<"Role"> | string | null
+  createdById?: Prisma.StringNullableFilter<"Role"> | string | null
+  updatedById?: Prisma.StringNullableFilter<"Role"> | string | null
   deleted?: Prisma.BoolFilter<"Role"> | boolean
   code?: Prisma.StringFilter<"Role"> | string
   name?: Prisma.StringFilter<"Role"> | string
