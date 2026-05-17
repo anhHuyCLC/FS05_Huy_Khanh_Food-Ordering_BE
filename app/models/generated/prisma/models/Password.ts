@@ -191,12 +191,12 @@ export type PasswordWhereInput = {
   AND?: Prisma.PasswordWhereInput | Prisma.PasswordWhereInput[]
   OR?: Prisma.PasswordWhereInput[]
   NOT?: Prisma.PasswordWhereInput | Prisma.PasswordWhereInput[]
-  id?: Prisma.StringFilter<"Password"> | string
+  id?: Prisma.UuidFilter<"Password"> | string
   createdAt?: Prisma.DateTimeFilter<"Password"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"Password"> | Date | string | null
   deleted?: Prisma.BoolFilter<"Password"> | boolean
   password?: Prisma.StringFilter<"Password"> | string
-  userId?: Prisma.StringFilter<"Password"> | string
+  userId?: Prisma.UuidFilter<"Password"> | string
   type?: Prisma.StringFilter<"Password"> | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
@@ -221,7 +221,7 @@ export type PasswordWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeNullableFilter<"Password"> | Date | string | null
   deleted?: Prisma.BoolFilter<"Password"> | boolean
   password?: Prisma.StringFilter<"Password"> | string
-  userId?: Prisma.StringFilter<"Password"> | string
+  userId?: Prisma.UuidFilter<"Password"> | string
   type?: Prisma.StringFilter<"Password"> | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id">
@@ -243,12 +243,12 @@ export type PasswordScalarWhereWithAggregatesInput = {
   AND?: Prisma.PasswordScalarWhereWithAggregatesInput | Prisma.PasswordScalarWhereWithAggregatesInput[]
   OR?: Prisma.PasswordScalarWhereWithAggregatesInput[]
   NOT?: Prisma.PasswordScalarWhereWithAggregatesInput | Prisma.PasswordScalarWhereWithAggregatesInput[]
-  id?: Prisma.StringWithAggregatesFilter<"Password"> | string
+  id?: Prisma.UuidWithAggregatesFilter<"Password"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Password"> | Date | string
   updatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Password"> | Date | string | null
   deleted?: Prisma.BoolWithAggregatesFilter<"Password"> | boolean
   password?: Prisma.StringWithAggregatesFilter<"Password"> | string
-  userId?: Prisma.StringWithAggregatesFilter<"Password"> | string
+  userId?: Prisma.UuidWithAggregatesFilter<"Password"> | string
   type?: Prisma.StringWithAggregatesFilter<"Password"> | string
 }
 
@@ -451,12 +451,12 @@ export type PasswordScalarWhereInput = {
   AND?: Prisma.PasswordScalarWhereInput | Prisma.PasswordScalarWhereInput[]
   OR?: Prisma.PasswordScalarWhereInput[]
   NOT?: Prisma.PasswordScalarWhereInput | Prisma.PasswordScalarWhereInput[]
-  id?: Prisma.StringFilter<"Password"> | string
+  id?: Prisma.UuidFilter<"Password"> | string
   createdAt?: Prisma.DateTimeFilter<"Password"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"Password"> | Date | string | null
   deleted?: Prisma.BoolFilter<"Password"> | boolean
   password?: Prisma.StringFilter<"Password"> | string
-  userId?: Prisma.StringFilter<"Password"> | string
+  userId?: Prisma.UuidFilter<"Password"> | string
   type?: Prisma.StringFilter<"Password"> | string
 }
 

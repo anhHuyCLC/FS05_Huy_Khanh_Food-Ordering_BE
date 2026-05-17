@@ -240,7 +240,7 @@ export type UserWhereInput = {
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
-  id?: Prisma.StringFilter<"User"> | string
+  id?: Prisma.UuidFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   deleted?: Prisma.BoolFilter<"User"> | boolean
@@ -254,6 +254,7 @@ export type UserWhereInput = {
   phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
   address?: Prisma.StringNullableFilter<"User"> | string | null
   googleId?: Prisma.StringNullableFilter<"User"> | string | null
+  profile?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
   roles?: Prisma.UserToRoleListRelationFilter
   permissions?: Prisma.UserToPermissionListRelationFilter
   passwords?: Prisma.PasswordListRelationFilter
@@ -282,6 +283,7 @@ export type UserOrderByWithRelationInput = {
   phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   googleId?: Prisma.SortOrderInput | Prisma.SortOrder
+  profile?: Prisma.ProfileOrderByWithRelationInput
   roles?: Prisma.UserToRoleOrderByRelationAggregateInput
   permissions?: Prisma.UserToPermissionOrderByRelationAggregateInput
   passwords?: Prisma.PasswordOrderByRelationAggregateInput
@@ -313,6 +315,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   gender?: Prisma.StringNullableFilter<"User"> | string | null
   phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
   address?: Prisma.StringNullableFilter<"User"> | string | null
+  profile?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
   roles?: Prisma.UserToRoleListRelationFilter
   permissions?: Prisma.UserToPermissionListRelationFilter
   passwords?: Prisma.PasswordListRelationFilter
@@ -350,7 +353,7 @@ export type UserScalarWhereWithAggregatesInput = {
   AND?: Prisma.UserScalarWhereWithAggregatesInput | Prisma.UserScalarWhereWithAggregatesInput[]
   OR?: Prisma.UserScalarWhereWithAggregatesInput[]
   NOT?: Prisma.UserScalarWhereWithAggregatesInput | Prisma.UserScalarWhereWithAggregatesInput[]
-  id?: Prisma.StringWithAggregatesFilter<"User"> | string
+  id?: Prisma.UuidWithAggregatesFilter<"User"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   deleted?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
@@ -381,6 +384,7 @@ export type UserCreateInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordCreateNestedManyWithoutUserInput
@@ -409,6 +413,7 @@ export type UserUncheckedCreateInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionUncheckedCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordUncheckedCreateNestedManyWithoutUserInput
@@ -437,6 +442,7 @@ export type UserUpdateInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUpdateManyWithoutUserNestedInput
@@ -465,6 +471,7 @@ export type UserUncheckedUpdateInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUncheckedUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUncheckedUpdateManyWithoutUserNestedInput
@@ -778,6 +785,20 @@ export type UserUpdateOneWithoutRequestApproverNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRequestApproverInput, Prisma.UserUpdateWithoutRequestApproverInput>, Prisma.UserUncheckedUpdateWithoutRequestApproverInput>
 }
 
+export type UserCreateNestedOneWithoutProfileInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutProfileInput, Prisma.UserUncheckedCreateWithoutProfileInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutProfileInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutProfileNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutProfileInput, Prisma.UserUncheckedCreateWithoutProfileInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutProfileInput
+  upsert?: Prisma.UserUpsertWithoutProfileInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProfileInput, Prisma.UserUpdateWithoutProfileInput>, Prisma.UserUncheckedUpdateWithoutProfileInput>
+}
+
 export type UserCreateWithoutPasswordsInput = {
   id?: string
   createdAt?: Date | string
@@ -793,6 +814,7 @@ export type UserCreateWithoutPasswordsInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionCreateNestedManyWithoutUserInput
   roleCreated?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
@@ -820,6 +842,7 @@ export type UserUncheckedCreateWithoutPasswordsInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionUncheckedCreateNestedManyWithoutUserInput
   roleCreated?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
@@ -863,6 +886,7 @@ export type UserUpdateWithoutPasswordsInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUpdateManyWithoutUserNestedInput
   roleCreated?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
@@ -890,6 +914,7 @@ export type UserUncheckedUpdateWithoutPasswordsInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUncheckedUpdateManyWithoutUserNestedInput
   roleCreated?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -917,6 +942,7 @@ export type UserCreateWithoutRoleCreatedInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordCreateNestedManyWithoutUserInput
@@ -944,6 +970,7 @@ export type UserUncheckedCreateWithoutRoleCreatedInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionUncheckedCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordUncheckedCreateNestedManyWithoutUserInput
@@ -976,6 +1003,7 @@ export type UserCreateWithoutRoleUpdatedInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordCreateNestedManyWithoutUserInput
@@ -1003,6 +1031,7 @@ export type UserUncheckedCreateWithoutRoleUpdatedInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionUncheckedCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordUncheckedCreateNestedManyWithoutUserInput
@@ -1046,6 +1075,7 @@ export type UserUpdateWithoutRoleCreatedInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUpdateManyWithoutUserNestedInput
@@ -1073,6 +1103,7 @@ export type UserUncheckedUpdateWithoutRoleCreatedInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUncheckedUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUncheckedUpdateManyWithoutUserNestedInput
@@ -1111,6 +1142,7 @@ export type UserUpdateWithoutRoleUpdatedInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUpdateManyWithoutUserNestedInput
@@ -1138,6 +1170,7 @@ export type UserUncheckedUpdateWithoutRoleUpdatedInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUncheckedUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUncheckedUpdateManyWithoutUserNestedInput
@@ -1165,6 +1198,7 @@ export type UserCreateWithoutRolesInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
   permissions?: Prisma.UserToPermissionCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordCreateNestedManyWithoutUserInput
   roleCreated?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
@@ -1192,6 +1226,7 @@ export type UserUncheckedCreateWithoutRolesInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
   permissions?: Prisma.UserToPermissionUncheckedCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordUncheckedCreateNestedManyWithoutUserInput
   roleCreated?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1235,6 +1270,7 @@ export type UserUpdateWithoutRolesInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUpdateManyWithoutUserNestedInput
   roleCreated?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
@@ -1262,6 +1298,7 @@ export type UserUncheckedUpdateWithoutRolesInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUncheckedUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUncheckedUpdateManyWithoutUserNestedInput
   roleCreated?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1289,6 +1326,7 @@ export type UserCreateWithoutFeatureCreatedInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordCreateNestedManyWithoutUserInput
@@ -1316,6 +1354,7 @@ export type UserUncheckedCreateWithoutFeatureCreatedInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionUncheckedCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordUncheckedCreateNestedManyWithoutUserInput
@@ -1348,6 +1387,7 @@ export type UserCreateWithoutFeatureUpdatedInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordCreateNestedManyWithoutUserInput
@@ -1375,6 +1415,7 @@ export type UserUncheckedCreateWithoutFeatureUpdatedInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionUncheckedCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordUncheckedCreateNestedManyWithoutUserInput
@@ -1418,6 +1459,7 @@ export type UserUpdateWithoutFeatureCreatedInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUpdateManyWithoutUserNestedInput
@@ -1445,6 +1487,7 @@ export type UserUncheckedUpdateWithoutFeatureCreatedInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUncheckedUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUncheckedUpdateManyWithoutUserNestedInput
@@ -1483,6 +1526,7 @@ export type UserUpdateWithoutFeatureUpdatedInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUpdateManyWithoutUserNestedInput
@@ -1510,6 +1554,7 @@ export type UserUncheckedUpdateWithoutFeatureUpdatedInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUncheckedUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUncheckedUpdateManyWithoutUserNestedInput
@@ -1537,6 +1582,7 @@ export type UserCreateWithoutPermissionCreatedInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordCreateNestedManyWithoutUserInput
@@ -1564,6 +1610,7 @@ export type UserUncheckedCreateWithoutPermissionCreatedInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionUncheckedCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordUncheckedCreateNestedManyWithoutUserInput
@@ -1596,6 +1643,7 @@ export type UserCreateWithoutPermissionUpdatedInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordCreateNestedManyWithoutUserInput
@@ -1623,6 +1671,7 @@ export type UserUncheckedCreateWithoutPermissionUpdatedInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionUncheckedCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordUncheckedCreateNestedManyWithoutUserInput
@@ -1666,6 +1715,7 @@ export type UserUpdateWithoutPermissionCreatedInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUpdateManyWithoutUserNestedInput
@@ -1693,6 +1743,7 @@ export type UserUncheckedUpdateWithoutPermissionCreatedInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUncheckedUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUncheckedUpdateManyWithoutUserNestedInput
@@ -1731,6 +1782,7 @@ export type UserUpdateWithoutPermissionUpdatedInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUpdateManyWithoutUserNestedInput
@@ -1758,6 +1810,7 @@ export type UserUncheckedUpdateWithoutPermissionUpdatedInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUncheckedUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUncheckedUpdateManyWithoutUserNestedInput
@@ -1785,6 +1838,7 @@ export type UserCreateWithoutPermissionsInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordCreateNestedManyWithoutUserInput
   roleCreated?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
@@ -1812,6 +1866,7 @@ export type UserUncheckedCreateWithoutPermissionsInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleUncheckedCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordUncheckedCreateNestedManyWithoutUserInput
   roleCreated?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1855,6 +1910,7 @@ export type UserUpdateWithoutPermissionsInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUpdateManyWithoutUserNestedInput
   roleCreated?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
@@ -1882,6 +1938,7 @@ export type UserUncheckedUpdateWithoutPermissionsInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUncheckedUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUncheckedUpdateManyWithoutUserNestedInput
   roleCreated?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1909,6 +1966,7 @@ export type UserCreateWithoutRequestCreatorInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordCreateNestedManyWithoutUserInput
@@ -1936,6 +1994,7 @@ export type UserUncheckedCreateWithoutRequestCreatorInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionUncheckedCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordUncheckedCreateNestedManyWithoutUserInput
@@ -1968,6 +2027,7 @@ export type UserCreateWithoutRequestApproverInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordCreateNestedManyWithoutUserInput
@@ -1995,6 +2055,7 @@ export type UserUncheckedCreateWithoutRequestApproverInput = {
   phoneNumber?: string | null
   address?: string | null
   googleId?: string | null
+  profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
   roles?: Prisma.UserToRoleUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.UserToPermissionUncheckedCreateNestedManyWithoutUserInput
   passwords?: Prisma.PasswordUncheckedCreateNestedManyWithoutUserInput
@@ -2038,6 +2099,7 @@ export type UserUpdateWithoutRequestCreatorInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUpdateManyWithoutUserNestedInput
@@ -2065,6 +2127,7 @@ export type UserUncheckedUpdateWithoutRequestCreatorInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUncheckedUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUncheckedUpdateManyWithoutUserNestedInput
@@ -2103,6 +2166,7 @@ export type UserUpdateWithoutRequestApproverInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUpdateManyWithoutUserNestedInput
@@ -2130,6 +2194,7 @@ export type UserUncheckedUpdateWithoutRequestApproverInput = {
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
   roles?: Prisma.UserToRoleUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.UserToPermissionUncheckedUpdateManyWithoutUserNestedInput
   passwords?: Prisma.PasswordUncheckedUpdateManyWithoutUserNestedInput
@@ -2140,6 +2205,134 @@ export type UserUncheckedUpdateWithoutRequestApproverInput = {
   permissionCreated?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
   permissionUpdated?: Prisma.PermissionUncheckedUpdateManyWithoutUpdatedByNestedInput
   requestCreator?: Prisma.RequestUncheckedUpdateManyWithoutRequesterNestedInput
+}
+
+export type UserCreateWithoutProfileInput = {
+  id?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string | null
+  deleted?: boolean
+  firstName: string
+  lastName: string
+  middleName?: string | null
+  email: string
+  status?: string
+  avatarUrl?: string | null
+  gender?: string | null
+  phoneNumber?: string | null
+  address?: string | null
+  googleId?: string | null
+  roles?: Prisma.UserToRoleCreateNestedManyWithoutUserInput
+  permissions?: Prisma.UserToPermissionCreateNestedManyWithoutUserInput
+  passwords?: Prisma.PasswordCreateNestedManyWithoutUserInput
+  roleCreated?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
+  roleUpdated?: Prisma.RoleCreateNestedManyWithoutUpdatedByInput
+  featureCreated?: Prisma.FeatureCreateNestedManyWithoutCreatedByInput
+  featureUpdated?: Prisma.FeatureCreateNestedManyWithoutUpdatedByInput
+  permissionCreated?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
+  permissionUpdated?: Prisma.PermissionCreateNestedManyWithoutUpdatedByInput
+  requestCreator?: Prisma.RequestCreateNestedManyWithoutRequesterInput
+  requestApprover?: Prisma.RequestCreateNestedManyWithoutApproverInput
+}
+
+export type UserUncheckedCreateWithoutProfileInput = {
+  id?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string | null
+  deleted?: boolean
+  firstName: string
+  lastName: string
+  middleName?: string | null
+  email: string
+  status?: string
+  avatarUrl?: string | null
+  gender?: string | null
+  phoneNumber?: string | null
+  address?: string | null
+  googleId?: string | null
+  roles?: Prisma.UserToRoleUncheckedCreateNestedManyWithoutUserInput
+  permissions?: Prisma.UserToPermissionUncheckedCreateNestedManyWithoutUserInput
+  passwords?: Prisma.PasswordUncheckedCreateNestedManyWithoutUserInput
+  roleCreated?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
+  roleUpdated?: Prisma.RoleUncheckedCreateNestedManyWithoutUpdatedByInput
+  featureCreated?: Prisma.FeatureUncheckedCreateNestedManyWithoutCreatedByInput
+  featureUpdated?: Prisma.FeatureUncheckedCreateNestedManyWithoutUpdatedByInput
+  permissionCreated?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
+  permissionUpdated?: Prisma.PermissionUncheckedCreateNestedManyWithoutUpdatedByInput
+  requestCreator?: Prisma.RequestUncheckedCreateNestedManyWithoutRequesterInput
+  requestApprover?: Prisma.RequestUncheckedCreateNestedManyWithoutApproverInput
+}
+
+export type UserCreateOrConnectWithoutProfileInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutProfileInput, Prisma.UserUncheckedCreateWithoutProfileInput>
+}
+
+export type UserUpsertWithoutProfileInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutProfileInput, Prisma.UserUncheckedUpdateWithoutProfileInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutProfileInput, Prisma.UserUncheckedCreateWithoutProfileInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutProfileInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutProfileInput, Prisma.UserUncheckedUpdateWithoutProfileInput>
+}
+
+export type UserUpdateWithoutProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  middleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roles?: Prisma.UserToRoleUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.UserToPermissionUpdateManyWithoutUserNestedInput
+  passwords?: Prisma.PasswordUpdateManyWithoutUserNestedInput
+  roleCreated?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
+  roleUpdated?: Prisma.RoleUpdateManyWithoutUpdatedByNestedInput
+  featureCreated?: Prisma.FeatureUpdateManyWithoutCreatedByNestedInput
+  featureUpdated?: Prisma.FeatureUpdateManyWithoutUpdatedByNestedInput
+  permissionCreated?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
+  permissionUpdated?: Prisma.PermissionUpdateManyWithoutUpdatedByNestedInput
+  requestCreator?: Prisma.RequestUpdateManyWithoutRequesterNestedInput
+  requestApprover?: Prisma.RequestUpdateManyWithoutApproverNestedInput
+}
+
+export type UserUncheckedUpdateWithoutProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  middleName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roles?: Prisma.UserToRoleUncheckedUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.UserToPermissionUncheckedUpdateManyWithoutUserNestedInput
+  passwords?: Prisma.PasswordUncheckedUpdateManyWithoutUserNestedInput
+  roleCreated?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
+  roleUpdated?: Prisma.RoleUncheckedUpdateManyWithoutUpdatedByNestedInput
+  featureCreated?: Prisma.FeatureUncheckedUpdateManyWithoutCreatedByNestedInput
+  featureUpdated?: Prisma.FeatureUncheckedUpdateManyWithoutUpdatedByNestedInput
+  permissionCreated?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  permissionUpdated?: Prisma.PermissionUncheckedUpdateManyWithoutUpdatedByNestedInput
+  requestCreator?: Prisma.RequestUncheckedUpdateManyWithoutRequesterNestedInput
+  requestApprover?: Prisma.RequestUncheckedUpdateManyWithoutApproverNestedInput
 }
 
 
@@ -2278,6 +2471,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   phoneNumber?: boolean
   address?: boolean
   googleId?: boolean
+  profile?: boolean | Prisma.User$profileArgs<ExtArgs>
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
   permissions?: boolean | Prisma.User$permissionsArgs<ExtArgs>
   passwords?: boolean | Prisma.User$passwordsArgs<ExtArgs>
@@ -2345,6 +2539,7 @@ export type UserSelectScalar = {
 
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "deleted" | "firstName" | "lastName" | "middleName" | "email" | "status" | "avatarUrl" | "gender" | "phoneNumber" | "address" | "googleId", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  profile?: boolean | Prisma.User$profileArgs<ExtArgs>
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
   permissions?: boolean | Prisma.User$permissionsArgs<ExtArgs>
   passwords?: boolean | Prisma.User$passwordsArgs<ExtArgs>
@@ -2364,6 +2559,7 @@ export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
   objects: {
+    profile: Prisma.$ProfilePayload<ExtArgs> | null
     roles: Prisma.$UserToRolePayload<ExtArgs>[]
     permissions: Prisma.$UserToPermissionPayload<ExtArgs>[]
     passwords: Prisma.$PasswordPayload<ExtArgs>[]
@@ -2785,6 +2981,7 @@ readonly fields: UserFieldRefs;
  */
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  profile<T extends Prisma.User$profileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$profileArgs<ExtArgs>>): Prisma.Prisma__ProfileClient<runtime.Types.Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   roles<T extends Prisma.User$rolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$rolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserToRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   permissions<T extends Prisma.User$permissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$permissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserToPermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   passwords<T extends Prisma.User$passwordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$passwordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PasswordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3229,6 +3426,25 @@ export type UserDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Limit how many Users to delete.
    */
   limit?: number
+}
+
+/**
+ * User.profile
+ */
+export type User$profileArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Profile
+   */
+  select?: Prisma.ProfileSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Profile
+   */
+  omit?: Prisma.ProfileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProfileInclude<ExtArgs> | null
+  where?: Prisma.ProfileWhereInput
 }
 
 /**
