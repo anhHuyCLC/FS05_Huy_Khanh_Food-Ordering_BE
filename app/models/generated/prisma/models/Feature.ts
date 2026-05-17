@@ -260,17 +260,17 @@ export type FeatureWhereInput = {
   AND?: Prisma.FeatureWhereInput | Prisma.FeatureWhereInput[]
   OR?: Prisma.FeatureWhereInput[]
   NOT?: Prisma.FeatureWhereInput | Prisma.FeatureWhereInput[]
-  id?: Prisma.StringFilter<"Feature"> | string
+  id?: Prisma.UuidFilter<"Feature"> | string
   createdAt?: Prisma.DateTimeFilter<"Feature"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"Feature"> | Date | string | null
-  createdById?: Prisma.StringNullableFilter<"Feature"> | string | null
-  updatedById?: Prisma.StringNullableFilter<"Feature"> | string | null
+  createdById?: Prisma.UuidNullableFilter<"Feature"> | string | null
+  updatedById?: Prisma.UuidNullableFilter<"Feature"> | string | null
   deleted?: Prisma.BoolFilter<"Feature"> | boolean
   code?: Prisma.StringFilter<"Feature"> | string
   name?: Prisma.StringFilter<"Feature"> | string
   description?: Prisma.StringNullableFilter<"Feature"> | string | null
   type?: Prisma.StringFilter<"Feature"> | string
-  parentId?: Prisma.StringNullableFilter<"Feature"> | string | null
+  parentId?: Prisma.UuidNullableFilter<"Feature"> | string | null
   sortOrder?: Prisma.IntFilter<"Feature"> | number
   parent?: Prisma.XOR<Prisma.FeatureNullableScalarRelationFilter, Prisma.FeatureWhereInput> | null
   childs?: Prisma.FeatureListRelationFilter
@@ -306,14 +306,14 @@ export type FeatureWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.FeatureWhereInput | Prisma.FeatureWhereInput[]
   createdAt?: Prisma.DateTimeFilter<"Feature"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"Feature"> | Date | string | null
-  createdById?: Prisma.StringNullableFilter<"Feature"> | string | null
-  updatedById?: Prisma.StringNullableFilter<"Feature"> | string | null
+  createdById?: Prisma.UuidNullableFilter<"Feature"> | string | null
+  updatedById?: Prisma.UuidNullableFilter<"Feature"> | string | null
   deleted?: Prisma.BoolFilter<"Feature"> | boolean
   code?: Prisma.StringFilter<"Feature"> | string
   name?: Prisma.StringFilter<"Feature"> | string
   description?: Prisma.StringNullableFilter<"Feature"> | string | null
   type?: Prisma.StringFilter<"Feature"> | string
-  parentId?: Prisma.StringNullableFilter<"Feature"> | string | null
+  parentId?: Prisma.UuidNullableFilter<"Feature"> | string | null
   sortOrder?: Prisma.IntFilter<"Feature"> | number
   parent?: Prisma.XOR<Prisma.FeatureNullableScalarRelationFilter, Prisma.FeatureWhereInput> | null
   childs?: Prisma.FeatureListRelationFilter
@@ -346,17 +346,17 @@ export type FeatureScalarWhereWithAggregatesInput = {
   AND?: Prisma.FeatureScalarWhereWithAggregatesInput | Prisma.FeatureScalarWhereWithAggregatesInput[]
   OR?: Prisma.FeatureScalarWhereWithAggregatesInput[]
   NOT?: Prisma.FeatureScalarWhereWithAggregatesInput | Prisma.FeatureScalarWhereWithAggregatesInput[]
-  id?: Prisma.StringWithAggregatesFilter<"Feature"> | string
+  id?: Prisma.UuidWithAggregatesFilter<"Feature"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Feature"> | Date | string
   updatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Feature"> | Date | string | null
-  createdById?: Prisma.StringNullableWithAggregatesFilter<"Feature"> | string | null
-  updatedById?: Prisma.StringNullableWithAggregatesFilter<"Feature"> | string | null
+  createdById?: Prisma.UuidNullableWithAggregatesFilter<"Feature"> | string | null
+  updatedById?: Prisma.UuidNullableWithAggregatesFilter<"Feature"> | string | null
   deleted?: Prisma.BoolWithAggregatesFilter<"Feature"> | boolean
   code?: Prisma.StringWithAggregatesFilter<"Feature"> | string
   name?: Prisma.StringWithAggregatesFilter<"Feature"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Feature"> | string | null
   type?: Prisma.StringWithAggregatesFilter<"Feature"> | string
-  parentId?: Prisma.StringNullableWithAggregatesFilter<"Feature"> | string | null
+  parentId?: Prisma.UuidNullableWithAggregatesFilter<"Feature"> | string | null
   sortOrder?: Prisma.IntWithAggregatesFilter<"Feature"> | number
 }
 
@@ -811,17 +811,17 @@ export type FeatureScalarWhereInput = {
   AND?: Prisma.FeatureScalarWhereInput | Prisma.FeatureScalarWhereInput[]
   OR?: Prisma.FeatureScalarWhereInput[]
   NOT?: Prisma.FeatureScalarWhereInput | Prisma.FeatureScalarWhereInput[]
-  id?: Prisma.StringFilter<"Feature"> | string
+  id?: Prisma.UuidFilter<"Feature"> | string
   createdAt?: Prisma.DateTimeFilter<"Feature"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"Feature"> | Date | string | null
-  createdById?: Prisma.StringNullableFilter<"Feature"> | string | null
-  updatedById?: Prisma.StringNullableFilter<"Feature"> | string | null
+  createdById?: Prisma.UuidNullableFilter<"Feature"> | string | null
+  updatedById?: Prisma.UuidNullableFilter<"Feature"> | string | null
   deleted?: Prisma.BoolFilter<"Feature"> | boolean
   code?: Prisma.StringFilter<"Feature"> | string
   name?: Prisma.StringFilter<"Feature"> | string
   description?: Prisma.StringNullableFilter<"Feature"> | string | null
   type?: Prisma.StringFilter<"Feature"> | string
-  parentId?: Prisma.StringNullableFilter<"Feature"> | string | null
+  parentId?: Prisma.UuidNullableFilter<"Feature"> | string | null
   sortOrder?: Prisma.IntFilter<"Feature"> | number
 }
 

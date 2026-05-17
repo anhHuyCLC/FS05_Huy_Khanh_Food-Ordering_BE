@@ -16,6 +16,7 @@ Table users {
   gender String
   phoneNumber String
   address String
+  profile profiles
   googleId String [unique]
   roles user_to_role [not null]
   permissions user_to_permission [not null]
@@ -144,10 +145,414 @@ Table requests {
   requestType String [not null]
   jsonParameters String [not null]
   status String [not null, default: 'PENDING']
-  approvedBy String
+  approvedById String
   approvedAt DateTime
   requester users [not null]
   approver users
+}
+
+Table profiles {
+  id String [pk]
+  userId String [unique, not null]
+  user users [not null]
+  fullName String [not null]
+  phone String [unique]
+  avatarUrl String
+  isActive Boolean [default: true]
+  rewardPoints Int [default: 0]
+  badgeLevel String [default: 'Newbie']
+  deviceTokens String[] [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [default: `now()`, not null]
+  restaurants restaurants [not null]
+  driverProfile driver_profiles
+  orders orders [not null]
+  socialPosts social_posts [not null]
+  postInteractions post_interactions [not null]
+  restaurantReviews restaurant_reviews [not null]
+  driverReviews driver_reviews [not null]
+  menuItemReviews menu_item_reviews [not null]
+  carts carts [not null]
+  chatbotSessions chatbot_sessions [not null]
+  cartItems cart_items [not null]
+  conversationParticipants conversation_participants [not null]
+  sentMessages messages [not null]
+  notifications Notification [not null]
+}
+
+Table restaurants {
+  id String [pk]
+  ownerId String [not null]
+  name String [not null]
+  description String
+  address String [not null]
+  latitude Decimal
+  longitude Decimal
+  isActive Boolean [default: false]
+  rating Decimal [default: 0]
+  createdAt DateTime [default: `now()`, not null]
+  owner profiles [not null]
+  categories categories [not null]
+  menuItems menu_items [not null]
+  orders orders [not null]
+  socialPosts social_posts [not null]
+  promotions promotions [not null]
+  carts carts [not null]
+  reviews restaurant_reviews [not null]
+}
+
+Table driver_profiles {
+  id String [pk]
+  vehicleInfo String
+  licensePlate String
+  currentStatus String [default: 'offline']
+  walletBalance Decimal [default: 0]
+  rating Decimal [default: 0]
+  profile profiles [not null]
+  orders orders [not null]
+  transactions wallet_transactions [not null]
+  reviews driver_reviews [not null]
+  locations driver_locations [not null]
+}
+
+Table categories {
+  id String [pk]
+  restaurantId String [not null]
+  name String [not null]
+  sortOrder Int [default: 0]
+  restaurant restaurants [not null]
+  menuItems menu_items [not null]
+
+  indexes {
+    (restaurantId, name) [unique]
+  }
+}
+
+Table menu_items {
+  id String [pk]
+  restaurantId String [not null]
+  categoryId String
+  name String [not null]
+  description String
+  basePrice Decimal [not null]
+  imageUrl String
+  isAvailable Boolean [default: true]
+  createdAt DateTime [default: `now()`, not null]
+  restaurant restaurants [not null]
+  category categories
+  orderItems order_items [not null]
+  cartItems cart_items [not null]
+  optionGroups option_groups [not null]
+  reviews menu_item_reviews [not null]
+  appliedPromotions promotions [not null]
+
+  indexes {
+    (restaurantId, name) [unique]
+  }
+}
+
+Table option_groups {
+  id String [pk]
+  menuItemId String [not null]
+  name String [not null]
+  isRequired Boolean [not null, default: false]
+  maxChoices Int
+  menuItem menu_items [not null]
+  choices option_choices [not null]
+
+  indexes {
+    (menuItemId, name) [unique]
+  }
+}
+
+Table option_choices {
+  id String [pk]
+  optionGroupId String [not null]
+  name String [not null]
+  additionalPrice Decimal [not null, default: 0]
+  optionGroup option_groups [not null]
+
+  indexes {
+    (optionGroupId, name) [unique]
+  }
+}
+
+Table promotions {
+  id String [pk]
+  restaurantId String
+  code String [unique, not null]
+  description String
+  discountPercentage Decimal
+  fixedDiscount Decimal
+  minOrderValue Decimal [default: 0]
+  validFrom DateTime [not null]
+  validTo DateTime [not null]
+  isActive Boolean [default: true]
+  restaurant restaurants
+  orders orders [not null]
+  applicableItems menu_items [not null]
+}
+
+Table carts {
+  id String [pk]
+  ownerId String [not null]
+  restaurantId String [not null]
+  isGroupCart Boolean [not null, default: false]
+  sessionToken String [unique]
+  createdAt DateTime [default: `now()`, not null]
+  owner profiles [not null]
+  restaurant restaurants [not null]
+  items cart_items [not null]
+}
+
+Table cart_items {
+  id String [pk]
+  cartId String [not null]
+  menuItemId String [not null]
+  addedByUserId String
+  quantity Int [not null]
+  selectedOptions Json [default: '{}']
+  note String
+  cart carts [not null]
+  menuItem menu_items [not null]
+  addedByUser profiles
+}
+
+Table orders {
+  id String [pk]
+  customerId String
+  restaurantId String [not null]
+  driverId String
+  promotionId String
+  orderType OrderType [default: 'standard_delivery']
+  tableNumber String
+  reservationTime DateTime
+  status OrderStatus [default: 'pending']
+  totalAmount Decimal [not null]
+  discountAmount Decimal [default: 0]
+  finalAmount Decimal [not null]
+  platformFee Decimal [not null, default: 0]
+  restaurantNet Decimal [not null, default: 0]
+  paymentStatus PaymentStatus [default: 'pending']
+  isPaid Boolean [default: false]
+  deliveryAddress String
+  note String
+  groupParticipants Json [default: '[]']
+  deviceIp String
+  deviceId String
+  isFlagged Boolean [not null, default: false]
+  riskScore Decimal
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [default: `now()`, not null]
+  acceptedAt DateTime
+  preparingAt DateTime
+  deliveringAt DateTime
+  completedAt DateTime
+  cancelledAt DateTime
+  customer profiles
+  restaurant restaurants [not null]
+  driver driver_profiles
+  promotion promotions
+  orderItems order_items [not null]
+  payment payments [not null]
+  restaurantReviews restaurant_reviews [not null]
+  orderStatusHistories OrderStatusHistory [not null]
+}
+
+Table order_items {
+  id String [pk]
+  orderId String [not null]
+  menuItemId String [not null]
+  quantity Int [not null]
+  unitPrice Decimal [not null]
+  selectedOptions Json [default: '{}']
+  note String
+  order orders [not null]
+  menuItem menu_items [not null]
+}
+
+Table wallet_transactions {
+  id String [pk]
+  driverId String [not null]
+  amount Decimal [not null]
+  transactionType String [not null]
+  description String
+  createdAt DateTime [default: `now()`, not null]
+  driver driver_profiles [not null]
+}
+
+Table chatbot_sessions {
+  id String [pk]
+  userId String [not null]
+  messages Json [not null, default: '[]']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [default: `now()`, not null]
+  user profiles [not null]
+}
+
+Table social_posts {
+  id String [pk]
+  userId String [not null]
+  restaurantId String
+  content String [not null]
+  mediaUrls Json [default: '[]']
+  taggedItems Json [default: '[]']
+  likesCount Int [default: 0]
+  commentsCount Int [default: 0]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [default: `now()`, not null]
+  user profiles [not null]
+  restaurant restaurants
+  interactions post_interactions [not null]
+}
+
+Table post_interactions {
+  id String [pk]
+  postId String [not null]
+  userId String [not null]
+  interactionType String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  post social_posts [not null]
+  user profiles [not null]
+
+  indexes {
+    (postId, userId, interactionType) [unique]
+  }
+}
+
+Table restaurant_reviews {
+  id String [pk]
+  orderId String
+  reviewerId String [not null]
+  restaurantId String [not null]
+  rating Int [not null]
+  comment String
+  replyFromOwner String
+  createdAt DateTime [default: `now()`, not null]
+  order orders
+  reviewer profiles [not null]
+  restaurant restaurants [not null]
+
+  indexes {
+    (orderId, reviewerId, restaurantId) [unique]
+  }
+}
+
+Table driver_reviews {
+  id String [pk]
+  reviewerId String [not null]
+  driverId String [not null]
+  rating Int [not null]
+  comment String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  reviewer profiles [not null]
+  driver driver_profiles [not null]
+
+  indexes {
+    (reviewerId, driverId) [unique]
+  }
+}
+
+Table menu_item_reviews {
+  id String [pk]
+  reviewerId String [not null]
+  menuItemId String [not null]
+  rating Int [not null]
+  comment String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  reviewer profiles [not null]
+  menuItem menu_items [not null]
+
+  indexes {
+    (reviewerId, menuItemId) [unique]
+  }
+}
+
+Table payments {
+  id String [pk]
+  orderId String [not null]
+  method PaymentMethod [not null]
+  provider PaymentProvider
+  status PaymentStatus [not null, default: 'pending']
+  amount Decimal [not null]
+  currency String [not null, default: 'VND']
+  transactionId String [unique]
+  paymentUrl String
+  responseData Json
+  paymentCode String [unique]
+  providerOrderId String [unique]
+  paidAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [default: `now()`, not null]
+  order orders [not null]
+}
+
+Table Notification {
+  id String [pk]
+  receiverId String [not null]
+  title String [not null]
+  content String
+  type String [not null]
+  isRead Boolean [not null, default: false]
+  metadata Json
+  createdAt DateTime [default: `now()`, not null]
+  receiver profiles [not null]
+}
+
+Table OrderStatusHistory {
+  id String [pk]
+  orderId String [not null]
+  status OrderStatus [not null]
+  note String
+  createdAt DateTime [default: `now()`, not null]
+  order orders [not null]
+}
+
+Table driver_locations {
+  driverId String [pk]
+  latitude Decimal [not null]
+  longitude Decimal [not null]
+  updatedAt DateTime [not null]
+  driver driver_profiles [not null]
+}
+
+Table conversations {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  isGroup Boolean [not null, default: false]
+  name String
+  avatarUrl String
+  participants conversation_participants [not null]
+  messages messages [not null]
+}
+
+Table conversation_participants {
+  id String [pk]
+  conversationId String [not null]
+  profileId String [not null]
+  joinedAt DateTime [default: `now()`, not null]
+  isAdmin Boolean [not null, default: false]
+  lastReadAt DateTime
+  conversation conversations [not null]
+  profile profiles [not null]
+
+  indexes {
+    (conversationId, profileId) [unique]
+  }
+}
+
+Table messages {
+  id String [pk]
+  conversationId String [not null]
+  senderId String [not null]
+  content String [not null]
+  type String [not null, default: 'TEXT']
+  isRead Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  conversation conversations [not null]
+  sender profiles [not null]
 }
 
 Table createdBy {
@@ -158,6 +563,47 @@ Table createdBy {
 Table updatedBy {
   roleupdatedId String [ref: > roles.id]
   featureupdatedId String [ref: > features.id]
+}
+
+Table PromotionToMenuItems {
+  appliedpromotionsId String [ref: > promotions.id]
+  applicableitemsId String [ref: > menu_items.id]
+}
+
+Enum OrderStatus {
+  pending
+  accepted
+  preparing
+  ready
+  delivering
+  completed
+  cancelled
+}
+
+Enum OrderType {
+  standard_delivery
+  dine_in
+  group_order
+  blind_box
+}
+
+Enum PaymentProvider {
+  momo
+  vnpay
+}
+
+Enum PaymentMethod {
+  cash
+  e_wallet
+  bank_transfer
+}
+
+Enum PaymentStatus {
+  pending
+  success
+  failed
+  cancelled
+  refunded
 }
 
 Ref: passwords.userId > users.id
@@ -192,4 +638,86 @@ Ref: role_to_permission.permissionId > permissions.id
 
 Ref: requests.createdById > users.id
 
-Ref: requests.approvedBy > users.id
+Ref: requests.approvedById > users.id
+
+Ref: profiles.userId - users.id [delete: Cascade]
+
+Ref: restaurants.ownerId > profiles.id [delete: Restrict]
+
+Ref: driver_profiles.id - profiles.id [delete: Cascade]
+
+Ref: categories.restaurantId > restaurants.id [delete: Cascade]
+
+Ref: menu_items.restaurantId > restaurants.id [delete: Cascade]
+
+Ref: menu_items.categoryId > categories.id [delete: Set Null]
+
+Ref: option_groups.menuItemId > menu_items.id [delete: Cascade]
+
+Ref: option_choices.optionGroupId > option_groups.id [delete: Cascade]
+
+Ref: promotions.restaurantId > restaurants.id [delete: Cascade]
+
+Ref: carts.ownerId > profiles.id [delete: Cascade]
+
+Ref: carts.restaurantId > restaurants.id [delete: Cascade]
+
+Ref: cart_items.cartId > carts.id [delete: Cascade]
+
+Ref: cart_items.menuItemId > menu_items.id [delete: Restrict]
+
+Ref: cart_items.addedByUserId > profiles.id [delete: Set Null]
+
+Ref: orders.customerId > profiles.id [delete: Set Null]
+
+Ref: orders.restaurantId > restaurants.id [delete: Restrict]
+
+Ref: orders.driverId > driver_profiles.id [delete: Set Null]
+
+Ref: orders.promotionId > promotions.id [delete: Set Null]
+
+Ref: order_items.orderId > orders.id [delete: Cascade]
+
+Ref: order_items.menuItemId > menu_items.id [delete: Restrict]
+
+Ref: wallet_transactions.driverId > driver_profiles.id [delete: Cascade]
+
+Ref: chatbot_sessions.userId > profiles.id [delete: Cascade]
+
+Ref: social_posts.userId > profiles.id [delete: Cascade]
+
+Ref: social_posts.restaurantId > restaurants.id [delete: Set Null]
+
+Ref: post_interactions.postId > social_posts.id [delete: Cascade]
+
+Ref: post_interactions.userId > profiles.id [delete: Cascade]
+
+Ref: restaurant_reviews.orderId > orders.id
+
+Ref: restaurant_reviews.reviewerId > profiles.id
+
+Ref: restaurant_reviews.restaurantId > restaurants.id
+
+Ref: driver_reviews.reviewerId > profiles.id
+
+Ref: driver_reviews.driverId > driver_profiles.id
+
+Ref: menu_item_reviews.reviewerId > profiles.id
+
+Ref: menu_item_reviews.menuItemId > menu_items.id
+
+Ref: payments.orderId > orders.id [delete: Cascade]
+
+Ref: Notification.receiverId > profiles.id [delete: Cascade]
+
+Ref: OrderStatusHistory.orderId > orders.id
+
+Ref: driver_locations.driverId > driver_profiles.id
+
+Ref: conversation_participants.conversationId > conversations.id [delete: Cascade]
+
+Ref: conversation_participants.profileId > profiles.id [delete: Cascade]
+
+Ref: messages.conversationId > conversations.id [delete: Cascade]
+
+Ref: messages.senderId > profiles.id [delete: Cascade]

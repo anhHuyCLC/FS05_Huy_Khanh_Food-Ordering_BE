@@ -1,5 +1,16 @@
 import env from "@configs/env";
 import { PrismaClient } from "@db";
+
+import pg from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
+
+const prismaClientSingleton = () => {
+  const pool = new pg.Pool({
+    connectionString: env.databaseUrl,
+  });
+
+  const adapter = new PrismaPg(pool);
+
 import { PrismaPg } from "@prisma/adapter-pg";
 
 const connectionString = env.databaseUrl;
