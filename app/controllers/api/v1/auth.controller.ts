@@ -22,22 +22,32 @@ export class AuthController extends ApiV1Controller {
     this.renderJson(result);
   }
 
-  async googleOAuthCallback() {
-    try {
-      // Nhận thêm redirectUri từ request params
-      const { code, redirectUri } = await this.params(GoogleOAuthCallbackValidator).permit(
-        "code",
-        "redirectUri"
-      );
-      const result = await new GoogleOAuthCallbackService().execute(code, redirectUri);
-      this.renderJson(result);
-    } catch (error) {
-      // Ghi log lỗi chi tiết ở server để gỡ lỗi (bao gồm cả lỗi từ Google)
-      this.logger.error({ err: error }, "Google OAuth callback failed");
-      // Trả về một lỗi 500 có cấu trúc cho client, tránh lộ chi tiết lỗi
-      throw error;
-    }
+ async googleOAuthCallback() {
+  try {
+    const code =
+      this.req.body?.code ||
+      this.req.query?.code;
+
+    const redirectUri =
+      this.req.body?.redirectUri ||
+      this.req.query?.redirectUri;
+
+    const result =
+      await new GoogleOAuthCallbackService()
+        .execute(
+          code as string,
+          redirectUri as string
+        );
+
+    this.renderJson(result);
+  } catch (error) {
+    this.logger.error(
+      { err: error },
+      "Google OAuth callback failed"
+    );
+    throw error;
   }
+}
 
   async refreshToken() {
     const { refreshToken } = await this.params(RefreshTokenValidator).permit(
