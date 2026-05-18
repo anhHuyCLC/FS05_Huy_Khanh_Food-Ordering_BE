@@ -12,14 +12,10 @@ generator dbml {
 
 datasource db {
   provider  = "postgresql"
-  // url       = env("DATABASE_URL")
+
 }
 
 model User {
-  id        String     @id() @default(uuid()) @db.Uuid @map("id")
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime?  @default(now()) @updatedAt @map("updated_at")
-  deleted   Boolean    @default(false) @map("deleted")
   id        String    @id() @default(uuid()) @map("id")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @default(now()) @updatedAt @map("updated_at")
@@ -55,10 +51,6 @@ model User {
 }
 
 model Password {
-  id        String     @id() @default(uuid()) @db.Uuid
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime?  @default(now()) @updatedAt @map("updated_at")
-  deleted   Boolean    @default(false) @map("deleted")
   id        String    @id() @default(uuid())
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @default(now()) @updatedAt @map("updated_at")
@@ -75,12 +67,6 @@ model Password {
 }
 
 model Role {
-  id          String     @id() @default(uuid()) @db.Uuid @map("id")
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime?  @default(now()) @updatedAt @map("updated_at")
-  createdById String?    @db.Uuid @map("created_by_id")
-  updatedById String?    @db.Uuid @map("updated_by_id")
-  deleted     Boolean    @default(false) @map("deleted")
   id          String    @id() @default(uuid()) @map("id")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at")
@@ -107,10 +93,6 @@ model UserToRole {
   roleId    String     @map("role_id") @db.Uuid
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime?  @default(now()) @updatedAt @map("updated_at")
-  userId    String    @map("user_id")
-  roleId    String    @map("role_id")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @default(now()) @updatedAt @map("updated_at")
 
   // Relations
   user User @relation(fields: [userId], references: [id])
@@ -127,12 +109,7 @@ model Feature {
   createdById String?    @map("created_by_id") @db.Uuid
   updatedById String?    @map("updated_by_id") @db.Uuid
   deleted     Boolean    @default(false) @map("deleted")
-  id          String    @id() @default(uuid()) @map("id")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at")
-  createdById String?   @map("created_by_id")
-  updatedById String?   @map("updated_by_id")
-  deleted     Boolean   @default(false) @map("deleted")
+
 
   code        String  @map("code")
   name        String  @map("name")
@@ -158,12 +135,6 @@ model Permission {
   createdById String?    @map("created_by_id") @db.Uuid
   updatedById String?    @map("updated_by_id") @db.Uuid
   deleted     Boolean    @default(false) @map("deleted")
-  id          String    @id() @default(uuid()) @map("id")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at")
-  createdById String?   @map("created_by_id")
-  updatedById String?   @map("updated_by_id")
-  deleted     Boolean   @default(false) @map("deleted")
 
   code        String  @map("code")
   name        String  @map("name")
@@ -186,10 +157,7 @@ model UserToPermission {
   permissionId String     @map("permission_id") @db.Uuid
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime?  @default(now()) @updatedAt @map("updated_at")
-  userId       String    @map("user_id")
-  permissionId String    @map("permission_id")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime? @default(now()) @updatedAt @map("updated_at")
+
 
   // Relations
   user       User       @relation(fields: [userId], references: [id])
@@ -204,10 +172,7 @@ model RoleToPermission {
   permissionId String     @map("permission_id") @db.Uuid
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime?  @default(now()) @updatedAt @map("updated_at")
-  roleId       String    @map("role_id")
-  permissionId String    @map("permission_id")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime? @default(now()) @updatedAt @map("updated_at")
+
 
   // Relations
   role       Role       @relation(fields: [roleId], references: [id])
@@ -228,16 +193,7 @@ model Request {
   status         String     @default("PENDING") // PENDING, APPROVED, REJECTED
   approvedById   String?    @map("approved_by") @db.Uuid
   approvedAt     DateTime?  @map("approved_at")
-  id          String    @id() @default(uuid())
-  createdById String    @map("created_by_id")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime? @updatedAt @map("updated_at")
 
-  requestType    String    @map("request_type") // CREATE_TASK
-  jsonParameters String    @map("json_parameters")
-  status         String    @default("PENDING") // PENDING, APPROVED, REJECTED
-  approvedBy     String?   @map("approved_by")
-  approvedAt     DateTime? @map("approved_at")
 
   // Relation
   requester User  @relation("createdBy", fields: [createdById], references: [id])
