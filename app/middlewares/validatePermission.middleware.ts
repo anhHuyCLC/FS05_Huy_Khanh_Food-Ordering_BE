@@ -13,7 +13,7 @@ export class ValidateUserPermissionMiddleware extends ApplicationMiddleware {
   }
 
   public async execute(req: Request, res: Response, next: NextFunction) {
-    const user = req.user as User & { permissions?: string[] };
+    const user = req.user;
     const isApiRequest = req.originalUrl.includes("/api");
     if (!user) {
       const t = (res.locals?.t as (k: string) => string) || ((k: string) => k);
@@ -57,7 +57,7 @@ export class ValidateAnyPermissionMiddleware extends ApplicationMiddleware {
   }
 
   public async execute(req: Request, res: Response, next: NextFunction) {
-    const user = req.user as User & { permissions?: string[] };
+    const user = req.user;
     const isApiRequest = req.originalUrl.includes("/api");
     if (!user) {
       const t = (res.locals?.t as (k: string) => string) || ((k: string) => k);

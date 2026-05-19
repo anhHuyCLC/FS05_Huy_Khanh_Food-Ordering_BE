@@ -4,6 +4,8 @@ import { generateToken } from "@lib";
 import models from "@models";
 import axios from "axios";
 import { ApplicationService } from "../application.service";
+import { extractAndMergePermissions } from "../../utils/permission.util";
+import { mapUserToDto, UserDto } from "../../mappers/user.mapper";
 
 export type GoogleUser = {
   email: string;
@@ -18,10 +20,7 @@ export type GoogleUser = {
 export interface GoogleOAuthCallbackResult {
   accessToken: string;
   refreshToken: string;
-  user: Awaited<ReturnType<typeof models.user.findUnique>> & {
-    fullName: string;
-    roles: string[];
-  };
+  user: UserDto;
 }
 
 export class GoogleOAuthCallbackService extends ApplicationService {
@@ -76,7 +75,7 @@ export class GoogleOAuthCallbackService extends ApplicationService {
     // 3. Find or create user
     let user = await this.models.user.findUnique({
       where: { email: googleUser.email },
-      include: { roles: { include: { role: true } } },
+      include: { roles: { include: { role: true } }, permissions: true },
     });
 
     if (!user) {
@@ -92,7 +91,7 @@ export class GoogleOAuthCallbackService extends ApplicationService {
             create: [{ roleId: customerRole.id }],
           },
         },
-        include: { roles: { include: { role: true } } },
+        include: { roles: { include: { role: true } }, permissions: true },
       });
     } else {
       // Update user info from Google (Social Sync)
@@ -104,7 +103,7 @@ export class GoogleOAuthCallbackService extends ApplicationService {
           avatarUrl: googleUser.picture || user.avatarUrl,
           googleId: user.googleId || googleUser.id,
         },
-        include: { roles: { include: { role: true } } },
+        include: { roles: { include: { role: true } }, permissions: true },
       });
 
       // Ensure user has CUSTOMER role (assign if not already assigned)
@@ -123,7 +122,7 @@ export class GoogleOAuthCallbackService extends ApplicationService {
         // Refresh user data with roles
         user = await this.models.user.findUnique({
           where: { id: user.id },
-          include: { roles: { include: { role: true } } },
+          include: { roles: { include: { role: true } }, permissions: true },
         }) as any;
       }
     }
@@ -133,23 +132,30 @@ export class GoogleOAuthCallbackService extends ApplicationService {
     }
 
     // 4. Generate JWT tokens
-    const userRoles = user.roles.map(
-      (r: { role: { code: string } }) => r.role.code,
-    );
+    const mergedPermissions = extractAndMergePermissions(user.roles, user.permissions);
+    const userRoles = user.roles.map((r: any) => r.role.code);
+    const userPermissions = mergedPermissions.map(p => p.code);
 
     const accessToken = generateToken(
-      {
-        id: user.id,
-        roles: userRoles,
+      { 
+        sub: user.id, 
+        email: user.email,
+        roles: userRoles, 
+        permissions: userPermissions,
+        tokenVersion: (user as any).tokenVersion || 1
       },
-      "1h",
+      "1h"
     );
 
     const refreshToken = generateToken(
-      {
-        id: user.id,
-      },
-      "7d",
+      { 
+        sub: user.id, 
+        email: user.email,
+        roles: userRoles, 
+        permissions: userPermissions,
+        tokenVersion: (user as any).tokenVersion || 1
+      }, 
+      "7d"
     );
 
     // 5. Save refresh token to DB
@@ -170,15 +176,12 @@ export class GoogleOAuthCallbackService extends ApplicationService {
     ]);
 
     // 6. Return clean response to FE
-    const { roles: _, ...userWithoutRoles } = user;
+    const userDto = mapUserToDto(user, mergedPermissions);
+
     return {
       accessToken,
       refreshToken,
-      user: {
-        ...userWithoutRoles,
-        fullName: `${user.firstName} ${user.lastName}`,
-        roles: userRoles,
-      },
+      user: userDto,
     };
   }
 }

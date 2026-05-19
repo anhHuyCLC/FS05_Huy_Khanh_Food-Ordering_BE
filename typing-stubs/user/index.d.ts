@@ -17,10 +17,7 @@ declare module "jsonwebtoken" {
 declare global {
   namespace Express {
     export interface Request {
-      user?: (User & { permissions?: string[] }) | null;
-      /** Dữ liệu đã validate bởi params.permit() */
       validated?: unknown;
-      /** X-Request-ID cho tracing */
       requestId?: string;
     }
   }

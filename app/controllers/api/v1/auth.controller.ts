@@ -3,13 +3,15 @@ import { Prisma } from "@db";
 import { generateToken } from "@lib";
 import models from "@models";
 import { AuthGoogleVerifyService, AuthRefreshTokenService, GoogleOAuthCallbackService } from "@services";
+import { AuthLoginService } from "../../../services/auth/authLogin.service";
+import { AuthMeService } from "../../../services/auth/authMe.service";
 import {
-  GoogleOAuthCallbackValidator,
   GoogleVerifyValidator,
   LoginValidator,
   RefreshTokenValidator,
+  RegisterValidator,
 } from "@validators/auth.validator";
-import { Security, UnauthorizedError } from "ts-rails";
+import { BadRequestError, Security, UnauthorizedError } from "ts-rails";
 import { ApiV1Controller } from ".";
 
 export class AuthController extends ApiV1Controller {
@@ -22,32 +24,32 @@ export class AuthController extends ApiV1Controller {
     this.renderJson(result);
   }
 
- async googleOAuthCallback() {
-  try {
-    const code =
-      this.req.body?.code ||
-      this.req.query?.code;
+  async googleOAuthCallback() {
+    try {
+      const code =
+        this.req.body?.code ||
+        this.req.query?.code;
 
-    const redirectUri =
-      this.req.body?.redirectUri ||
-      this.req.query?.redirectUri;
+      const redirectUri =
+        this.req.body?.redirectUri ||
+        this.req.query?.redirectUri;
 
-    const result =
-      await new GoogleOAuthCallbackService()
-        .execute(
-          code as string,
-          redirectUri as string
-        );
+      const result =
+        await new GoogleOAuthCallbackService()
+          .execute(
+            code as string,
+            redirectUri as string
+          );
 
-    this.renderJson(result);
-  } catch (error) {
-    this.logger.error(
-      { err: error },
-      "Google OAuth callback failed"
-    );
-    throw error;
+      this.renderJson(result);
+    } catch (error) {
+      this.logger.error(
+        { err: error },
+        "Google OAuth callback failed"
+      );
+      throw error;
+    }
   }
-}
 
   async refreshToken() {
     const { refreshToken } = await this.params(RefreshTokenValidator).permit(
@@ -66,71 +68,79 @@ export class AuthController extends ApiV1Controller {
       "password",
     );
 
-    const user = await models.user.findFirst({
-      where: {
+    const result = await new AuthLoginService().execute(email, password);
+    this.renderJson(result);
+  }
+
+  async me() {
+    const userId = this.req.user?.id;
+    if (!userId) {
+      throw new UnauthorizedError("Not authenticated");
+    }
+
+    const result = await new AuthMeService().execute(userId);
+    this.renderJson(result);
+  }
+  async register() {
+    const {
+      email,
+      password,
+      confirmpassword,
+      firstname,
+      middlename,
+      lastname,
+      phonenumber,
+      address,
+      role,
+    } = await this.params(RegisterValidator).permit(
+      "email", "password", "confirmpassword", "firstname", "middlename", "lastname",
+      "phonenumber", "address", "role"
+    );
+
+    if (password !== confirmpassword) {
+      throw new BadRequestError("Passwords do not match");
+    }
+
+    const existingUser = await models.user.findUnique({ where: { email } });
+    if (existingUser) {
+      throw new BadRequestError("Email already in use");
+    }
+
+    const hashedPassword = await Security.hashPassword(password);
+    // Gán vai trò mặc định là CUSTOMER nếu không được cung cấp
+    const userRole = role || "CUSTOMER";
+
+    const newUser = await models.user.create({
+      data: {
         email,
+        firstName: firstname,
+        middleName: middlename,
+        lastName: lastname,
+        phoneNumber: phonenumber,
+        address,
         status: UserStatus.ACTIVE,
         deleted: false,
-      },
-      include: {
         passwords: {
-          where: { deleted: false, type: PasswordType.PASSWORD },
-          orderBy: { createdAt: Prisma.SortOrder.desc },
-          take: 1,
+          create: {
+            password: hashedPassword,
+            type: PasswordType.PASSWORD,
+          },
         },
         roles: {
-          include: {
-            role: true,
+          create: {
+            role: { connect: { code: userRole } },
           },
         },
       },
     });
 
-    if (
-      !user ||
-      user.passwords.length === 0 ||
-      !(await Security.verifyPassword(password, user.passwords[0].password))
-    ) {
-      throw new UnauthorizedError("Invalid email or password.");
-    }
-
-    const userRoles = user.roles.map((r: { role: { code: string } }) => r.role.code);
-
-    const accessToken = generateToken(
-      { id: user.id, roles: userRoles },
-      "1h",
-    );
-    const refreshToken = generateToken({ id: user.id }, "7d");
-
-    // Xoá các refresh token cũ và tạo mới (Token Rotation)
-    await models.$transaction([
-      models.password.updateMany({
-        where: {
-          userId: user.id,
-          type: PasswordType.REFRESH_TOKEN,
-        },
-        data: {
-          deleted: true,
-        },
-      }),
-      models.password.create({
-        data: {
-          userId: user.id,
-          password: refreshToken,
-          type: PasswordType.REFRESH_TOKEN,
-        },
-      }),
-    ]);
-
     this.renderJson({
-      accessToken,
-      refreshToken,
       user: {
-        id: user.id,
-        email: user.email,
-        fullName: `${user.firstName} ${user.lastName}`,
-        roles: userRoles,
+        id: newUser.id,
+        email: newUser.email,
+        fullName: `${newUser.firstName} ${newUser.lastName}`,
+        roles: [userRole],
       },
-    });
+    }, 201);
   }
 }
