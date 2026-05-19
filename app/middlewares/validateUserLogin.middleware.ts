@@ -13,7 +13,7 @@ export class ValidateUserLoginMiddleware extends ApplicationMiddleware {
       const t = (res.locals?.t as (k: string) => string) || ((k: string) => k);
       if (isApiRequest) {
         return res
-          .status(403)
+          .status(401)
           .json({ success: false, error: t("flash.login_first") });
       } else {
         req.flash(FlashType.Errors, { msg: t("flash.login_first") });

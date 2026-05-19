@@ -29,14 +29,29 @@ export class CurrentUserMiddleware extends ApplicationMiddleware {
         userId = req.session?.userId;
       }
 
-      req.user = userId ? await super.getUserById(userId, true) : null;
+      if (userId) {
+        const fullUser = await super.getUserById(userId, true);
+        if (fullUser) {
+          req.user = {
+            id: fullUser.id,
+            email: fullUser.email,
+            roles: [],
+            permissions: fullUser.permissions || [],
+            tokenVersion: (fullUser as any).tokenVersion || 1
+          };
+        } else {
+          req.user = null;
+        }
+      } else {
+        req.user = null;
+      }
 
       // Cho request web: set hasAdminAccess để layout hiển thị nút Admin (có bất kỳ permission AM hoặc UM)
       if (!isApiRequest) {
         const perms = req.user?.permissions ?? [];
         const locals = res.locals as Record<string, unknown>;
         locals.hasAdminAccess = perms.some((p: string) =>
-          ADMIN_FEATURE_CODES.some((code) => p.startsWith(`${code}::`)),
+          ADMIN_FEATURE_CODES.some((code) => p.startsWith(`${code}:`)),
         );
       }
 

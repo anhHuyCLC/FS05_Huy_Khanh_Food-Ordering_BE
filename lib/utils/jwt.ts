@@ -2,7 +2,11 @@ import env from "@configs/env";
 import jwt, { SignOptions } from "jsonwebtoken";
 
 export interface JwtPayload extends jwt.JwtPayload {
-  id?: string;
+  sub: string;
+  email: string;
+  roles: string[];
+  permissions: string[];
+  tokenVersion: number;
 }
 
 const JWT_SECRET = env.jwtSecret || "fallback_secret";

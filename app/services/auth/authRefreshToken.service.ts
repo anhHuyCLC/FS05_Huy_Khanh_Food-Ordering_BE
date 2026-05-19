@@ -2,19 +2,25 @@ import { PasswordType } from "@configs/db/enums";
 import { generateToken, verifyToken } from "@lib";
 import { UnauthorizedError } from "ts-rails";
 import { ApplicationService } from "../application.service";
+import { JwtPayload } from "../../../lib/utils/jwt";
+import { extractAndMergePermissions } from "../../utils/permission.util";
+import { mapUserToDto } from "../../mappers/user.mapper";
 
 export class AuthRefreshTokenService extends ApplicationService {
   async execute(refreshToken: string) {
-    // 1. Verify chữ ký và thời hạn của JWT
-    // Nếu token hết hạn hoặc sai format, hàm verifyToken sẽ throw lỗi (thường là 401)
-    const decoded = verifyToken(refreshToken);
-    const userId = decoded.id;
+    let decoded: JwtPayload;
+    try {
+      decoded = verifyToken(refreshToken) as JwtPayload;
+    } catch (e) {
+      throw new UnauthorizedError("Refresh token is not valid.");
+    }
+    
+    // Fallback to id if it's an old token, otherwise sub
+    const userId = decoded.sub || (decoded as any).id;
     if (!userId) {
       throw new UnauthorizedError("Refresh token is not valid.");
     }
 
-    // 2. Tìm token trong database
-    // Phải khớp: chuỗi token, type REFRESH_TOKEN và chưa bị xóa (deleted: false)
     const storedToken = await this.models.password.findFirst({
       where: {
         userId,
@@ -25,32 +31,69 @@ export class AuthRefreshTokenService extends ApplicationService {
       include: {
         user: {
           include: {
-            roles: { include: { role: true } },
+            profile: true,
+            roles: {
+              include: {
+                role: {
+                  include: {
+                    permissions: {
+                      include: {
+                        permission: {
+                          include: {
+                            feature: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            permissions: {
+              include: {
+                permission: {
+                  include: {
+                    feature: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
     });
 
     if (!storedToken || !storedToken.user) {
-      throw new UnauthorizedError(
-        "Refresh token is not valid or has been revoked.",
-      );
+      throw new UnauthorizedError("Refresh token is not valid or has been revoked.");
     }
 
     const user = storedToken.user;
-    const userRoles = user.roles.map(
-      (r: { role: { code: string } }) => r.role.code,
-    );
+    const mergedPermissions = extractAndMergePermissions(user.roles, user.permissions);
+    const userRoles = user.roles.map((r: any) => r.role.code);
+    const userPermissions = mergedPermissions.map(p => p.code);
 
-    // 3. Tạo cặp Token mới
     const newAccessToken = generateToken(
-      { id: user.id, roles: userRoles },
-      "1h",
+      { 
+        sub: user.id, 
+        email: user.email,
+        roles: userRoles, 
+        permissions: userPermissions,
+        tokenVersion: (user as any).tokenVersion || 1
+      },
+      "1h"
     );
-    const newRefreshToken = generateToken({ id: user.id }, "7d");
 
-    // 4. Cập nhật Database (Rotation Strategy)
-    // Xóa token cũ và lưu token mới trong một Transaction
+    const newRefreshToken = generateToken(
+      { 
+        sub: user.id, 
+        email: user.email,
+        roles: userRoles, 
+        permissions: userPermissions,
+        tokenVersion: (user as any).tokenVersion || 1
+      }, 
+      "7d"
+    );
+
     await this.models.$transaction([
       this.models.password.delete({
         where: { id: storedToken.id },
@@ -64,15 +107,12 @@ export class AuthRefreshTokenService extends ApplicationService {
       }),
     ]);
 
+    const userDto = mapUserToDto(user, mergedPermissions);
+
     return {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        fullName: `${user.firstName} ${user.lastName}`,
-        roles: userRoles,
-      },
+      user: userDto,
     };
   }
 }

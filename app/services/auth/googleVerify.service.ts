@@ -4,14 +4,14 @@ import models from "@models";
 import { OAuth2Client } from "google-auth-library";
 import { UnauthorizedError } from "ts-rails";
 import { ApplicationService } from "../application.service";
+import { extractAndMergePermissions } from "../../utils/permission.util";
+
+import { mapUserToDto, UserDto } from "../../mappers/user.mapper";
 
 export interface GoogleVerifyResult {
   accessToken: string;
   refreshToken: string;
-  user: Awaited<ReturnType<typeof models.user.findUnique>> & {
-    fullName: string;
-    roles: string[];
-  };
+  user: UserDto;
 }
 
 export class AuthGoogleVerifyService extends ApplicationService {
@@ -37,7 +37,7 @@ export class AuthGoogleVerifyService extends ApplicationService {
 
     let user = await this.models.user.findUnique({
       where: { email: email! },
-      include: { roles: { include: { role: true } } }, // Include roles để trả về thông tin đầy đủ
+      include: { roles: { include: { role: { include: { permissions: true } } } }, permissions: true },
     });
 
     if (!user) {
@@ -53,7 +53,7 @@ export class AuthGoogleVerifyService extends ApplicationService {
             create: [{ role: { connect: { code: "WORKER" } } }],
           },
         },
-        include: { roles: { include: { role: true } } },
+        include: { roles: { include: { role: { include: { permissions: true } } } }, permissions: true },
       });
     } else {
       // Cập nhật thông tin mới nhất từ Google (Social Sync)
@@ -65,30 +65,38 @@ export class AuthGoogleVerifyService extends ApplicationService {
           avatarUrl: picture || user.avatarUrl,
           googleId: user.googleId || sub, // Tránh overwrite nếu đã có
         },
-        include: { roles: { include: { role: true } } },
+        include: { roles: { include: { role: { include: { permissions: true } } } }, permissions: true },
       });
     }
 
     // 1. Tạo JWT Access Token & Refresh Token
     // Thường mình sẽ đưa thêm role/permissions vào AccessToken để Backend không phải query DB nhiều lần
-    const userRoles = user.roles.map(
-      (r: { role: { code: string } }) => r.role.code,
+    const mergedPermissions = extractAndMergePermissions(user.roles, user.permissions);
+    const userRoles = user.roles.map((r: any) => r.role.code);
+    const userPermissions = mergedPermissions.map(p => p.code);
+
+    // 4. Tạo JWT token
+    const accessToken = generateToken(
+      { 
+        sub: user.id, 
+        email: user.email,
+        roles: userRoles, 
+        permissions: userPermissions,
+        tokenVersion: (user as any).tokenVersion || 1
+      },
+      "1h"
     );
 
-    const accessToken = generateToken(
-      {
-        id: user.id,
-        roles: userRoles,
-      },
-      "1h",
-    ); // Thời gian ngắn
-
     const refreshToken = generateToken(
-      {
-        id: user.id,
-      },
-      "7d",
-    ); // Thời gian dài
+      { 
+        sub: user.id, 
+        email: user.email,
+        roles: userRoles, 
+        permissions: userPermissions,
+        tokenVersion: (user as any).tokenVersion || 1
+      }, 
+      "7d"
+    );
 
     // 2. Lưu RefreshToken vào Database nếu anh muốn quản lý Logout/Revoke
     await this.models.$transaction([
@@ -109,14 +117,12 @@ export class AuthGoogleVerifyService extends ApplicationService {
       }),
     ]);
 
+    const userDto = mapUserToDto(user, mergedPermissions);
+
     return {
       accessToken,
       refreshToken,
-      user: {
-        ...user,
-        fullName: `${user.firstName} ${user.lastName}`,
-        roles: userRoles,
-      },
+      user: userDto,
     };
   }
 }

@@ -11,28 +11,28 @@ generator dbml {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
   // url       = env("DATABASE_URL")
 }
 
 model User {
-  id        String     @id() @default(uuid()) @db.Uuid @map("id")
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime?  @default(now()) @updatedAt @map("updated_at")
-  deleted   Boolean    @default(false) @map("deleted")
+  id        String    @id() @default(uuid()) @map("id") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @default(now()) @updatedAt @map("updated_at")
+  deleted   Boolean   @default(false) @map("deleted")
 
-  firstName   String  @map("first_name")
-  lastName    String  @map("last_name")
-  middleName  String? @map("middle_name")
-  email       String  @unique @map("email")
-  status      String  @default("PENDING") @map("status") // ACTIVE, INACTIVE, PENDING
-  avatarUrl   String? @map("avatar_url")
-  gender      String? @map("gender")
-  phoneNumber String? @map("phone_number")
-  address     String? @map("address")
-  profile     Profile? 
+  firstName   String   @map("first_name")
+  lastName    String   @map("last_name")
+  middleName  String?  @map("middle_name")
+  email       String   @unique @map("email")
+  status      String   @default("PENDING") @map("status") // ACTIVE, INACTIVE, PENDING
+  avatarUrl   String?  @map("avatar_url")
+  gender      String?  @map("gender")
+  phoneNumber String?  @map("phone_number")
+  address     String?  @map("address")
+  profile     Profile?
 
-  googleId String?    @unique @map("google_id")
+  googleId String? @unique @map("google_id")
 
   // Relations
   roles             UserToRole[]
@@ -51,13 +51,13 @@ model User {
 }
 
 model Password {
-  id        String     @id() @default(uuid()) @db.Uuid
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime?  @default(now()) @updatedAt @map("updated_at")
-  deleted   Boolean    @default(false) @map("deleted")
+  id        String    @id() @default(uuid()) @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @default(now()) @updatedAt @map("updated_at")
+  deleted   Boolean   @default(false) @map("deleted")
 
   password String
-  userId   String @db.Uuid @map("user_id")
+  userId   String @map("user_id") @db.Uuid
   type     String @default("PASSWORD") @map("type") // PASSWORD, OTP, REFRESH_TOKEN
 
   // Relation
@@ -67,12 +67,12 @@ model Password {
 }
 
 model Role {
-  id          String     @id() @default(uuid()) @db.Uuid @map("id")
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime?  @default(now()) @updatedAt @map("updated_at")
-  createdById String?    @db.Uuid @map("created_by_id")
-  updatedById String?    @db.Uuid @map("updated_by_id")
-  deleted     Boolean    @default(false) @map("deleted")
+  id          String    @id() @default(uuid()) @map("id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at")
+  createdById String?   @map("created_by_id") @db.Uuid
+  updatedById String?   @map("updated_by_id") @db.Uuid
+  deleted     Boolean   @default(false) @map("deleted")
 
   code        String  @unique @map("code")
   name        String  @map("name")
@@ -89,10 +89,10 @@ model Role {
 }
 
 model UserToRole {
-  userId    String     @map("user_id") @db.Uuid
-  roleId    String     @map("role_id") @db.Uuid
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime?  @default(now()) @updatedAt @map("updated_at")
+  userId    String    @map("user_id") @db.Uuid
+  roleId    String    @map("role_id") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @default(now()) @updatedAt @map("updated_at")
 
   // Relations
   user User @relation(fields: [userId], references: [id])
@@ -103,12 +103,12 @@ model UserToRole {
 }
 
 model Feature {
-  id          String     @id() @default(uuid()) @map("id") @db.Uuid
-  createdAt   DateTime   @default(now()) @map("created_at") 
-  updatedAt   DateTime?  @default(now()) @updatedAt @map("updated_at") 
-  createdById String?    @map("created_by_id") @db.Uuid
-  updatedById String?    @map("updated_by_id") @db.Uuid
-  deleted     Boolean    @default(false) @map("deleted")
+  id          String    @id() @default(uuid()) @map("id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at")
+  createdById String?   @map("created_by_id") @db.Uuid
+  updatedById String?   @map("updated_by_id") @db.Uuid
+  deleted     Boolean   @default(false) @map("deleted")
 
   code        String  @map("code")
   name        String  @map("name")
@@ -128,12 +128,12 @@ model Feature {
 }
 
 model Permission {
-  id          String     @id() @default(uuid()) @map("id") @db.Uuid
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime?  @default(now()) @updatedAt @map("updated_at")
-  createdById String?    @map("created_by_id") @db.Uuid
-  updatedById String?    @map("updated_by_id") @db.Uuid
-  deleted     Boolean    @default(false) @map("deleted")
+  id          String    @id() @default(uuid()) @map("id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at")
+  createdById String?   @map("created_by_id") @db.Uuid
+  updatedById String?   @map("updated_by_id") @db.Uuid
+  deleted     Boolean   @default(false) @map("deleted")
 
   code        String  @map("code")
   name        String  @map("name")
@@ -152,10 +152,10 @@ model Permission {
 }
 
 model UserToPermission {
-  userId       String     @map("user_id") @db.Uuid
-  permissionId String     @map("permission_id") @db.Uuid
-  createdAt    DateTime   @default(now()) @map("created_at")
-  updatedAt    DateTime?  @default(now()) @updatedAt @map("updated_at")
+  userId       String    @map("user_id") @db.Uuid
+  permissionId String    @map("permission_id") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime? @default(now()) @updatedAt @map("updated_at")
 
   // Relations
   user       User       @relation(fields: [userId], references: [id])
@@ -166,10 +166,10 @@ model UserToPermission {
 }
 
 model RoleToPermission {
-  roleId       String     @map("role_id") @db.Uuid
-  permissionId String     @map("permission_id") @db.Uuid
-  createdAt    DateTime   @default(now()) @map("created_at")
-  updatedAt    DateTime?  @default(now()) @updatedAt @map("updated_at")
+  roleId       String    @map("role_id") @db.Uuid
+  permissionId String    @map("permission_id") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime? @default(now()) @updatedAt @map("updated_at")
 
   // Relations
   role       Role       @relation(fields: [roleId], references: [id])
@@ -180,16 +180,16 @@ model RoleToPermission {
 }
 
 model Request {
-  id          String     @id() @default(uuid()) @db.Uuid @map("id")
-  createdById String     @map("created_by_id") @db.Uuid
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime?  @updatedAt @map("updated_at")
+  id          String    @id() @default(uuid()) @map("id") @db.Uuid
+  createdById String    @map("created_by_id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
 
-  requestType    String     @map("request_type") // CREATE_TASK
-  jsonParameters String     @map("json_parameters")
-  status         String     @default("PENDING") // PENDING, APPROVED, REJECTED
-  approvedById   String?    @map("approved_by") @db.Uuid
-  approvedAt     DateTime?  @map("approved_at")
+  requestType    String    @map("request_type") // CREATE_TASK
+  jsonParameters String    @map("json_parameters")
+  status         String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  approvedById   String?   @map("approved_by") @db.Uuid
+  approvedAt     DateTime? @map("approved_at")
 
   // Relation
   requester User  @relation("createdBy", fields: [createdById], references: [id])
@@ -216,39 +216,39 @@ enum OrderType {
 }
 
 model Profile {
-  id           String   @id @default(uuid()) @db.Uuid
-  userId       String   @unique @map("user_id") @db.Uuid
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fullName     String   @map("full_name") @db.VarChar(255)
-  
-  phone        String?  @unique @db.VarChar(20)
-  avatarUrl    String?  @map("avatar_url") @db.Text
-  isActive     Boolean? @default(true) @map("is_active")
-  
+  id       String @id @default(uuid()) @db.Uuid
+  userId   String @unique @map("user_id") @db.Uuid
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName String @map("full_name") @db.VarChar(255)
+
+  phone     String?  @unique @db.VarChar(20)
+  avatarUrl String?  @map("avatar_url") @db.Text
+  isActive  Boolean? @default(true) @map("is_active")
+
   // Gamification
-  rewardPoints Int?     @default(0) @map("reward_points")
-  badgeLevel   String?  @default("Newbie") @map("badge_level") @db.VarChar(50)
-  
+  rewardPoints Int?    @default(0) @map("reward_points")
+  badgeLevel   String? @default("Newbie") @map("badge_level") @db.VarChar(50)
+
   // Push Notification [NEW]
   deviceTokens String[] @default([]) @map("device_tokens") // Lưu danh sách FCM tokens để gửi Push App
 
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt    DateTime @default(now()) @map("updated_at") @updatedAt @db.Timestamptz()
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
 
-  restaurants            Restaurant[]
-  driverProfile          DriverProfile?
-  orders                 Order[]                   @relation("CustomerOrders")
-  socialPosts            SocialPost[]
-  postInteractions       PostInteraction[]
-  restaurantReviews      RestaurantReview[]        @relation("RestaurantReviewer")
-  driverReviews          DriverReview[]            @relation("DriverReviewer")
-  menuItemReviews        MenuItemReview[]          @relation("MenuItemReviewer")
-  carts                  Cart[]
-  chatbotSessions        ChatbotSession[]
-  cartItems              CartItem[]                @relation("CartItemAddedBy") 
+  restaurants              Restaurant[]
+  driverProfile            DriverProfile?
+  orders                   Order[]                   @relation("CustomerOrders")
+  socialPosts              SocialPost[]
+  postInteractions         PostInteraction[]
+  restaurantReviews        RestaurantReview[]        @relation("RestaurantReviewer")
+  driverReviews            DriverReview[]            @relation("DriverReviewer")
+  menuItemReviews          MenuItemReview[]          @relation("MenuItemReviewer")
+  carts                    Cart[]
+  chatbotSessions          ChatbotSession[]
+  cartItems                CartItem[]                @relation("CartItemAddedBy")
   conversationParticipants ConversationParticipant[]
-  sentMessages           Message[]                 @relation("MessageSender")   
-  notifications          Notification[]
+  sentMessages             Message[]                 @relation("MessageSender")
+  notifications            Notification[]
 
   @@map("profiles")
 }
@@ -273,7 +273,7 @@ model Restaurant {
   promotions  Promotion[]
   carts       Cart[]
   reviews     RestaurantReview[]
-  
+
   @@index([ownerId])
   @@map("restaurants")
 }
@@ -286,23 +286,23 @@ model DriverProfile {
   walletBalance Decimal? @default(0.0) @map("wallet_balance") @db.Decimal(15, 2)
   rating        Decimal? @default(0.0) @db.Decimal(3, 2)
 
-  profile       Profile             @relation(fields: [id], references: [id], onDelete: Cascade)
-  orders        Order[]             @relation("DriverOrders")
-  transactions  WalletTransaction[]
-  reviews       DriverReview[]
-  locations     DriverLocation[]
+  profile      Profile             @relation(fields: [id], references: [id], onDelete: Cascade)
+  orders       Order[]             @relation("DriverOrders")
+  transactions WalletTransaction[]
+  reviews      DriverReview[]
+  locations    DriverLocation[]
 
   @@map("driver_profiles")
 }
 
 model Category {
-  id           String      @id @default(uuid()) @db.Uuid
-  restaurantId String      @map("restaurant_id") @db.Uuid
-  name         String      @db.VarChar(100)
-  sortOrder    Int?        @default(0) @map("sort_order")
+  id           String @id @default(uuid()) @db.Uuid
+  restaurantId String @map("restaurant_id") @db.Uuid
+  name         String @db.VarChar(100)
+  sortOrder    Int?   @default(0) @map("sort_order")
 
-  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  menuItems    MenuItem[]
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  menuItems  MenuItem[]
 
   @@unique([restaurantId, name])
   @@index([restaurantId])
@@ -310,24 +310,24 @@ model Category {
 }
 
 model MenuItem {
-  id                  String   @id @default(uuid()) @db.Uuid
-  restaurantId        String   @map("restaurant_id") @db.Uuid
-  categoryId          String?  @map("category_id") @db.Uuid
-  name                String   @db.VarChar(255)
-  description         String?  @db.Text
-  basePrice           Decimal  @map("base_price") @db.Decimal(15, 2)
-  imageUrl            String?  @map("image_url") @db.Text
-  isAvailable         Boolean? @default(true) @map("is_available")
-  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  id           String   @id @default(uuid()) @db.Uuid
+  restaurantId String   @map("restaurant_id") @db.Uuid
+  categoryId   String?  @map("category_id") @db.Uuid
+  name         String   @db.VarChar(255)
+  description  String?  @db.Text
+  basePrice    Decimal  @map("base_price") @db.Decimal(15, 2)
+  imageUrl     String?  @map("image_url") @db.Text
+  isAvailable  Boolean? @default(true) @map("is_available")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
 
-  restaurant          Restaurant        @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  category            Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  orderItems          OrderItem[]
-  cartItems           CartItem[]
-  optionGroups        OptionGroup[]  
-  reviews             MenuItemReview[]
-  
-  appliedPromotions   Promotion[]       @relation("PromotionToMenuItems") // [NEW] Hỗ trợ Flash Sale cho món cụ thể
+  restaurant   Restaurant       @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  category     Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  orderItems   OrderItem[]
+  cartItems    CartItem[]
+  optionGroups OptionGroup[]
+  reviews      MenuItemReview[]
+
+  appliedPromotions Promotion[] @relation("PromotionToMenuItems") // [NEW] Hỗ trợ Flash Sale cho món cụ thể
 
   @@unique([restaurantId, name])
   @@index([restaurantId])
@@ -337,14 +337,14 @@ model MenuItem {
 
 // Chuẩn hóa 3NF cho Menu Options (Toppings, Sizes, etc.)
 model OptionGroup {
-  id         String   @id @default(uuid()) @db.Uuid
-  menuItemId String   @map("menu_item_id") @db.Uuid
-  name       String   @db.VarChar(100) // e.g., "Chọn Size", "Thêm Topping"
-  isRequired Boolean  @default(false) @map("is_required")
-  maxChoices Int?     @map("max_choices") // null means unlimited
+  id         String  @id @default(uuid()) @db.Uuid
+  menuItemId String  @map("menu_item_id") @db.Uuid
+  name       String  @db.VarChar(100) // e.g., "Chọn Size", "Thêm Topping"
+  isRequired Boolean @default(false) @map("is_required")
+  maxChoices Int?    @map("max_choices") // null means unlimited
 
-  menuItem   MenuItem       @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
-  choices    OptionChoice[]
+  menuItem MenuItem       @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  choices  OptionChoice[]
 
   @@unique([menuItemId, name])
   @@index([menuItemId])
@@ -352,12 +352,12 @@ model OptionGroup {
 }
 
 model OptionChoice {
-  id              String      @id @default(uuid()) @db.Uuid
-  optionGroupId   String      @map("option_group_id") @db.Uuid
-  name            String      @db.VarChar(100) // e.g., "Size L", "Trân châu"
-  additionalPrice Decimal     @default(0.0) @map("additional_price") @db.Decimal(15, 2)
+  id              String  @id @default(uuid()) @db.Uuid
+  optionGroupId   String  @map("option_group_id") @db.Uuid
+  name            String  @db.VarChar(100) // e.g., "Size L", "Trân châu"
+  additionalPrice Decimal @default(0.0) @map("additional_price") @db.Decimal(15, 2)
 
-  optionGroup     OptionGroup @relation(fields: [optionGroupId], references: [id], onDelete: Cascade)
+  optionGroup OptionGroup @relation(fields: [optionGroupId], references: [id], onDelete: Cascade)
 
   @@unique([optionGroupId, name])
   @@index([optionGroupId])
@@ -366,20 +366,20 @@ model OptionChoice {
 
 // Khuyến mãi / Mã giảm giá
 model Promotion {
-  id                 String      @id @default(uuid()) @db.Uuid
-  restaurantId       String?     @map("restaurant_id") @db.Uuid // Null if it's a global platform code
-  code               String      @unique @db.VarChar(50)
-  description        String?     @db.Text
-  discountPercentage Decimal?    @map("discount_percentage") @db.Decimal(5, 2)
-  fixedDiscount      Decimal?    @map("fixed_discount") @db.Decimal(15, 2)
-  minOrderValue      Decimal?    @default(0.0) @map("min_order_value") @db.Decimal(15, 2)
-  validFrom          DateTime    @map("valid_from") @db.Timestamptz()
-  validTo            DateTime    @map("valid_to") @db.Timestamptz()
-  isActive           Boolean?    @default(true) @map("is_active")
+  id                 String   @id @default(uuid()) @db.Uuid
+  restaurantId       String?  @map("restaurant_id") @db.Uuid // Null if it's a global platform code
+  code               String   @unique @db.VarChar(50)
+  description        String?  @db.Text
+  discountPercentage Decimal? @map("discount_percentage") @db.Decimal(5, 2)
+  fixedDiscount      Decimal? @map("fixed_discount") @db.Decimal(15, 2)
+  minOrderValue      Decimal? @default(0.0) @map("min_order_value") @db.Decimal(15, 2)
+  validFrom          DateTime @map("valid_from") @db.Timestamptz()
+  validTo            DateTime @map("valid_to") @db.Timestamptz()
+  isActive           Boolean? @default(true) @map("is_active")
 
-  restaurant         Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  orders             Order[]
-  applicableItems    MenuItem[]  @relation("PromotionToMenuItems") // [NEW] Hỗ trợ Flash Sale cho món cụ thể
+  restaurant      Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orders          Order[]
+  applicableItems MenuItem[]  @relation("PromotionToMenuItems") // [NEW] Hỗ trợ Flash Sale cho món cụ thể
 
   @@index([restaurantId])
   @@map("promotions")
@@ -387,16 +387,16 @@ model Promotion {
 
 // Giỏ hàng & Shareable Cart (Group Order)
 model Cart {
-  id           String     @id @default(uuid()) @db.Uuid
-  ownerId      String     @map("owner_id") @db.Uuid
-  restaurantId String     @map("restaurant_id") @db.Uuid
-  isGroupCart  Boolean    @default(false) @map("is_group_cart")
-  sessionToken String?    @unique @map("session_token") @db.VarChar(255) // URL token for sharing
-  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz()
+  id           String   @id @default(uuid()) @db.Uuid
+  ownerId      String   @map("owner_id") @db.Uuid
+  restaurantId String   @map("restaurant_id") @db.Uuid
+  isGroupCart  Boolean  @default(false) @map("is_group_cart")
+  sessionToken String?  @unique @map("session_token") @db.VarChar(255) // URL token for sharing
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
 
-  owner        Profile    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  items        CartItem[] @relation("CartToItems")
+  owner      Profile    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  items      CartItem[] @relation("CartToItems")
 
   @@index([ownerId])
   @@index([restaurantId])
@@ -404,17 +404,17 @@ model Cart {
 }
 
 model CartItem {
-  id              String   @id @default(uuid()) @db.Uuid
-  cartId          String   @map("cart_id") @db.Uuid
-  menuItemId      String   @map("menu_item_id") @db.Uuid
-  addedByUserId   String?  @map("added_by_user_id") @db.Uuid // Biết ai thêm món trong Group Order
+  id              String  @id @default(uuid()) @db.Uuid
+  cartId          String  @map("cart_id") @db.Uuid
+  menuItemId      String  @map("menu_item_id") @db.Uuid
+  addedByUserId   String? @map("added_by_user_id") @db.Uuid // Biết ai thêm món trong Group Order
   quantity        Int
-  selectedOptions Json?    @default("{}") @map("selected_options") // JSON is better here for cart flexibility
-  note            String?  @db.Text
+  selectedOptions Json?   @default("{}") @map("selected_options") // JSON is better here for cart flexibility
+  note            String? @db.Text
 
-  cart            Cart     @relation("CartToItems", fields: [cartId], references: [id], onDelete: Cascade)
-  menuItem        MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Restrict)
-  addedByUser     Profile? @relation("CartItemAddedBy", fields: [addedByUserId], references: [id], onDelete: SetNull)
+  cart        Cart     @relation("CartToItems", fields: [cartId], references: [id], onDelete: Cascade)
+  menuItem    MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Restrict)
+  addedByUser Profile? @relation("CartItemAddedBy", fields: [addedByUserId], references: [id], onDelete: SetNull)
 
   @@index([cartId])
   @@index([menuItemId])
@@ -422,87 +422,84 @@ model CartItem {
 }
 
 model Order {
-  id               String         @id @default(uuid()) @db.Uuid
-  customerId       String?        @map("customer_id") @db.Uuid
-  restaurantId     String         @map("restaurant_id") @db.Uuid
-  driverId         String?        @map("driver_id") @db.Uuid
-  promotionId      String?        @map("promotion_id") @db.Uuid
-  
-  orderType        OrderType?     @default(standard_delivery) @map("order_type")
-  
+  id           String  @id @default(uuid()) @db.Uuid
+  customerId   String? @map("customer_id") @db.Uuid
+  restaurantId String  @map("restaurant_id") @db.Uuid
+  driverId     String? @map("driver_id") @db.Uuid
+  promotionId  String? @map("promotion_id") @db.Uuid
+
+  orderType OrderType? @default(standard_delivery) @map("order_type")
+
   // Dine-in Pre-order [NEW]
-  tableNumber      String?        @map("table_number") @db.VarChar(50)
-  reservationTime  DateTime?      @map("reservation_time") @db.Timestamptz()
+  tableNumber     String?   @map("table_number") @db.VarChar(50)
+  reservationTime DateTime? @map("reservation_time") @db.Timestamptz()
 
-  status           OrderStatus?   @default(pending)
-  
+  status OrderStatus? @default(pending)
+
   // Financial specifics
-  totalAmount      Decimal        @map("total_amount") @db.Decimal(15, 2)
-  discountAmount   Decimal?       @default(0.0) @map("discount_amount") @db.Decimal(15, 2)
-  finalAmount      Decimal        @map("final_amount") @db.Decimal(15, 2)
-  
-  // Platform Fee / Revenue Tracking [NEW]
-  platformFee      Decimal        @default(0.0) @map("platform_fee") @db.Decimal(15, 2) // Tiền hệ thống thu
-  restaurantNet    Decimal        @default(0.0) @map("restaurant_net") @db.Decimal(15, 2) // Tiền quán thực nhận
+  totalAmount    Decimal  @map("total_amount") @db.Decimal(15, 2)
+  discountAmount Decimal? @default(0.0) @map("discount_amount") @db.Decimal(15, 2)
+  finalAmount    Decimal  @map("final_amount") @db.Decimal(15, 2)
 
-  paymentStatus    PaymentStatus? @default(pending) @map("payment_status")
-  isPaid           Boolean?       @default(false) @map("is_paid")
-  
-  deliveryAddress  String?        @map("delivery_address") @db.Text
-  note             String?        @db.Text
-  
-  groupParticipants Json?         @default("[]") @map("group_participants") // { userId, amountContributed }
-  
+  // Platform Fee / Revenue Tracking [NEW]
+  platformFee   Decimal @default(0.0) @map("platform_fee") @db.Decimal(15, 2) // Tiền hệ thống thu
+  restaurantNet Decimal @default(0.0) @map("restaurant_net") @db.Decimal(15, 2) // Tiền quán thực nhận
+
+  paymentStatus PaymentStatus? @default(pending) @map("payment_status")
+  isPaid        Boolean?       @default(false) @map("is_paid")
+
+  deliveryAddress String? @map("delivery_address") @db.Text
+  note            String? @db.Text
+
+  groupParticipants Json? @default("[]") @map("group_participants") // { userId, amountContributed }
+
   // Fraud Detection (Gian lận) [NEW]
-  deviceIp         String?        @map("device_ip") @db.VarChar(50)
-  deviceId         String?        @map("device_id") @db.VarChar(255)
-  isFlagged        Boolean        @default(false) @map("is_flagged")
-  riskScore        Decimal?       @map("risk_score") @db.Decimal(5, 2)
+  deviceIp  String?  @map("device_ip") @db.VarChar(50)
+  deviceId  String?  @map("device_id") @db.VarChar(255)
+  isFlagged Boolean  @default(false) @map("is_flagged")
+  riskScore Decimal? @map("risk_score") @db.Decimal(5, 2)
 
   // Timestamps
-  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt        DateTime       @default(now()) @map("updated_at") @updatedAt @db.Timestamptz()
-  acceptedAt       DateTime?      @map("accepted_at") @db.Timestamptz()
-  preparingAt      DateTime?      @map("preparing_at") @db.Timestamptz()
-  deliveringAt     DateTime?      @map("delivering_at") @db.Timestamptz()
-  completedAt      DateTime?      @map("completed_at") @db.Timestamptz()
-  cancelledAt      DateTime?      @map("cancelled_at") @db.Timestamptz()  
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  acceptedAt   DateTime? @map("accepted_at") @db.Timestamptz()
+  preparingAt  DateTime? @map("preparing_at") @db.Timestamptz()
+  deliveringAt DateTime? @map("delivering_at") @db.Timestamptz()
+  completedAt  DateTime? @map("completed_at") @db.Timestamptz()
+  cancelledAt  DateTime? @map("cancelled_at") @db.Timestamptz()
 
   // Relations
-  customer         Profile?             @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: SetNull)
-  restaurant       Restaurant           @relation("RestaurantOrders", fields: [restaurantId], references: [id], onDelete: Restrict)
-  driver           DriverProfile?       @relation("DriverOrders", fields: [driverId], references: [id], onDelete: SetNull)
-  promotion        Promotion?           @relation(fields: [promotionId], references: [id], onDelete: SetNull)
-  orderItems       OrderItem[]
-  payment          Payment[]
-  restaurantReviews RestaurantReview[]
+  customer             Profile?             @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: SetNull)
+  restaurant           Restaurant           @relation("RestaurantOrders", fields: [restaurantId], references: [id], onDelete: Restrict)
+  driver               DriverProfile?       @relation("DriverOrders", fields: [driverId], references: [id], onDelete: SetNull)
+  promotion            Promotion?           @relation(fields: [promotionId], references: [id], onDelete: SetNull)
+  orderItems           OrderItem[]
+  payment              Payment[]
+  restaurantReviews    RestaurantReview[]
   orderStatusHistories OrderStatusHistory[]
-  
+
   @@index([customerId])
   @@index([restaurantId])
   @@index([driverId])
   @@index([promotionId])
-
   @@index([status])
   @@index([createdAt])
-
   @@index([customerId, createdAt])
   @@index([restaurantId, status])
-
   @@map("orders")
 }
 
 model OrderItem {
-  id              String   @id @default(uuid()) @db.Uuid
-  orderId         String   @map("order_id") @db.Uuid
-  menuItemId      String   @map("menu_item_id") @db.Uuid
+  id              String  @id @default(uuid()) @db.Uuid
+  orderId         String  @map("order_id") @db.Uuid
+  menuItemId      String  @map("menu_item_id") @db.Uuid
   quantity        Int
-  unitPrice       Decimal  @map("unit_price") @db.Decimal(15, 2) // Lịch sử giá
-  selectedOptions Json?    @default("{}") @map("selected_options") // Lịch sử topping (Snapshot)
-  note            String?  @db.Text
+  unitPrice       Decimal @map("unit_price") @db.Decimal(15, 2) // Lịch sử giá
+  selectedOptions Json?   @default("{}") @map("selected_options") // Lịch sử topping (Snapshot)
+  note            String? @db.Text
 
-  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  menuItem        MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Restrict)
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Restrict)
 
   @@index([orderId])
   @@index([menuItemId])
@@ -518,7 +515,7 @@ model WalletTransaction {
   description     String?  @db.Text
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
 
-  driver          DriverProfile @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  driver DriverProfile @relation(fields: [driverId], references: [id], onDelete: Cascade)
 
   @@index([driverId])
   @@index([createdAt])
@@ -527,13 +524,13 @@ model WalletTransaction {
 
 // Chatbot AI
 model ChatbotSession {
-  id          String   @id @default(uuid()) @db.Uuid
-  userId      String   @map("user_id") @db.Uuid
-  messages    Json     @default("[]") // Lưu lịch sử chat dưới dạng mảng JSON [{"role": "user", "content": "..."}, {"role": "model", "content": "..."}]
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt   DateTime @default(now()) @map("updated_at") @updatedAt @db.Timestamptz()
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  messages  Json     @default("[]") // Lưu lịch sử chat dưới dạng mảng JSON [{"role": "user", "content": "..."}, {"role": "model", "content": "..."}]
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
 
-  user        Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("chatbot_sessions")
@@ -549,16 +546,15 @@ model SocialPost {
   likesCount    Int?     @default(0) @map("likes_count") // Denormalized counter
   commentsCount Int?     @default(0) @map("comments_count") // Denormalized counter
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt     DateTime @default(now()) @map("updated_at") @updatedAt @db.Timestamptz()
-  
-  user          Profile           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  restaurant    Restaurant?       @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
-  interactions  PostInteraction[]
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  user         Profile           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  restaurant   Restaurant?       @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
+  interactions PostInteraction[]
 
   @@index([userId])
   @@index([restaurantId])
   @@index([createdAt])
-  
   @@map("social_posts")
 }
 
@@ -569,28 +565,28 @@ model PostInteraction {
   interactionType String   @map("interaction_type") @db.VarChar(50)
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
 
-  post            SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user            Profile    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user Profile    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId, interactionType])
   @@map("post_interactions")
 }
 
 model RestaurantReview {
-  id            String   @id @default(uuid()) @db.Uuid
-  orderId       String?  @map("order_id") @db.Uuid
-  reviewerId    String   @map("reviewer_id") @db.Uuid
-  restaurantId  String   @map("restaurant_id") @db.Uuid
+  id           String  @id @default(uuid()) @db.Uuid
+  orderId      String? @map("order_id") @db.Uuid
+  reviewerId   String  @map("reviewer_id") @db.Uuid
+  restaurantId String  @map("restaurant_id") @db.Uuid
 
-  rating        Int
-  comment       String?  @db.Text
+  rating         Int
+  comment        String? @db.Text
   replyFromOwner String? @map("reply_from_owner") @db.Text
 
-  createdAt     DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
-  order         Order?      @relation(fields: [orderId], references: [id])
-  reviewer      Profile     @relation("RestaurantReviewer", fields: [reviewerId], references: [id])
-  restaurant    Restaurant  @relation(fields: [restaurantId], references: [id])
+  order      Order?     @relation(fields: [orderId], references: [id])
+  reviewer   Profile    @relation("RestaurantReviewer", fields: [reviewerId], references: [id])
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
 
   @@unique([orderId, reviewerId, restaurantId])
   @@index([restaurantId])
@@ -600,17 +596,17 @@ model RestaurantReview {
 }
 
 model DriverReview {
-  id          String   @id @default(uuid()) @db.Uuid
-  reviewerId  String   @db.Uuid
-  driverId    String   @db.Uuid
+  id         String @id @default(uuid()) @db.Uuid
+  reviewerId String @db.Uuid
+  driverId   String @db.Uuid
 
-  rating      Int
-  comment     String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  reviewer    Profile       @relation("DriverReviewer", fields: [reviewerId], references: [id])
-  driver      DriverProfile @relation(fields: [driverId], references: [id])
+  reviewer Profile       @relation("DriverReviewer", fields: [reviewerId], references: [id])
+  driver   DriverProfile @relation(fields: [driverId], references: [id])
 
   @@unique([reviewerId, driverId])
   @@index([driverId])
@@ -619,17 +615,17 @@ model DriverReview {
 }
 
 model MenuItemReview {
-  id          String   @id @default(uuid()) @db.Uuid
-  reviewerId  String   @db.Uuid
-  menuItemId  String   @db.Uuid
+  id         String @id @default(uuid()) @db.Uuid
+  reviewerId String @db.Uuid
+  menuItemId String @db.Uuid
 
-  rating      Int
-  comment     String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt  @map("updated_at")
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  reviewer    Profile  @relation("MenuItemReviewer", fields: [reviewerId], references: [id])
-  menuItem    MenuItem @relation(fields: [menuItemId], references: [id])
+  reviewer Profile  @relation("MenuItemReviewer", fields: [reviewerId], references: [id])
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id])
 
   @@unique([reviewerId, menuItemId])
   @@index([menuItemId])
@@ -657,87 +653,86 @@ enum PaymentStatus {
 }
 
 model Payment {
-  id                String            @id @default(uuid()) @db.Uuid
-  orderId           String            @map("order_id") @db.Uuid
+  id      String @id @default(uuid()) @db.Uuid
+  orderId String @map("order_id") @db.Uuid
 
-  method            PaymentMethod     @map("payment_method")
-  provider          PaymentProvider?  @map("provider")
-  status            PaymentStatus     @default(pending)
+  method   PaymentMethod    @map("payment_method")
+  provider PaymentProvider? @map("provider")
+  status   PaymentStatus    @default(pending)
 
-  amount            Decimal           @db.Decimal(15, 2)
-  currency          String            @default("VND")
+  amount   Decimal @db.Decimal(15, 2)
+  currency String  @default("VND")
 
-  transactionId     String?           @unique @map("transaction_id")
-  paymentUrl        String?           @map("payment_url") @db.Text
-  responseData      Json?             @map("response_data")
-  paymentCode       String?           @unique @map("payment_code")
-  providerOrderId   String?           @unique @map("provider_order_id")
-  paidAt            DateTime?         @map("paid_at")
+  transactionId   String?   @unique @map("transaction_id")
+  paymentUrl      String?   @map("payment_url") @db.Text
+  responseData    Json?     @map("response_data")
+  paymentCode     String?   @unique @map("payment_code")
+  providerOrderId String?   @unique @map("provider_order_id")
+  paidAt          DateTime? @map("paid_at")
 
-  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt         DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
 
-  order             Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
   @@index([provider])
   @@index([status])
-
   @@map("payments")
 }
 
 model Notification {
-  id          String   @id @default(uuid()) @db.Uuid
-  receiverId  String   @db.Uuid
+  id         String @id @default(uuid()) @db.Uuid
+  receiverId String @db.Uuid
 
-  title       String
-  content     String?
-  type        String // ORDER, PAYMENT, CHAT
+  title   String
+  content String?
+  type    String // ORDER, PAYMENT, CHAT
 
-  isRead      Boolean @default(false)
+  isRead Boolean @default(false)
 
-  metadata    Json?
-  createdAt   DateTime @default(now())
+  metadata  Json?
+  createdAt DateTime @default(now())
 
-  receiver    Profile @relation(fields: [receiverId], references: [id], onDelete: Cascade)
+  receiver Profile @relation(fields: [receiverId], references: [id], onDelete: Cascade)
 
   @@index([receiverId])
 }
 
 model OrderStatusHistory {
-  id        String      @id @default(uuid()) @db.Uuid
-  orderId   String      @db.Uuid
+  id      String @id @default(uuid()) @db.Uuid
+  orderId String @db.Uuid
 
-  status    OrderStatus
+  status OrderStatus
 
   note      String?
   createdAt DateTime @default(now())
 
-  order     Order @relation(fields: [orderId], references: [id])
+  order Order @relation(fields: [orderId], references: [id])
 
   @@index([orderId])
 }
 
 model DriverLocation {
-  driverId   String   @id @db.Uuid @unique
+  driverId String @id @unique @db.Uuid
 
-  latitude   Decimal  @db.Decimal(10,8)
-  longitude  Decimal  @db.Decimal(11,8)
+  latitude  Decimal @db.Decimal(10, 8)
+  longitude Decimal @db.Decimal(11, 8)
 
-  updatedAt  DateTime @updatedAt
+  updatedAt DateTime @updatedAt
 
-  driver     DriverProfile @relation(fields: [driverId], references: [id])
+  driver DriverProfile @relation(fields: [driverId], references: [id])
 
   @@map("driver_locations")
 }
 
 model Conversation {
-  id          String   @id @default(uuid()) @db.Uuid @map("receiver_id")
-  createdAt   DateTime @default(now())
+  id        String   @id @default(uuid()) @map("receiver_id") @db.Uuid
+  createdAt DateTime @default(now())
 
-  isGroup     Boolean  @default(false) @map("is_group")
-  name        String?  @db.VarChar(255)
-  avatarUrl   String?  @map("avatar_url")
+  isGroup   Boolean @default(false) @map("is_group")
+  name      String? @db.VarChar(255)
+  avatarUrl String? @map("avatar_url")
 
   participants ConversationParticipant[]
   messages     Message[]
@@ -746,48 +741,45 @@ model Conversation {
 }
 
 model ConversationParticipant {
-  id              String   @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
 
-  conversationId  String   @map("conversation_id") @db.Uuid
-  profileId       String   @map("profile_id") @db.Uuid
+  conversationId String @map("conversation_id") @db.Uuid
+  profileId      String @map("profile_id") @db.Uuid
 
-  joinedAt        DateTime @default(now()) @map("joined_at")
+  joinedAt DateTime @default(now()) @map("joined_at")
 
-  isAdmin         Boolean  @default(false) @map("is_admin")
-  lastReadAt      DateTime? @map("last_read_at")
+  isAdmin    Boolean   @default(false) @map("is_admin")
+  lastReadAt DateTime? @map("last_read_at")
 
-  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  profile         Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  profile      Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   @@unique([conversationId, profileId])
-
   @@index([conversationId])
   @@index([profileId])
-
   @@map("conversation_participants")
 }
 
 model Message {
-  id              String   @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
 
-  conversationId  String   @map("conversation_id") @db.Uuid
-  senderId        String   @map("sender_id") @db.Uuid
+  conversationId String @map("conversation_id") @db.Uuid
+  senderId       String @map("sender_id") @db.Uuid
 
-  content         String   @db.Text
+  content String @db.Text
 
-  type            String   @default("TEXT") // TEXT, IMAGE, VIDEO, FILE
+  type String @default("TEXT") // TEXT, IMAGE, VIDEO, FILE
 
-  isRead          Boolean  @default(false) @map("is_read")
+  isRead Boolean @default(false) @map("is_read")
 
-  createdAt       DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
-  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
-  sender          Profile      @relation("MessageSender",fields: [senderId], references: [id], onDelete: Cascade)
+  sender Profile @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([conversationId])
   @@index([senderId])
   @@index([createdAt])
-
   @@map("messages")
 }

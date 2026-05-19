@@ -14,7 +14,7 @@ export class ApiV1Route extends RailsRoute {
 
     this.path("/auth", AuthRoute.draw());
 
-    this.path(action(ValidateUserLoginMiddleware));
+    // this.path(action(ValidateUserLoginMiddleware));
 
     // Permission routes - action(Controller, "index") tạo instance mới mỗi request
     this.get("/permissions/me", action(MyPermissionController, "index"));
