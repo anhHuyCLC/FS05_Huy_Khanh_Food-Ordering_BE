@@ -33,7 +33,7 @@ export class ApplicationController extends RailsController {
   /**
    * Lấy user hiện tại từ request (đã được middleware gán).
    */
-  protected get currentUser(): (User & { permissions?: string[] }) | undefined {
+  protected get currentUser() {
     return this.req.user || undefined;
   }
 

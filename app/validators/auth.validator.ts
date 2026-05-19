@@ -1,9 +1,10 @@
 import {
-    IsEmail,
-    IsNotEmpty,
-    IsOptional,
-    IsString,
-    MinLength,
+  IsEmail,
+  IsIn,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
 } from "class-validator";
 
 export class LoginValidator {
@@ -67,4 +68,48 @@ export class GoogleOAuthCallbackValidator {
   @IsString()
   @MinLength(1)
   code!: string;
+
+  @IsOptional()
+  @IsString()
+  redirectUri?: string;
+}
+
+export class RegisterValidator {
+  @IsNotEmpty({ message: "Email is required" })
+  @IsEmail()
+  email!: string;
+
+  @IsNotEmpty({ message: "Password is required" })
+  @IsString()
+  @MinLength(6, { message: "Password must be at least 6 characters" })
+  password!: string;
+
+  @IsNotEmpty({ message: "Password confirmation is required" })
+  @IsString()
+  confirmpassword!: string;
+
+  @IsNotEmpty({ message: "First name is required" })
+  @IsString()
+  firstname!: string;
+
+  @IsOptional()
+  @IsString()
+  middlename?: string;
+
+  @IsNotEmpty({ message: "Last name is required" })
+  @IsString()
+  lastname!: string;
+
+  @IsOptional()
+  @IsString()
+  phonenumber?: string;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['CUSTOMER', 'ADMIN', 'DRIVER', 'RESTAURANT'], { message: 'Role must be one of: CUSTOMER, ADMIN, DRIVER, RESTAURANT' })
+  role?: string;
 }
