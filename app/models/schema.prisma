@@ -72,7 +72,8 @@ model Role {
   updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at")
   createdById String?   @map("created_by_id") @db.Uuid
   updatedById String?   @map("updated_by_id") @db.Uuid
-  deleted     Boolean   @default(false) @map("deleted")
+
+  deleted Boolean @default(false) @map("deleted")
 
   code        String  @unique @map("code")
   name        String  @map("name")

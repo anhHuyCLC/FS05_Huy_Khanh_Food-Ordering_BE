@@ -5,6 +5,8 @@ import { action, RailsRoute } from "ts-rails";
 import { ApiV1AdminRoute } from "./admin";
 import { AuthRoute } from "./auth";
 import { ApiV1DevRoute } from "./dev";
+import { ProfileRouteV1 } from "./profile.route";
+import { MenuItemRouteV1 } from "./menuItem.route";
 
 export class ApiV1Route extends RailsRoute {
   public draw() {
@@ -19,7 +21,14 @@ export class ApiV1Route extends RailsRoute {
     // Permission routes - action(Controller, "index") tạo instance mới mỗi request
     this.get("/permissions/me", action(MyPermissionController, "index"));
 
+    // Profile routes
+    this.path("/profiles", ProfileRouteV1.draw());
+
+    // Menu Item routes
+    this.path("/", MenuItemRouteV1.draw());
+
     // Admin routes - yêu cầu AM permission
     this.path("/admin", ApiV1AdminRoute.draw());
   }
 }
+

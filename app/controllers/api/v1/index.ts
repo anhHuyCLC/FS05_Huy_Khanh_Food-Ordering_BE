@@ -5,3 +5,5 @@ export * from "./admin/adminUser.controller";
 export * from "./auth.controller";
 export * from "./dev.controller";
 export * from "./myPermission.controller";
+export * from "./profile.controller";
+export * from "./menuItem.controller";
