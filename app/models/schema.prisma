@@ -250,6 +250,12 @@ model Profile {
   conversationParticipants ConversationParticipant[]
   sentMessages             Message[]                 @relation("MessageSender")
   notifications            Notification[]
+  followers        UserFollow[]   @relation("UserFollowings") 
+  followings       UserFollow[]   @relation("UserFollowers")  
+  postReports      PostReport[]   @relation("UserReports")   
+  achievedBadges   UserBadge[]                                
+  missionProgresses UserMission[]                              
+  pointHistories   PointHistory[]
 
   @@map("profiles")
 }
@@ -265,6 +271,10 @@ model Restaurant {
   isActive    Boolean? @default(false) @map("is_active")
   rating      Decimal? @default(0.0) @db.Decimal(3, 2) // Denormalized for performance
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  // [BỔ SUNG MỚI] Phục vụ tính năng Duyệt đối tác & Quản lý chiết khấu hệ thống
+  approvalStatus  String   @default("PENDING") @map("approval_status") // PENDING, APPROVED, REJECTED
+  rejectionReason String?  @map("rejection_reason")
+  commissionRate  Decimal  @default(10.0) @map("commission_rate") @db.Decimal(5, 2) // % chiết khấu quán trả hệ thống
 
   owner       Profile            @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   categories  Category[]
@@ -286,6 +296,10 @@ model DriverProfile {
   currentStatus String?  @default("offline") @map("current_status") @db.VarChar(50)
   walletBalance Decimal? @default(0.0) @map("wallet_balance") @db.Decimal(15, 2)
   rating        Decimal? @default(0.0) @db.Decimal(3, 2)
+  // [BỔ SUNG MỚI] Phục vụ tính năng Duyệt tài xế & Hoa hồng giao hàng
+  approvalStatus  String   @default("PENDING") @map("approval_status") // PENDING, APPROVED, REJECTED
+  rejectionReason String?  @map("rejection_reason")
+  commissionRate  Decimal  @default(15.0) @map("commission_rate") @db.Decimal(5, 2) // Tỷ lệ hoa hồng đơn hàng của tài xế
 
   profile      Profile             @relation(fields: [id], references: [id], onDelete: Cascade)
   orders       Order[]             @relation("DriverOrders")
@@ -394,6 +408,8 @@ model Cart {
   isGroupCart  Boolean  @default(false) @map("is_group_cart")
   sessionToken String?  @unique @map("session_token") @db.VarChar(255) // URL token for sharing
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  // [BỔ SUNG MỚI] Lưu ID của những thành viên tham gia Giỏ hàng nhóm (Group Order) trước khi checkout
+  invitedUserIds String[] @default([]) @map("invited_user_ids")
 
   owner      Profile    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
@@ -468,6 +484,8 @@ model Order {
   deliveringAt DateTime? @map("delivering_at") @db.Timestamptz()
   completedAt  DateTime? @map("completed_at") @db.Timestamptz()
   cancelledAt  DateTime? @map("cancelled_at") @db.Timestamptz()
+  // [BỔ SUNG MỚI] Thứ tự điểm dừng giao hàng khi tài xế sử dụng tính năng Gom đơn (Route Optimization)
+  deliverySequence Int?      @map("delivery_sequence")
 
   // Relations
   customer             Profile?             @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: SetNull)
@@ -552,6 +570,8 @@ model SocialPost {
   user         Profile           @relation(fields: [userId], references: [id], onDelete: Cascade)
   restaurant   Restaurant?       @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
   interactions PostInteraction[]
+  // [BỔ SUNG MỚI] Quan hệ đối ứng kết nối với bảng báo cáo vi phạm bài viết
+  reports      PostReport[]
 
   @@index([userId])
   @@index([restaurantId])
@@ -728,7 +748,7 @@ model DriverLocation {
 }
 
 model Conversation {
-  id        String   @id @default(uuid()) @map("receiver_id") @db.Uuid
+  id        String   @id @default(uuid()) @map("id") @db.Uuid
   createdAt DateTime @default(now())
 
   isGroup   Boolean @default(false) @map("is_group")
@@ -783,4 +803,99 @@ model Message {
   @@index([senderId])
   @@index([createdAt])
   @@map("messages")
+}
+
+// Tính năng: Khách hàng Follow người dùng khác / Reviewer tích cực
+model UserFollow {
+  followerId  String   @map("follower_id") @db.Uuid
+  followingId String   @map("following_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  follower  Profile @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following Profile @relation("UserFollowings", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@map("user_follows")
+}
+
+// Tính năng: Admin quản lý báo cáo (Report) bài viết vi phạm trên Social Feed
+model PostReport {
+  id          String   @id @default(uuid()) @db.Uuid
+  postId      String   @map("post_id") @db.Uuid
+  reporterId  String   @map("reporter_id") @db.Uuid
+  reason      String   @db.Text
+  status      String   @default("PENDING") // PENDING (Chờ duyệt), RESOLVED (Đã xử lý xóa bài), DISMISSED (Hợp lệ)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  post     SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  reporter Profile    @relation("UserReports", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@map("post_reports")
+}
+
+// Quản lý các cấu hình Huy hiệu hệ thống (ví dụ: Thánh Ăn Đêm, Chiến Thần Review)
+model Badge {
+  id             String      @id @default(uuid()) @db.Uuid
+  name           String      @unique @db.VarChar(100)
+  description    String?     @db.Text
+  imageUrl       String?     @map("image_url") @db.Text
+  pointsRequired Int         @map("points_required") // Số điểm tích lũy tối thiểu để mở khóa
+  
+  userBadges     UserBadge[]
+
+  @@map("badges")
+}
+// Bảng lưu thông tin Huy hiệu thực tế mà người dùng đã đạt được
+model UserBadge {
+  profileId String   @map("profile_id") @db.Uuid
+  badgeId   String   @map("badge_id") @db.Uuid
+  awardedAt DateTime @default(now()) @map("awarded_at")
+
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, badgeId])
+  @@map("user_badges")
+}
+// Hệ thống quản lý nhiệm vụ tích điểm (Nhiệm vụ ngày, Nhiệm vụ tuần, Sự kiện)
+model Mission {
+  id           String        @id @default(uuid()) @db.Uuid
+  title        String        @db.VarChar(255)
+  description  String?       @db.Text
+  pointsReward Int           @map("points_reward") // Điểm nhận được khi hoàn thành
+  type         String        @default("DAILY")     // DAILY, WEEKLY, SPECIAL
+  targetCount  Int           @default(1) @map("target_count") // Số mục tiêu (ví dụ: Đặt 3 đơn thì targetCount = 3)
+  isActive     Boolean       @default(true) @map("is_active")
+
+  userMissions UserMission[]
+
+  @@map("missions")
+}
+
+// Theo dõi tiến độ làm nhiệm vụ của từng Khách hàng
+model UserMission {
+  profileId   String    @map("profile_id") @db.Uuid
+  missionId   String    @map("mission_id") @db.Uuid
+  currentProgress Int   @default(0) @map("current_progress") // Tiến độ hiện tại (ví dụ: Đã đặt 2 đơn -> ghi nhận số 2)
+  isCompleted Boolean   @default(false) @map("is_completed")
+  completedAt DateTime? @map("completed_at")
+
+  profile     Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  mission     Mission   @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, missionId])
+  @@map("user_missions")
+}
+
+// Nhật ký biến động điểm (Tích điểm từ đơn hàng, cộng điểm hoàn thành nhiệm vụ, trừ điểm đổi voucher)
+model PointHistory {
+  id        String   @id @default(uuid()) @db.Uuid
+  profileId String   @map("profile_id") @db.Uuid
+  amount    Int      // Số điểm biến động (Số dương như +50 nếu tích điểm, số âm như -100 nếu đổi voucher)
+  reason    String   // Loại nghiệp vụ: "ORDER_REWARD", "MISSION_COMPLETED", "REDEEM_VOUCHER"
+  createdAt DateTime @default(now()) @map("created_at")
+
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("point_histories")
 }
