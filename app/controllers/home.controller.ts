@@ -1,5 +1,5 @@
 import { HomePageValidator } from "@validators/common.validator";
-import { ApplicationController } from ".";
+import { ApplicationController } from "./application.controller";
 
 export class HomeController extends ApplicationController {
   async index() {

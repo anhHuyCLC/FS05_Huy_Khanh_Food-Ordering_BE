@@ -1,7 +1,7 @@
 import models from "@models";
 import { UpdateProfileValidator } from "@validators/profile.validator";
 import { NotFoundError } from "ts-rails";
-import { ApiV1Controller } from ".";
+import { ApiV1Controller } from "./apiV1.controller";
 import { ProfileService } from "@services/profile.service";
 
 //permit: lọc các field cần thiết

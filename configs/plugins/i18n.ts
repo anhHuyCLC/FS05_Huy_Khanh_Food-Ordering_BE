@@ -3,6 +3,7 @@
  */
 import { NextFunction, Request, Response } from "express";
 import i18next from "i18next";
+export { i18next };
 import Backend from "i18next-fs-backend";
 import path from "path";
 

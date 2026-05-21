@@ -1,6 +1,6 @@
 import models from "@models";
 import { NotFoundError, UnauthorizedError } from "ts-rails";
-import { ApiV1Controller } from ".";
+import { ApiV1Controller } from "./apiV1.controller";
 import { MenuItemService } from "@services/menuItem.service";
 import {
   CreateMenuItemValidator,

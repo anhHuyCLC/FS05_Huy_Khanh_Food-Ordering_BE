@@ -2,7 +2,7 @@ import { FlashType } from "@configs/enum";
 import models from "@models";
 import { UpdateProfileValidator } from "@validators/profile.validator";
 import { BeforeAction } from "ts-rails";
-import { ApplicationController } from ".";
+import { ApplicationController } from "./application.controller";
 
 @BeforeAction("requireLogin")
 export class ProfileController extends ApplicationController {
