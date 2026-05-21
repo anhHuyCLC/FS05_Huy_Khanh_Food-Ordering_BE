@@ -1,4 +1,4 @@
-import { ApplicationController } from "..";
+import { ApplicationController } from "../application.controller";
 
 export class AdminController extends ApplicationController {
   async index() {

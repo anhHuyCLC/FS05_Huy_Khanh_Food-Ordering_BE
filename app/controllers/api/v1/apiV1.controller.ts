@@ -1,4 +1,4 @@
-import { ApiController } from "..";
+import { ApiController } from "../api.controller";
 
 export class ApiV1Controller extends ApiController {
   constructor() {

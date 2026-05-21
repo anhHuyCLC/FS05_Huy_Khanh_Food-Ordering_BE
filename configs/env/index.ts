@@ -30,5 +30,8 @@ export default {
   redisHost: process.env.REDIS_HOST || "127.0.0.1",
   redisPort: parseInt(process.env.REDIS_PORT || "6379"),
   storageService: process.env.STORAGE_SERVICE || "local",
-  apiKey: process.env.API_KEY || "",
+  gemmaApiKey: process.env.GEMMA_API_KEY || process.env.API_KEY || "",
+  gemmaBaseUrl: process.env.GEMMA_BASE_URL || "https://api.gemma-ai.cn/v1/",
+  gemmaModel: process.env.GEMMA_MODEL || "gemma-4-31b-it",
 };
+// Trigger nodemon restart after updating env vars

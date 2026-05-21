@@ -1,5 +1,5 @@
 import models from "@models";
-import { ApiV1Controller } from ".";
+import { ApiV1Controller } from "./apiV1.controller";
 
 export class MyPermissionController extends ApiV1Controller {
   async index() {

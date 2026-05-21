@@ -1,6 +1,6 @@
 import models from "@models";
 import { NotFoundError } from "ts-rails";
-import { ApiV1Controller } from "..";
+import { ApiV1Controller } from "../apiV1.controller";
 
 export class ApiV1AdminFeatureController extends ApiV1Controller {
   async index() {

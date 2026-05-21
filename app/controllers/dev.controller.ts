@@ -1,5 +1,5 @@
 import { FlashType } from "@configs/enum";
-import { ApplicationController } from ".";
+import { ApplicationController } from "./application.controller";
 
 export class DevController extends ApplicationController {
   async index() {
