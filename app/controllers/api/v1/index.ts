@@ -7,3 +7,5 @@ export * from "./dev.controller";
 export * from "./myPermission.controller";
 export * from "./profile.controller";
 export * from "./menuItem.controller";
+export * from "./restaurant.controller";
+export * from "./chat.controller";

@@ -5,6 +5,7 @@ import { action, RailsRoute } from "ts-rails";
 import { ApiV1AdminRoute } from "./admin";
 import { AuthRoute } from "./auth";
 import { ApiV1DevRoute } from "./dev";
+import { RestaurantRoute } from "./restaurant";
 import { ProfileRouteV1 } from "./profile.route";
 import { MenuItemRouteV1 } from "./menuItem.route";
 
@@ -15,6 +16,7 @@ export class ApiV1Route extends RailsRoute {
     }
 
     this.path("/auth", AuthRoute.draw());
+    this.path("/restaurant", RestaurantRoute.draw());
 
     // this.path(action(ValidateUserLoginMiddleware));
 

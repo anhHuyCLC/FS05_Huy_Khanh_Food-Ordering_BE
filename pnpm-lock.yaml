@@ -113,6 +113,9 @@ importers:
       nodemailer:
         specifier: ^6.10.1
         version: 6.10.1
+      openai:
+        specifier: ^6.38.0
+        version: 6.38.0(ws@8.20.0)
       pg:
         specifier: ^8.20.0
         version: 8.20.0
@@ -4037,6 +4040,18 @@ packages:
   open@7.4.2:
     resolution: {integrity: sha512-MVHddDVweXZF3awtlAS+6pgKLlm/JgxZ90+/NBurBoQctVOOB/zDdVjcyPzQ+0laDGbsWgrRkflI65sQeOgT9Q==}
     engines: {node: '>=8'}
+
+  openai@6.38.0:
+    resolution: {integrity: sha512-AoMplt2UalrpgUDMh3L09QWjNRlgJPipclQvA6sYAaeF6nHNBMgmikAZGmcYLn8on4d9sQY9Q8bOLfrBS7Lc8g==}
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.25 || ^4.0
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
 
   p-filter@2.1.0:
     resolution: {integrity: sha512-ZBxxZ5sL2HghephhpGAQdoskxplTwr7ICaehZwLIlfL6acuVgZPm8yBNuRAFBGEqtD/hmUeq9eqLg2ys9Xr/yw==}
@@ -9949,6 +9964,10 @@ snapshots:
     dependencies:
       is-docker: 2.2.1
       is-wsl: 2.2.0
+
+  openai@6.38.0(ws@8.20.0):
+    optionalDependencies:
+      ws: 8.20.0
 
   p-filter@2.1.0:
     dependencies:
