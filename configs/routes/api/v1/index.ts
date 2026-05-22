@@ -1,16 +1,17 @@
 import env from "@configs/env";
 import { MyPermissionController } from "@controllers/api";
-import { ValidateUserLoginMiddleware } from "@middlewares";
 import { action, RailsRoute } from "ts-rails";
+import { AddressRouteV1 } from "./address.route";
 import { ApiV1AdminRoute } from "./admin";
 import { AuthRoute } from "./auth";
-import { ApiV1DevRoute } from "./dev";
-import { RestaurantRoute } from "./restaurant";
-import { ProfileRouteV1 } from "./profile.route";
-import { MenuItemRouteV1 } from "./menuItem.route";
-import { ChatRouteV1 } from "./chat.route";
-import { OrderRouteV1 } from "./order.route";
 import { CartRouteV1 } from "./cart.route";
+import { ChatRouteV1 } from "./chat.route";
+import { ApiV1DevRoute } from "./dev";
+import { MenuItemRouteV1 } from "./menuItem.route";
+import { OrderRouteV1 } from "./order.route";
+import { ProfileRouteV1 } from "./profile.route";
+import { RestaurantRoute } from "./restaurant";
+import { MapRouteV1 } from "./map.route";
 
 export class ApiV1Route extends RailsRoute {
   public draw() {
@@ -40,6 +41,12 @@ export class ApiV1Route extends RailsRoute {
 
     // Cart routes
     this.path("/", CartRouteV1.draw());
+
+    // Address routes
+    this.path("/", AddressRouteV1.draw());
+
+    // Map routes
+    this.path("/", MapRouteV1.draw());
 
     // Admin routes - yêu cầu AM permission
     this.path("/admin", ApiV1AdminRoute.draw());

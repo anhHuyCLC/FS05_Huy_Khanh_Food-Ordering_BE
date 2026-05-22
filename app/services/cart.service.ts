@@ -15,17 +15,17 @@ export class CartService {
             id: true,
             name: true,
             address: true,
+            latitude: true,
+            longitude: true,
           },
         },
         items: {
           include: {
             menuItem: {
-              select: {
-                id: true,
-                name: true,
-                basePrice: true,
-                imageUrl: true,
-                isAvailable: true,
+              include: {
+                optionGroups: {
+                  include: { choices: true },
+                },
               },
             },
             addedByUser: {
@@ -57,6 +57,8 @@ export class CartService {
             name: true,
             address: true,
             isActive: true,
+            latitude: true,
+            longitude: true,
           },
         },
         items: {
@@ -105,6 +107,8 @@ export class CartService {
             name: true,
             address: true,
             isActive: true,
+            latitude: true,
+            longitude: true,
           },
         },
         items: {
@@ -165,12 +169,16 @@ export class CartService {
       },
       include: {
         restaurant: {
-          select: { id: true, name: true, address: true },
+          select: { id: true, name: true, address: true, latitude: true, longitude: true },
         },
         items: {
           include: {
             menuItem: {
-              select: { id: true, name: true, basePrice: true, imageUrl: true },
+              include: {
+                optionGroups: {
+                  include: { choices: true },
+                },
+              },
             },
           },
         },
@@ -193,12 +201,16 @@ export class CartService {
       },
       include: {
         restaurant: {
-          select: { id: true, name: true, address: true },
+          select: { id: true, name: true, address: true, latitude: true, longitude: true },
         },
         items: {
           include: {
             menuItem: {
-              select: { id: true, name: true, basePrice: true, imageUrl: true },
+              include: {
+                optionGroups: {
+                  include: { choices: true },
+                },
+              },
             },
           },
         },
@@ -206,6 +218,21 @@ export class CartService {
     });
 
     return { cart: newCart, created: true };
+  }
+
+  private isDeepEqual(obj1: any, obj2: any): boolean {
+    if (obj1 === obj2) return true;
+    if (typeof obj1 !== "object" || obj1 === null || typeof obj2 !== "object" || obj2 === null) {
+      return false;
+    }
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+    if (keys1.length !== keys2.length) return false;
+    for (const key of keys1) {
+      if (!keys2.includes(key)) return false;
+      if (!this.isDeepEqual(obj1[key], obj2[key])) return false;
+    }
+    return true;
   }
 
   /**
@@ -252,14 +279,45 @@ export class CartService {
       throw new Error(`Món "${menuItem.name}" hiện không có sẵn`);
     }
 
-    // Tạo cart item mới (cho phép thêm nhiều item giống nhau với option khác nhau)
+    // Kiểm tra xem đã có item cùng menuItemId và selectedOptions trong cart chưa
+    const targetOptions = JSON.parse(JSON.stringify(data.selectedOptions ?? {}));
+    const existingItems = await models.cartItem.findMany({
+      where: {
+        cartId,
+        menuItemId: data.menuItemId,
+      },
+    });
+
+    const duplicateItem = existingItems.find((item) => {
+      const existingOptions = JSON.parse(JSON.stringify(item.selectedOptions ?? {}));
+      return this.isDeepEqual(existingOptions, targetOptions);
+    });
+
+    if (duplicateItem) {
+      // Gộp chung lại và tăng số lượng
+      const updatedItem = await models.cartItem.update({
+        where: { id: duplicateItem.id },
+        data: {
+          quantity: duplicateItem.quantity + data.quantity,
+          note: data.note !== undefined ? data.note : duplicateItem.note,
+        },
+        include: {
+          menuItem: {
+            select: { id: true, name: true, basePrice: true, imageUrl: true },
+          },
+        },
+      });
+      return updatedItem;
+    }
+
+    // Tạo cart item mới
     const cartItem = await models.cartItem.create({
       data: {
         cartId,
         menuItemId: data.menuItemId,
         addedByUserId: profileId,
         quantity: data.quantity,
-        selectedOptions: data.selectedOptions ?? {},
+        selectedOptions: targetOptions,
         note: data.note ?? null,
       },
       include: {
@@ -308,6 +366,48 @@ export class CartService {
 
     if (!cartItem.menuItem.isAvailable) {
       throw new Error(`Món "${cartItem.menuItem.name}" hiện không có sẵn`);
+    }
+
+    const targetOptions = JSON.parse(JSON.stringify(data.selectedOptions !== undefined ? data.selectedOptions : (cartItem.selectedOptions ?? {})));
+    const targetQty = data.quantity !== undefined ? data.quantity : cartItem.quantity;
+    const targetNote = data.note !== undefined ? data.note : cartItem.note;
+
+    // Nếu thay đổi options, kiểm tra xem có trùng với item khác trong cùng giỏ hàng không
+    if (data.selectedOptions !== undefined) {
+      const otherItems = await models.cartItem.findMany({
+        where: {
+          cartId: cartItem.cartId,
+          menuItemId: cartItem.menuItemId,
+          id: { not: cartItemId },
+        },
+      });
+
+      const duplicateItem = otherItems.find((item) => {
+        const existingOptions = JSON.parse(JSON.stringify(item.selectedOptions ?? {}));
+        return this.isDeepEqual(existingOptions, targetOptions);
+      });
+
+      if (duplicateItem) {
+        // Gộp hai items: cộng dồn số lượng và xóa item hiện tại
+        const updatedDuplicate = await models.cartItem.update({
+          where: { id: duplicateItem.id },
+          data: {
+            quantity: duplicateItem.quantity + targetQty,
+            note: targetNote || duplicateItem.note,
+          },
+          include: {
+            menuItem: {
+              select: { id: true, name: true, basePrice: true, imageUrl: true },
+            },
+          },
+        });
+
+        await models.cartItem.delete({
+          where: { id: cartItemId },
+        });
+
+        return updatedDuplicate;
+      }
     }
 
     const updateData: any = {};
@@ -414,12 +514,18 @@ export class CartService {
       const basePrice = Number(item.menuItem.basePrice);
       let optionTotal = 0;
 
-      // Tính thêm tiền từ selected options (nếu có)
+      // Tính thêm tiền từ selected options (nếu có, hỗ trợ cả mảng/checkbox và object/radio)
       if (item.selectedOptions && typeof item.selectedOptions === "object") {
         const options = item.selectedOptions as Record<string, any>;
         for (const key of Object.keys(options)) {
           const optionValue = options[key];
-          if (optionValue?.additionalPrice) {
+          if (Array.isArray(optionValue)) {
+            for (const choice of optionValue) {
+              if (choice && typeof choice === "object" && choice.additionalPrice) {
+                optionTotal += Number(choice.additionalPrice);
+              }
+            }
+          } else if (optionValue && typeof optionValue === "object" && optionValue.additionalPrice) {
             optionTotal += Number(optionValue.additionalPrice);
           }
         }

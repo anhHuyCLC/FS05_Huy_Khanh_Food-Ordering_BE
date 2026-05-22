@@ -8,6 +8,8 @@ export class OrderRouteV1 extends RailsRoute {
 
     this.post("/orders", action(OrderControllerV1, "create"));
 
+    this.post("/orders/check-promotion", action(OrderControllerV1, "checkPromotion"));
+
     this.get("/orders/:orderId", action(OrderControllerV1, "show"));
 
     this.patch("/orders/:orderId/cancel", action(OrderControllerV1, "cancel"));

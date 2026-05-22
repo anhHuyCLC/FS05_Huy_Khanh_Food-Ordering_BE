@@ -178,6 +178,13 @@ Table profiles {
   conversationParticipants conversation_participants [not null]
   sentMessages messages [not null]
   notifications Notification [not null]
+  followers user_follows [not null]
+  followings user_follows [not null]
+  postReports post_reports [not null]
+  achievedBadges user_badges [not null]
+  missionProgresses user_missions [not null]
+  pointHistories point_histories [not null]
+  savedAddresses saved_addresses [not null]
 }
 
 Table restaurants {
@@ -186,11 +193,15 @@ Table restaurants {
   name String [not null]
   description String
   address String [not null]
+  imageUrl String
   latitude Decimal
   longitude Decimal
   isActive Boolean [default: false]
   rating Decimal [default: 0]
   createdAt DateTime [default: `now()`, not null]
+  approvalStatus String [not null, default: 'PENDING']
+  rejectionReason String
+  commissionRate Decimal [not null, default: 10]
   owner profiles [not null]
   categories categories [not null]
   menuItems menu_items [not null]
@@ -208,6 +219,9 @@ Table driver_profiles {
   currentStatus String [default: 'offline']
   walletBalance Decimal [default: 0]
   rating Decimal [default: 0]
+  approvalStatus String [not null, default: 'PENDING']
+  rejectionReason String
+  commissionRate Decimal [not null, default: 15]
   profile profiles [not null]
   orders orders [not null]
   transactions wallet_transactions [not null]
@@ -300,6 +314,7 @@ Table carts {
   isGroupCart Boolean [not null, default: false]
   sessionToken String [unique]
   createdAt DateTime [default: `now()`, not null]
+  invitedUserIds String[] [not null]
   owner profiles [not null]
   restaurant restaurants [not null]
   items cart_items [not null]
@@ -336,6 +351,9 @@ Table orders {
   paymentStatus PaymentStatus [default: 'pending']
   isPaid Boolean [default: false]
   deliveryAddress String
+  deliveryLatitude Decimal
+  deliveryLongitude Decimal
+  customerPhone String
   note String
   groupParticipants Json [default: '[]']
   deviceIp String
@@ -349,6 +367,7 @@ Table orders {
   deliveringAt DateTime
   completedAt DateTime
   cancelledAt DateTime
+  deliverySequence Int
   customer profiles
   restaurant restaurants [not null]
   driver driver_profiles
@@ -404,6 +423,7 @@ Table social_posts {
   user profiles [not null]
   restaurant restaurants
   interactions post_interactions [not null]
+  reports post_reports [not null]
 }
 
 Table post_interactions {
@@ -553,6 +573,98 @@ Table messages {
   createdAt DateTime [default: `now()`, not null]
   conversation conversations [not null]
   sender profiles [not null]
+}
+
+Table user_follows {
+  followerId String [not null]
+  followingId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  follower profiles [not null]
+  following profiles [not null]
+
+  indexes {
+    (followerId, followingId) [pk]
+  }
+}
+
+Table post_reports {
+  id String [pk]
+  postId String [not null]
+  reporterId String [not null]
+  reason String [not null]
+  status String [not null, default: 'PENDING']
+  createdAt DateTime [default: `now()`, not null]
+  post social_posts [not null]
+  reporter profiles [not null]
+}
+
+Table badges {
+  id String [pk]
+  name String [unique, not null]
+  description String
+  imageUrl String
+  pointsRequired Int [not null]
+  userBadges user_badges [not null]
+}
+
+Table user_badges {
+  profileId String [not null]
+  badgeId String [not null]
+  awardedAt DateTime [default: `now()`, not null]
+  profile profiles [not null]
+  badge badges [not null]
+
+  indexes {
+    (profileId, badgeId) [pk]
+  }
+}
+
+Table missions {
+  id String [pk]
+  title String [not null]
+  description String
+  pointsReward Int [not null]
+  type String [not null, default: 'DAILY']
+  targetCount Int [not null, default: 1]
+  isActive Boolean [not null, default: true]
+  userMissions user_missions [not null]
+}
+
+Table user_missions {
+  profileId String [not null]
+  missionId String [not null]
+  currentProgress Int [not null, default: 0]
+  isCompleted Boolean [not null, default: false]
+  completedAt DateTime
+  profile profiles [not null]
+  mission missions [not null]
+
+  indexes {
+    (profileId, missionId) [pk]
+  }
+}
+
+Table point_histories {
+  id String [pk]
+  profileId String [not null]
+  amount Int [not null]
+  reason String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  profile profiles [not null]
+}
+
+Table saved_addresses {
+  id String [pk]
+  profileId String [not null]
+  profile profiles [not null]
+  label String [not null]
+  address String [not null]
+  latitude Decimal
+  longitude Decimal
+  phone String
+  isDefault Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [default: `now()`, not null]
 }
 
 Table createdBy {
@@ -721,3 +833,23 @@ Ref: conversation_participants.profileId > profiles.id [delete: Cascade]
 Ref: messages.conversationId > conversations.id [delete: Cascade]
 
 Ref: messages.senderId > profiles.id [delete: Cascade]
+
+Ref: user_follows.followerId > profiles.id [delete: Cascade]
+
+Ref: user_follows.followingId > profiles.id [delete: Cascade]
+
+Ref: post_reports.postId > social_posts.id [delete: Cascade]
+
+Ref: post_reports.reporterId > profiles.id [delete: Cascade]
+
+Ref: user_badges.profileId > profiles.id [delete: Cascade]
+
+Ref: user_badges.badgeId > badges.id [delete: Cascade]
+
+Ref: user_missions.profileId > profiles.id [delete: Cascade]
+
+Ref: user_missions.missionId > missions.id [delete: Cascade]
+
+Ref: point_histories.profileId > profiles.id [delete: Cascade]
+
+Ref: saved_addresses.profileId > profiles.id [delete: Cascade]
