@@ -1,5 +1,5 @@
 import models from "@models";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@db";
 
 export async function seedOrderItems() {
   console.log("🌱 Seeding order items...");

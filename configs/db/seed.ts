@@ -33,6 +33,48 @@ async function seed() {
   await seedFeatures();
   await seedAdminUser();
 
+  console.log("🧹 Cleaning existing seed data...");
+  await models.orderStatusHistory.deleteMany({});
+  await models.payment.deleteMany({});
+  await models.walletTransaction.deleteMany({});
+  await models.orderItem.deleteMany({});
+  await models.order.deleteMany({});
+  await models.cartItem.deleteMany({});
+  await models.cart.deleteMany({});
+  await models.driverLocation.deleteMany({});
+  await models.driverReview.deleteMany({});
+  await models.restaurantReview.deleteMany({});
+  await models.menuItemReview.deleteMany({});
+  await models.driverProfile.deleteMany({});
+  await models.optionChoice.deleteMany({});
+  await models.optionGroup.deleteMany({});
+  await models.menuItem.deleteMany({});
+  await models.promotion.deleteMany({});
+  await models.category.deleteMany({});
+  await models.restaurant.deleteMany({});
+  await models.postInteraction.deleteMany({});
+  await models.socialPost.deleteMany({});
+  await models.message.deleteMany({});
+  await models.conversationParticipant.deleteMany({});
+  await models.conversation.deleteMany({});
+  await models.notification.deleteMany({});
+  await models.chatbotSession.deleteMany({});
+  await models.savedAddress.deleteMany({});
+
+  const emails = Array.from({ length: 10 }, (_, i) => `user${i + 1}@gmail.com`);
+  await models.profile.deleteMany({
+    where: {
+      user: {
+        email: { in: emails }
+      }
+    }
+  });
+  await models.user.deleteMany({
+    where: {
+      email: { in: emails }
+    }
+  });
+
   await seedProfiles();
 
   await seedDriverProfiles();

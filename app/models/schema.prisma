@@ -256,6 +256,7 @@ model Profile {
   achievedBadges   UserBadge[]                                
   missionProgresses UserMission[]                              
   pointHistories   PointHistory[]
+  savedAddresses   SavedAddress[]
 
   @@map("profiles")
 }
@@ -266,6 +267,7 @@ model Restaurant {
   name        String   @db.VarChar(255)
   description String?  @db.Text
   address     String   @db.Text
+  imageUrl    String?  @map("image_url") @db.Text
   latitude    Decimal? @db.Decimal(10, 8)
   longitude   Decimal? @db.Decimal(11, 8)
   isActive    Boolean? @default(false) @map("is_active")
@@ -465,8 +467,11 @@ model Order {
   paymentStatus PaymentStatus? @default(pending) @map("payment_status")
   isPaid        Boolean?       @default(false) @map("is_paid")
 
-  deliveryAddress String? @map("delivery_address") @db.Text
-  note            String? @db.Text
+  deliveryAddress   String?  @map("delivery_address") @db.Text
+  deliveryLatitude  Decimal? @map("delivery_latitude") @db.Decimal(10, 8)
+  deliveryLongitude Decimal? @map("delivery_longitude") @db.Decimal(11, 8)
+  customerPhone     String?  @map("customer_phone") @db.VarChar(20)
+  note              String?  @db.Text
 
   groupParticipants Json? @default("[]") @map("group_participants") // { userId, amountContributed }
 
@@ -898,4 +903,20 @@ model PointHistory {
   profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   @@map("point_histories")
+}
+
+model SavedAddress {
+  id        String   @id @default(uuid()) @db.Uuid
+  profileId String   @map("profile_id") @db.Uuid
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  label     String   @db.VarChar(100)
+  address   String   @db.Text
+  latitude  Decimal? @db.Decimal(10, 8)
+  longitude Decimal? @db.Decimal(11, 8)
+  phone     String?  @db.VarChar(20)
+  isDefault Boolean  @default(false) @map("is_default")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("saved_addresses")
 }

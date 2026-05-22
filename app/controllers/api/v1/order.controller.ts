@@ -6,6 +6,40 @@ import {
 } from "@validators/order.validator";
 import { NotFoundError, UnauthorizedError } from "ts-rails";
 import { ApiV1Controller } from "./apiV1.controller";
+import { Prisma } from "@db";
+
+function getStableCoords(id: string, text: string): { latitude: number; longitude: number } {
+  const input = `${id}-${text}`;
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    hash = input.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const lat = 16.054404 + ((hash % 100) / 1000);
+  const lon = 108.202167 + (((hash >> 2) % 100) / 1000);
+  return { latitude: lat, longitude: lon };
+}
+
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function calculateDeliveryFee(distance: number): number {
+  if (distance <= 2) {
+    return 15000;
+  }
+  const additionalKm = Math.ceil(distance - 2);
+  return 15000 + additionalKm * 5000;
+}
 
 /**
  * Sơ đồ chuyển đổi trạng thái hợp lệ:
@@ -26,19 +60,45 @@ const ALLOWED_STATUS_TRANSITIONS: Record<string, string[]> = {
 };
 
 export class OrderControllerV1 extends ApiV1Controller {
+  private async getProfileId(): Promise<string> {
+    const userId = this.currentUser?.id;
+    if (!userId) throw new UnauthorizedError("Cần đăng nhập");
+
+    let profile = await models.profile.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+
+    if (!profile) {
+      const user = await models.user.findUnique({
+        where: { id: userId },
+        select: { firstName: true, lastName: true },
+      });
+      if (!user) throw new NotFoundError("User không tìm thấy");
+      profile = await models.profile.create({
+        data: {
+          userId,
+          fullName: `${user.firstName} ${user.lastName}`.trim(),
+        },
+        select: { id: true },
+      });
+    }
+
+    return profile.id;
+  }
+
   // ─────────────────────────────────────────────────────────────
   // GET /orders
   // Danh sách đơn hàng của customer đang đăng nhập
   // ─────────────────────────────────────────────────────────────
   async index() {
-    const currentUserId = this.currentUser?.id;
-    if (!currentUserId) throw new UnauthorizedError("Cần đăng nhập");
+    const currentProfileId = await this.getProfileId();
 
     const { status, page, limit } = this.req.query as Record<string, string>;
     const take = parseInt(limit) || 10;
     const skip = (parseInt(page) - 1 || 0) * take;
 
-    const where: Record<string, unknown> = { customerId: currentUserId };
+    const where: Record<string, unknown> = { customerId: currentProfileId };
     if (status) where.status = status;
 
     const [orders, total] = await Promise.all([
@@ -65,9 +125,16 @@ export class OrderControllerV1 extends ApiV1Controller {
       models.order.count({ where }),
     ]);
 
+    const ordersWithDeliveryFee = orders.map((order: any) => {
+      const deliveryFee = Number(order.finalAmount) - Number(order.totalAmount) + Number(order.discountAmount || 0);
+      return {
+        ...order,
+        deliveryFee: Math.round(deliveryFee),
+      };
+    });
+
     this.renderJson({
-      success: true,
-      data: orders,
+      items: ordersWithDeliveryFee,
       meta: { total, page: parseInt(page) || 1, limit: take },
     });
   }
@@ -78,8 +145,7 @@ export class OrderControllerV1 extends ApiV1Controller {
   // ─────────────────────────────────────────────────────────────
   async show() {
     const { orderId } = this.req.params;
-    const currentUserId = this.currentUser?.id;
-    if (!currentUserId) throw new UnauthorizedError("Cần đăng nhập");
+    const currentProfileId = await this.getProfileId();
 
     const order = await models.order.findUnique({
       where: { id: orderId },
@@ -115,15 +181,19 @@ export class OrderControllerV1 extends ApiV1Controller {
 
     if (!order) throw new NotFoundError("Đơn hàng không tìm thấy");
 
-    const isCustomer = order.customerId === currentUserId;
-    const isOwner = order.restaurant.ownerId === currentUserId;
-    const isDriver = order.driverId === currentUserId;
+    const isCustomer = order.customerId === currentProfileId;
+    const isOwner = order.restaurant.ownerId === currentProfileId;
+    const isDriver = order.driverId === currentProfileId;
 
     if (!isCustomer && !isOwner && !isDriver) {
       throw new UnauthorizedError("Bạn không có quyền xem đơn hàng này");
     }
 
-    this.renderJson({ success: true, data: order });
+    const deliveryFee = Number(order.finalAmount) - Number(order.totalAmount) + Number(order.discountAmount || 0);
+    this.renderJson({
+      ...order,
+      deliveryFee: Math.round(deliveryFee),
+    });
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -131,14 +201,16 @@ export class OrderControllerV1 extends ApiV1Controller {
   // Khách hàng tạo đơn hàng mới
   // ─────────────────────────────────────────────────────────────
   async create() {
-    const currentUserId = this.currentUser?.id;
-    if (!currentUserId) throw new UnauthorizedError("Cần đăng nhập để đặt hàng");
+    const currentProfileId = await this.getProfileId();
 
     const data = await this.params(CreateOrderValidator).permit(
       "restaurantId",
       "orderType",
       "items",
       "deliveryAddress",
+      "deliveryLatitude",
+      "deliveryLongitude",
+      "customerPhone",
       "promotionCode",
       "note",
       "tableNumber",
@@ -189,7 +261,23 @@ export class OrderControllerV1 extends ApiV1Controller {
     let totalAmount = 0;
     const orderItemsData = (data.items as any[]).map((item: any) => {
       const menuItem = menuItemMap.get(item.menuItemId)!;
-      const unitPrice = Number(menuItem.basePrice);
+      let optionTotal = 0;
+      if (item.selectedOptions && typeof item.selectedOptions === "object") {
+        const options = item.selectedOptions as Record<string, any>;
+        for (const key of Object.keys(options)) {
+          const optionValue = options[key];
+          if (Array.isArray(optionValue)) {
+            for (const choice of optionValue) {
+              if (choice && typeof choice === "object" && choice.additionalPrice) {
+                optionTotal += Number(choice.additionalPrice);
+              }
+            }
+          } else if (optionValue && typeof optionValue === "object" && optionValue.additionalPrice) {
+            optionTotal += Number(optionValue.additionalPrice);
+          }
+        }
+      }
+      const unitPrice = Number(menuItem.basePrice) + optionTotal;
       totalAmount += unitPrice * item.quantity;
       return {
         menuItemId: item.menuItemId,
@@ -244,15 +332,41 @@ export class OrderControllerV1 extends ApiV1Controller {
       }
     }
 
-    const finalAmount = Math.max(0, totalAmount - discountAmount);
-    const platformFee = finalAmount * 0.1;
-    const restaurantNet = finalAmount - platformFee;
+    // Tính phí giao hàng (delivery fee)
+    let deliveryFee = 0;
+    const isDineIn = data.orderType === "dine_in";
+    if (!isDineIn) {
+      let restLat = restaurant.latitude ? Number(restaurant.latitude) : null;
+      let restLon = restaurant.longitude ? Number(restaurant.longitude) : null;
+      if (restLat === null || restLon === null) {
+        const rCoords = getStableCoords(restaurant.id, restaurant.address || restaurant.name);
+        restLat = rCoords.latitude;
+        restLon = rCoords.longitude;
+      }
+
+      let delivLat = data.deliveryLatitude ? Number(data.deliveryLatitude) : null;
+      let delivLon = data.deliveryLongitude ? Number(data.deliveryLongitude) : null;
+      if (delivLat === null || delivLon === null) {
+        const dCoords = getStableCoords("delivery", data.deliveryAddress || "Da Nang");
+        delivLat = dCoords.latitude;
+        delivLon = dCoords.longitude;
+      }
+
+      const distance = calculateDistance(restLat, restLon, delivLat, delivLon);
+      deliveryFee = calculateDeliveryFee(distance);
+    }
+
+    const finalAmount = Math.max(0, totalAmount - discountAmount + deliveryFee);
+    const rate = restaurant.commissionRate ? Number(restaurant.commissionRate) / 100 : 0.1;
+    const foodTotalAfterDiscount = Math.max(0, totalAmount - discountAmount);
+    const platformFee = foodTotalAfterDiscount * rate;
+    const restaurantNet = foodTotalAfterDiscount - platformFee;
 
     // Tạo Order + OrderItems trong một transaction
     const order = await models.$transaction(async (tx) => {
       const newOrder = await tx.order.create({
         data: {
-          customerId: currentUserId,
+          customerId: currentProfileId,
           restaurantId: data.restaurantId,
           orderType: (data.orderType as any) ?? "standard_delivery",
           status: "pending",
@@ -263,6 +377,9 @@ export class OrderControllerV1 extends ApiV1Controller {
           restaurantNet,
           promotionId,
           deliveryAddress: data.deliveryAddress ?? null,
+          deliveryLatitude: data.deliveryLatitude ? new Prisma.Decimal(data.deliveryLatitude) : null,
+          deliveryLongitude: data.deliveryLongitude ? new Prisma.Decimal(data.deliveryLongitude) : null,
+          customerPhone: data.customerPhone ?? null,
           note: data.note ?? null,
           tableNumber: data.tableNumber ?? null,
           reservationTime: data.reservationTime
@@ -270,7 +387,10 @@ export class OrderControllerV1 extends ApiV1Controller {
             : null,
           deviceIp: (this.req.ip ?? null) as string | null,
           orderItems: {
-            create: orderItemsData,
+            create: orderItemsData.map((oi) => ({
+              ...oi,
+              unitPrice: new Prisma.Decimal(oi.unitPrice),
+            })),
           },
         },
         include: {
@@ -296,10 +416,12 @@ export class OrderControllerV1 extends ApiV1Controller {
       return newOrder;
     });
 
-    this.renderJson(
-      { success: true, message: "Đặt hàng thành công", data: order },
-      201
-    );
+    const createdOrderWithFee = {
+      ...order,
+      deliveryFee: Math.round(deliveryFee),
+    };
+
+    this.renderJson(createdOrderWithFee, 201);
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -308,8 +430,7 @@ export class OrderControllerV1 extends ApiV1Controller {
   // ─────────────────────────────────────────────────────────────
   async updateStatus() {
     const { orderId } = this.req.params;
-    const currentUserId = this.currentUser?.id;
-    if (!currentUserId) throw new UnauthorizedError("Cần đăng nhập");
+    const currentProfileId = await this.getProfileId();
 
     const data = await this.params(UpdateOrderStatusValidator).permit("status", "note");
     const newStatus = data.status as string;
@@ -335,8 +456,8 @@ export class OrderControllerV1 extends ApiV1Controller {
     }
 
     // Kiểm tra quyền
-    const isOwner = order.restaurant.ownerId === currentUserId;
-    const isDriver = order.driverId === currentUserId;
+    const isOwner = order.restaurant.ownerId === currentProfileId;
+    const isDriver = order.driverId === currentProfileId;
 
     const restaurantStatuses = ["accepted", "preparing", "ready", "cancelled"];
     const driverStatuses = ["delivering", "completed"];
@@ -375,11 +496,7 @@ export class OrderControllerV1 extends ApiV1Controller {
       }),
     ]);
 
-    this.renderJson({
-      success: true,
-      message: `Cập nhật trạng thái thành "${newStatus}" thành công`,
-      data: updatedOrder,
-    });
+    this.renderJson(updatedOrder);
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -388,15 +505,14 @@ export class OrderControllerV1 extends ApiV1Controller {
   // ─────────────────────────────────────────────────────────────
   async cancel() {
     const { orderId } = this.req.params;
-    const currentUserId = this.currentUser?.id;
-    if (!currentUserId) throw new UnauthorizedError("Cần đăng nhập");
+    const currentProfileId = await this.getProfileId();
 
     const data = await this.params(CancelOrderValidator).permit("reason");
 
     const order = await models.order.findUnique({ where: { id: orderId } });
     if (!order) throw new NotFoundError("Đơn hàng không tìm thấy");
 
-    if (order.customerId !== currentUserId) {
+    if (order.customerId !== currentProfileId) {
       throw new UnauthorizedError("Bạn không có quyền huỷ đơn hàng này");
     }
 
@@ -424,11 +540,7 @@ export class OrderControllerV1 extends ApiV1Controller {
       }),
     ]);
 
-    this.renderJson({
-      success: true,
-      message: "Huỷ đơn hàng thành công",
-      data: cancelledOrder,
-    });
+    this.renderJson(cancelledOrder);
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -437,15 +549,14 @@ export class OrderControllerV1 extends ApiV1Controller {
   // ─────────────────────────────────────────────────────────────
   async restaurantOrders() {
     const { restaurantId } = this.req.params;
-    const currentUserId = this.currentUser?.id;
-    if (!currentUserId) throw new UnauthorizedError("Cần đăng nhập");
+    const currentProfileId = await this.getProfileId();
 
     const restaurant = await models.restaurant.findUnique({
       where: { id: restaurantId },
       select: { ownerId: true },
     });
     if (!restaurant) throw new NotFoundError("Nhà hàng không tìm thấy");
-    if (restaurant.ownerId !== currentUserId) {
+    if (restaurant.ownerId !== currentProfileId) {
       throw new UnauthorizedError("Bạn không có quyền xem đơn hàng của nhà hàng này");
     }
 
@@ -476,9 +587,16 @@ export class OrderControllerV1 extends ApiV1Controller {
       models.order.count({ where }),
     ]);
 
+    const ordersWithDeliveryFee = orders.map((order: any) => {
+      const deliveryFee = Number(order.finalAmount) - Number(order.totalAmount) + Number(order.discountAmount || 0);
+      return {
+        ...order,
+        deliveryFee: Math.round(deliveryFee),
+      };
+    });
+
     this.renderJson({
-      success: true,
-      data: orders,
+      items: ordersWithDeliveryFee,
       meta: { total, page: parseInt(page) || 1, limit: take },
     });
   }
@@ -489,8 +607,7 @@ export class OrderControllerV1 extends ApiV1Controller {
   // ─────────────────────────────────────────────────────────────
   async statusHistory() {
     const { orderId } = this.req.params;
-    const currentUserId = this.currentUser?.id;
-    if (!currentUserId) throw new UnauthorizedError("Cần đăng nhập");
+    const currentProfileId = await this.getProfileId();
 
     const order = await models.order.findUnique({
       where: { id: orderId },
@@ -501,14 +618,61 @@ export class OrderControllerV1 extends ApiV1Controller {
     });
     if (!order) throw new NotFoundError("Đơn hàng không tìm thấy");
 
-    const isCustomer = order.customerId === currentUserId;
-    const isOwner = order.restaurant.ownerId === currentUserId;
-    const isDriver = order.driverId === currentUserId;
+    const isCustomer = order.customerId === currentProfileId;
+    const isOwner = order.restaurant.ownerId === currentProfileId;
+    const isDriver = order.driverId === currentProfileId;
 
     if (!isCustomer && !isOwner && !isDriver) {
       throw new UnauthorizedError("Bạn không có quyền xem đơn hàng này");
     }
 
-    this.renderJson({ success: true, data: order.orderStatusHistories });
+    this.renderJson(order.orderStatusHistories);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // POST /orders/check-promotion
+  // Kiểm tra mã giảm giá
+  // ─────────────────────────────────────────────────────────────
+  async checkPromotion() {
+    const data = this.req.body;
+    const { promotionCode, restaurantId, totalAmount } = data;
+
+    if (!promotionCode || !totalAmount) {
+      return this.renderJson({ success: false, message: "Thiếu thông tin (promotionCode, totalAmount)" }, 400);
+    }
+
+    const promo = await models.promotion.findFirst({
+      where: {
+        code: promotionCode,
+        isActive: true,
+        validFrom: { lte: new Date() },
+        validTo: { gte: new Date() },
+        OR: [
+          { restaurantId: restaurantId || null },
+          { restaurantId: null },
+        ],
+      },
+    });
+
+    if (!promo) {
+      return this.renderJson({ success: false, message: "Mã khuyến mãi không hợp lệ hoặc đã hết hạn" }, 400);
+    }
+
+    const minOrder = Number(promo.minOrderValue ?? 0);
+    if (totalAmount < minOrder) {
+      return this.renderJson({ success: false, message: `Đơn hàng tối thiểu ${minOrder.toLocaleString("vi-VN")}đ để dùng mã này` }, 400);
+    }
+
+    let discountAmount = 0;
+    if (promo.discountPercentage) {
+      discountAmount = (Number(totalAmount) * Number(promo.discountPercentage)) / 100;
+    } else if (promo.fixedDiscount) {
+      discountAmount = Math.min(Number(promo.fixedDiscount), Number(totalAmount));
+    }
+
+    return this.renderJson({
+      discountAmount: Math.round(discountAmount),
+      promotionCode: promo.code
+    });
   }
 }

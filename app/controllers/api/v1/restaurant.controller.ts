@@ -11,6 +11,7 @@ export class ApiV1RestaurantController extends ApiV1Controller {
         name: true,
         description: true,
         address: true,
+        imageUrl: true,
         latitude: true,
         longitude: true,
         rating: true,
@@ -33,10 +34,17 @@ export class ApiV1RestaurantController extends ApiV1Controller {
         menuItems: {
           select: {
             id: true,
+            categoryId: true,
             name: true,
             description: true,
             basePrice: true,
             imageUrl: true,
+            isAvailable: true,
+            optionGroups: {
+              include: {
+                choices: true,
+              },
+            },
           },
         },
       },

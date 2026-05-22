@@ -10,6 +10,7 @@ import {
   IsObject,
   MaxLength,
   IsIn,
+  IsNumber,
 } from "class-validator";
 import { Type } from "class-transformer";
 
@@ -51,6 +52,18 @@ export class CreateOrderValidator {
   @IsOptional()
   @IsString({ message: "deliveryAddress phải là chuỗi" })
   deliveryAddress?: string;
+
+  @IsOptional()
+  @IsNumber({}, { message: "deliveryLatitude phải là số" })
+  deliveryLatitude?: number;
+
+  @IsOptional()
+  @IsNumber({}, { message: "deliveryLongitude phải là số" })
+  deliveryLongitude?: number;
+
+  @IsOptional()
+  @IsString({ message: "customerPhone phải là chuỗi" })
+  customerPhone?: string;
 
   @IsOptional()
   @IsString({ message: "promotionCode phải là chuỗi" })

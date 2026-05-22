@@ -33,5 +33,7 @@ export default {
   gemmaApiKey: process.env.GEMMA_API_KEY || process.env.API_KEY || "",
   gemmaBaseUrl: process.env.GEMMA_BASE_URL || "https://api.gemma-ai.cn/v1/",
   gemmaModel: process.env.GEMMA_MODEL || "gemma-4-31b-it",
+  geoapifyApiKey: process.env.GEOAPIFY_API_KEY || "",
+  orsApiKey: process.env.ORS_API_KEY || "",
 };
 // Trigger nodemon restart after updating env vars
