@@ -11,7 +11,7 @@ import {
   UpdatePasswordValidator,
 } from "@validators/auth.validator";
 import { Security } from "ts-rails";
-import { ApplicationController } from ".";
+import { ApplicationController } from "./application.controller";
 import { GoogleOAuthCallbackService } from "../services/auth";
 
 export type GoogleUser = {

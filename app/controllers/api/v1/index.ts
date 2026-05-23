@@ -1,9 +1,15 @@
-export * from "./apiV1.controller";
 export * from "./admin/adminFeature.controller";
 export * from "./admin/adminRole.controller";
 export * from "./admin/adminUser.controller";
+export * from "./apiV1.controller";
 export * from "./auth.controller";
 export * from "./dev.controller";
+export * from "./menuItem.controller";
 export * from "./myPermission.controller";
 export * from "./profile.controller";
-export * from "./menuItem.controller";
+export * from "./restaurant.controller";
+export * from "./chat.controller";
+export * from "./order.controller";
+export * from "./cart.controller";
+
+

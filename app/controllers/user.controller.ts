@@ -1,7 +1,7 @@
 import { FlashType } from "@configs/enum";
 import { UserMailer } from "@mailers/user.mailer";
 import models from "@models";
-import { ApplicationController } from ".";
+import { ApplicationController } from "./application.controller";
 
 export class UserController extends ApplicationController {
   async index() {

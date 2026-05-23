@@ -12,7 +12,7 @@ import {
   RegisterValidator,
 } from "@validators/auth.validator";
 import { BadRequestError, Security, UnauthorizedError } from "ts-rails";
-import { ApiV1Controller } from ".";
+import { ApiV1Controller } from "./apiV1.controller";
 
 export class AuthController extends ApiV1Controller {
   [x: string]: any;
