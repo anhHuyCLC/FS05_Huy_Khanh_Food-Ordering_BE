@@ -9,6 +9,7 @@ import { ChatRouteV1 } from "./chat.route";
 import { ApiV1DevRoute } from "./dev";
 import { MenuItemRouteV1 } from "./menuItem.route";
 import { OrderRouteV1 } from "./order.route";
+import { DriverRouteV1 } from "./driver.route";
 import { ProfileRouteV1 } from "./profile.route";
 import { RestaurantRoute } from "./restaurant";
 import { MapRouteV1 } from "./map.route";
@@ -42,6 +43,11 @@ export class ApiV1Route extends RailsRoute {
     // Cart routes
     this.path("/", CartRouteV1.draw());
 
+
+    // Driver routes
+    this.path("/driver", DriverRouteV1.draw());
+
+
     // Address routes
     this.path("/", AddressRouteV1.draw());
 
@@ -51,4 +57,5 @@ export class ApiV1Route extends RailsRoute {
     // Admin routes - yêu cầu AM permission
     this.path("/admin", ApiV1AdminRoute.draw());
   }
+
 }
