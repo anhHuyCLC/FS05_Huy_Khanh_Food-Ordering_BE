@@ -33,7 +33,7 @@ export class AuthMiddleware extends ApplicationMiddleware {
 
       const user = await models.user.findUnique({
         where: { id: decoded.sub },
-        select: { id: true }
+        select: { id: true },
       });
       const tokenVersion = (user as any)?.tokenVersion || 1;
 

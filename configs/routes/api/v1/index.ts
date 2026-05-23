@@ -7,6 +7,10 @@ import { AuthRoute } from "./auth";
 import { ApiV1DevRoute } from "./dev";
 import { ProfileRouteV1 } from "./profile.route";
 import { MenuItemRouteV1 } from "./menuItem.route";
+import { ChatRouteV1 } from "./chat.route";
+import { OrderRouteV1 } from "./order.route";
+import { CartRouteV1 } from "./cart.route";
+import { DriverRouteV1 } from "./driver.route";
 
 export class ApiV1Route extends RailsRoute {
   public draw() {
@@ -27,8 +31,19 @@ export class ApiV1Route extends RailsRoute {
     // Menu Item routes
     this.path("/", MenuItemRouteV1.draw());
 
+    // Chat routes
+    this.path("/chat", ChatRouteV1.draw());
+
+    // Order routes
+    this.path("/", OrderRouteV1.draw());
+
+    // Cart routes
+    this.path("/", CartRouteV1.draw());
+
+    // Driver routes
+    this.path("/driver", DriverRouteV1.draw());
+
     // Admin routes - yêu cầu AM permission
     this.path("/admin", ApiV1AdminRoute.draw());
   }
 }
-
