@@ -14,6 +14,8 @@ export class OrderRouteV1 extends RailsRoute {
 
     this.patch("/orders/:orderId/cancel", action(OrderControllerV1, "cancel"));
 
+    this.post("/orders/:orderId/review", action(OrderControllerV1, "createReview"));
+
     this.get("/orders/:orderId/history", action(OrderControllerV1, "statusHistory"));
 
     this.patch("/orders/:orderId/status", action(OrderControllerV1, "updateStatus"));
