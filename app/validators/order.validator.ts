@@ -105,3 +105,23 @@ export class CancelOrderValidator {
   @MaxLength(500, { message: "Lý do không quá 500 ký tự" })
   reason?: string;
 }
+
+// -------------------- Create Review (customer) --------------------
+export class CreateReviewValidator {
+  @IsInt({ message: "restaurantRating phải là số nguyên" })
+  @Min(1, { message: "Đánh giá nhà hàng tối thiểu là 1 sao" })
+  restaurantRating?: number;
+
+  @IsOptional()
+  @IsString({ message: "restaurantComment phải là chuỗi" })
+  @MaxLength(1000, { message: "Bình luận nhà hàng không quá 1000 ký tự" })
+  restaurantComment?: string;
+
+  @IsOptional()
+  @IsInt({ message: "driverRating phải là số nguyên" })
+  driverRating?: number;
+
+  @IsOptional()
+  @IsString({ message: "driverComment phải là chuỗi" })
+  driverComment?: string;
+}

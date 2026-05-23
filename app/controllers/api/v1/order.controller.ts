@@ -3,6 +3,7 @@ import {
   CancelOrderValidator,
   CreateOrderValidator,
   UpdateOrderStatusValidator,
+  CreateReviewValidator,
 } from "@validators/order.validator";
 import { NotFoundError, UnauthorizedError } from "ts-rails";
 import { ApiV1Controller } from "./apiV1.controller";
@@ -105,7 +106,7 @@ export class OrderControllerV1 extends ApiV1Controller {
       models.order.findMany({
         where,
         include: {
-          restaurant: { select: { id: true, name: true, address: true } },
+          restaurant: { select: { id: true, name: true, address: true, latitude: true, longitude: true } },
           orderItems: {
             include: {
               menuItem: {
@@ -151,7 +152,7 @@ export class OrderControllerV1 extends ApiV1Controller {
       where: { id: orderId },
       include: {
         restaurant: {
-          select: { id: true, name: true, address: true, ownerId: true },
+          select: { id: true, name: true, address: true, ownerId: true, latitude: true, longitude: true },
         },
         customer: { select: { id: true, fullName: true, phone: true } },
         driver: {
@@ -673,6 +674,144 @@ export class OrderControllerV1 extends ApiV1Controller {
     return this.renderJson({
       discountAmount: Math.round(discountAmount),
       promotionCode: promo.code
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // POST /orders/:orderId/review
+  // Khách hàng đánh giá nhà hàng & tài xế sau khi đơn hoàn thành
+  // ─────────────────────────────────────────────────────────────
+  async createReview() {
+    const { orderId } = this.req.params;
+    const currentProfileId = await this.getProfileId();
+
+    const data = await this.params(CreateReviewValidator).permit(
+      "restaurantRating",
+      "restaurantComment",
+      "driverRating",
+      "driverComment"
+    );
+
+    const order = await models.order.findUnique({
+      where: { id: orderId },
+      include: {
+        restaurant: true,
+        driver: true,
+      },
+    });
+
+    if (!order) throw new NotFoundError("Đơn hàng không tìm thấy");
+
+    if (order.customerId !== currentProfileId) {
+      throw new UnauthorizedError("Bạn không có quyền đánh giá đơn hàng này");
+    }
+
+    if (order.status !== "completed") {
+      return this.renderJson(
+        {
+          success: false,
+          message: "Chỉ có thể đánh giá khi đơn hàng đã hoàn thành",
+        },
+        400
+      );
+    }
+
+    const existingRestaurantReview = await models.restaurantReview.findFirst({
+      where: {
+        orderId: order.id,
+        reviewerId: currentProfileId,
+      },
+    });
+
+    if (existingRestaurantReview) {
+      return this.renderJson(
+        {
+          success: false,
+          message: "Bạn đã đánh giá đơn hàng này rồi",
+        },
+        400
+      );
+    }
+
+    const result = await models.$transaction(async (tx) => {
+      let restaurantReview = null;
+      let driverReview = null;
+
+      if (data.restaurantRating) {
+        restaurantReview = await tx.restaurantReview.create({
+          data: {
+            orderId: order.id,
+            reviewerId: currentProfileId,
+            restaurantId: order.restaurantId,
+            rating: data.restaurantRating,
+            comment: data.restaurantComment || null,
+          },
+        });
+
+        const allRestReviews = await tx.restaurantReview.findMany({
+          where: { restaurantId: order.restaurantId },
+          select: { rating: true },
+        });
+        const ratingsSum = allRestReviews.reduce((sum, r) => sum + r.rating, 0) + data.restaurantRating;
+        const ratingsCount = allRestReviews.length + 1;
+        const newRating = parseFloat((ratingsSum / ratingsCount).toFixed(2));
+
+        await tx.restaurant.update({
+          where: { id: order.restaurantId },
+          data: { rating: new Prisma.Decimal(newRating) },
+        });
+      }
+
+      if (order.driverId && data.driverRating) {
+        const existingDriverReview = await tx.driverReview.findUnique({
+          where: {
+            reviewerId_driverId: {
+              reviewerId: currentProfileId,
+              driverId: order.driverId,
+            },
+          },
+        });
+
+        if (existingDriverReview) {
+          driverReview = await tx.driverReview.update({
+            where: { id: existingDriverReview.id },
+            data: {
+              rating: data.driverRating,
+              comment: data.driverComment || null,
+            },
+          });
+        } else {
+          driverReview = await tx.driverReview.create({
+            data: {
+              reviewerId: currentProfileId,
+              driverId: order.driverId,
+              rating: data.driverRating,
+              comment: data.driverComment || null,
+            },
+          });
+        }
+
+        const allDriverReviews = await tx.driverReview.findMany({
+          where: { driverId: order.driverId },
+          select: { rating: true },
+        });
+        const ratingsSum = allDriverReviews.reduce((sum, r) => sum + r.rating, 0) + data.driverRating;
+        const ratingsCount = allDriverReviews.length + 1;
+        const newRating = parseFloat((ratingsSum / ratingsCount).toFixed(2));
+
+        await tx.driverProfile.update({
+          where: { id: order.driverId },
+          data: { rating: new Prisma.Decimal(newRating) },
+        });
+      }
+
+      return { restaurantReview, driverReview };
+    });
+
+    this.renderJson({
+      success: true,
+      message: "Đánh giá thành công",
+      data: result,
     });
   }
 }
