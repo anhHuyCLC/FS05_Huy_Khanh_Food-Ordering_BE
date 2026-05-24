@@ -15,16 +15,33 @@ export abstract class ApplicationChannel extends RailsChannel {
   protected async getCurrentUser(): Promise<
     (User & { permissions?: string[] }) | null
   > {
-    const req = this.socket.request as Request & {
-      session?: { userId?: string };
-    };
-    const userId = req.session?.userId;
-
-    if (userId) {
-      const appMiddleware = new ApplicationMiddleware();
-      return await appMiddleware.getUserById(userId, true);
+    // 1. Thử JWT token từ socket.handshake.auth.token (FE React gửi lên)
+  const token = this.socket.handshake.auth?.token as string | undefined;
+  if (token) {
+    try {
+      const { verifyToken } = await import("@lib");
+      const decoded = verifyToken(token);
+      const userId = decoded?.sub || (decoded as any)?.id;
+      if (userId) {
+        const appMiddleware = new ApplicationMiddleware();
+        return await appMiddleware.getUserById(userId, true);
+      }
+    } catch {
+      // token invalid → thử session
     }
-    return null;
+  }
+
+  // 2. Fallback: session (web admin)
+  const req = this.socket.request as Request & {
+    session?: { userId?: string };
+  };
+  const userId = req.session?.userId;
+  if (userId) {
+    const appMiddleware = new ApplicationMiddleware();
+    return await appMiddleware.getUserById(userId, true);
+  }
+
+  return null;
   }
 
   /**

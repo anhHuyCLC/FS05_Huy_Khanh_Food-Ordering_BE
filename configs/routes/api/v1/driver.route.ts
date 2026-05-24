@@ -4,6 +4,7 @@ import { DriverStatusController } from "@controllers/api/v1/driverStatus.control
 import { DriverOrderController } from "@controllers/api/v1/driverOrder.controller";
 import { DriverLocationController } from "@controllers/api/v1/driverLocation.controller";
 import { DriverEarningController } from "@controllers/api/v1/driverEarning.controller";
+import { AuthMiddleware } from "@middlewares/auth.middleware";
 
 /**
  * Nhóm chức năng TÀI XẾ — Section 5 của spec
@@ -36,7 +37,9 @@ export class DriverRouteV1 extends RailsRoute {
   public draw() {
     console.log("DriverRouteV1 loaded");
     // Route public (khách hàng dùng để theo dõi tài xế - không cần driver role)
-    this.get("/location/:driverId", action(DriverLocationController, "getDriverLocation"));
+    // this.get("/location/:driverId", action(DriverLocationController, "getDriverLocation"));
+
+    this.path(action(AuthMiddleware));
 
     // Middleware kiểm tra đăng nhập + role DRIVER + profile APPROVED
     this.path(action(ValidateDriverRoleMiddleware));

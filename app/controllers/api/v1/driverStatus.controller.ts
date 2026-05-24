@@ -11,14 +11,14 @@ export class DriverStatusController extends ApiV1Controller {
 
   /** GET /api/v1/driver/profile */
   async show() {
-    const profileId = (this.req as any).driverProfileId as string;
+    const profileId = (this.req as any).user?.profileId as string;
     const profile = await this.service.getProfile(profileId);
     this.renderJson({ success: true, data: profile });
   }
 
   /** PATCH /api/v1/driver/status */
   async updateStatus() {
-    const profileId = (this.req as any).driverProfileId as string;
+    const profileId = (this.req as any).user?.profileId as string;
     const { status } = await this.params(UpdateDriverStatusValidator).permit("status");
     const result = await this.service.updateStatus(profileId, status!);
     this.renderJson({ success: true, data: result });
