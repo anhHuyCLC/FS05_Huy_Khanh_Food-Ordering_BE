@@ -1,5 +1,6 @@
 export interface CurrentUser {
   id: string;
+  profileId?: string;
   email: string;
   roles: string[];
   permissions: string[];

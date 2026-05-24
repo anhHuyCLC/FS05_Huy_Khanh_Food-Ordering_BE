@@ -339,16 +339,16 @@ Table orders {
   restaurantId String [not null]
   driverId String
   promotionId String
-  orderType OrderType [default: 'standard_delivery']
+  orderType OrderType [not null, default: 'standard_delivery']
   tableNumber String
   reservationTime DateTime
-  status OrderStatus [default: 'pending']
+  status OrderStatus [not null, default: 'pending']
   totalAmount Decimal [not null]
   discountAmount Decimal [default: 0]
   finalAmount Decimal [not null]
   platformFee Decimal [not null, default: 0]
   restaurantNet Decimal [not null, default: 0]
-  paymentStatus PaymentStatus [default: 'pending']
+  paymentStatus PaymentStatus [not null, default: 'pending']
   isPaid Boolean [default: false]
   deliveryAddress String
   deliveryLatitude Decimal

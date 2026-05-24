@@ -13,6 +13,7 @@ import { DriverRouteV1 } from "./driver.route";
 import { ProfileRouteV1 } from "./profile.route";
 import { RestaurantRoute } from "./restaurant";
 import { MapRouteV1 } from "./map.route";
+import { DriverLocationController } from "@controllers/api/v1/driverLocation.controller";
 
 export class ApiV1Route extends RailsRoute {
   public draw() {
@@ -43,6 +44,10 @@ export class ApiV1Route extends RailsRoute {
     // Cart routes
     this.path("/", CartRouteV1.draw());
 
+     this.get(
+      "/driver/location/:driverId",
+      action(DriverLocationController, "getDriverLocation")
+    );
 
     // Driver routes
     this.path("/driver", DriverRouteV1.draw());
