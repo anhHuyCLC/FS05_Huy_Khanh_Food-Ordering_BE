@@ -160,7 +160,6 @@ export class AuthController extends ApiV1Controller {
           create: {
             fullName: `${firstname} ${lastname}`,
             phone: phonenumber,
-            // Sửa lại cú pháp toán tử 3 ngôi
             ...(userRole === "DRIVER" ? {
               driverProfile: {
                 create: {

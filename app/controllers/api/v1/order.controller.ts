@@ -1,13 +1,13 @@
+import { Prisma } from "@db";
 import models from "@models";
 import {
   CancelOrderValidator,
   CreateOrderValidator,
-  UpdateOrderStatusValidator,
   CreateReviewValidator,
+  UpdateOrderStatusValidator,
 } from "@validators/order.validator";
 import { NotFoundError, UnauthorizedError } from "ts-rails";
 import { ApiV1Controller } from "./apiV1.controller";
-import { Prisma } from "@db";
 
 function getStableCoords(id: string, text: string): { latitude: number; longitude: number } {
   const input = `${id}-${text}`;
@@ -27,9 +27,9 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -364,7 +364,7 @@ export class OrderControllerV1 extends ApiV1Controller {
     const restaurantNet = foodTotalAfterDiscount - platformFee;
 
     // Tạo Order + OrderItems trong một transaction
-    const order = await models.$transaction(async (tx) => {
+    const order = await models.$transaction(async (tx: Prisma.TransactionClient) => {
       const newOrder = await tx.order.create({
         data: {
           customerId: currentProfileId,
@@ -738,7 +738,7 @@ export class OrderControllerV1 extends ApiV1Controller {
       );
     }
 
-    const result = await models.$transaction(async (tx) => {
+    const result = await models.$transaction(async (tx: Prisma.TransactionClient) => {
       let restaurantReview = null;
       let driverReview = null;
 

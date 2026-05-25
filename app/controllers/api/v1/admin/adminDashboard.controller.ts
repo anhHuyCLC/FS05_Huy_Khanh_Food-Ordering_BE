@@ -1,8 +1,8 @@
 import models from "@models";
-import { ApiV1Controller } from "../apiV1.controller";
-import { NotFoundError } from "ts-rails";
 import fs from "fs";
 import path from "path";
+import { NotFoundError } from "ts-rails";
+import { ApiV1Controller } from "../apiV1.controller";
 
 export class ApiV1AdminDashboardController extends ApiV1Controller {
   // 1. GET /api/v1/admin/kpis
@@ -52,7 +52,7 @@ export class ApiV1AdminDashboardController extends ApiV1Controller {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const monthlyData: Record<string, { revenue: number; orders: number }> = {};
 
-    completedOrders.forEach((order) => {
+    completedOrders.forEach((order: any) => {
       const date = new Date(order.createdAt);
       const monthLabel = months[date.getMonth()];
       if (!monthlyData[monthLabel]) {
@@ -66,7 +66,7 @@ export class ApiV1AdminDashboardController extends ApiV1Controller {
       month,
       revenue: monthlyData[month]?.revenue || 0,
       orders: monthlyData[month]?.orders || 0,
-    })).filter(item => item.revenue > 0 || item.orders > 0); // Only return active months
+    })).filter((item: any) => item.revenue > 0 || item.orders > 0);
 
     // Default if empty
     if (result.length === 0) {
@@ -89,7 +89,7 @@ export class ApiV1AdminDashboardController extends ApiV1Controller {
     const categoryCounts: Record<string, number> = {};
     let totalItems = 0;
 
-    orderItems.forEach((item) => {
+    orderItems.forEach((item: any) => {
       const catName = item.menuItem?.category?.name || "Other";
       categoryCounts[catName] = (categoryCounts[catName] || 0) + item.quantity;
       totalItems += item.quantity;
@@ -126,7 +126,7 @@ export class ApiV1AdminDashboardController extends ApiV1Controller {
       },
     });
 
-    const result = orders.map((o) => {
+    const result = orders.map((o: any) => {
       const duration = "15 min"; // Mock or calculate
       return {
         id: `#${o.id.slice(0, 8).toUpperCase()}`,
@@ -149,7 +149,7 @@ export class ApiV1AdminDashboardController extends ApiV1Controller {
       include: { owner: true },
     });
 
-    const result = restaurants.map((r) => {
+    const result = restaurants.map((r: any) => {
       const diffTime = Math.abs(new Date().getTime() - new Date(r.createdAt).getTime());
       const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
       const appliedTime = diffHours < 24 ? `${diffHours}h ago` : `${Math.floor(diffHours / 24)}d ago`;
@@ -175,7 +175,7 @@ export class ApiV1AdminDashboardController extends ApiV1Controller {
       orderBy: { createdAt: "desc" },
     });
 
-    const result = flaggedOrders.map((o) => {
+    const result = flaggedOrders.map((o: any) => {
       const riskScore = Number(o.riskScore || 0);
       const riskLevel = riskScore > 75 ? "High" : "Medium";
       return {
@@ -224,7 +224,7 @@ export class ApiV1AdminDashboardController extends ApiV1Controller {
       },
     });
 
-    const result = drivers.map((d) => {
+    const result = drivers.map((d: any) => {
       return {
         id: d.id,
         fullName: d.profile.fullName,
@@ -297,7 +297,7 @@ export class ApiV1AdminDashboardController extends ApiV1Controller {
       },
     });
 
-    const result = restaurants.map((r) => ({
+    const result = restaurants.map((r: any) => ({
       id: r.id,
       name: r.name,
       cuisine: r.cuisineType || "General",
@@ -320,7 +320,7 @@ export class ApiV1AdminDashboardController extends ApiV1Controller {
       },
     });
 
-    const result = drivers.map((d) => ({
+    const result = drivers.map((d: any) => ({
       id: d.id,
       name: d.profile.fullName,
       phone: d.profile.phone || "",
@@ -434,12 +434,12 @@ export class ApiV1AdminDashboardController extends ApiV1Controller {
       },
     });
 
-    const result = payments.map((p) => {
-      const type = p.order?.restaurant 
-        ? `Thanh toán cho ${p.order.restaurant.name}` 
+    const result = payments.map((p: any) => {
+      const type = p.order?.restaurant
+        ? `Thanh toán cho ${p.order.restaurant.name}`
         : p.order?.customer
-        ? `Hoàn tiền cho khách hàng ${p.order.customer.fullName}`
-        : "Thanh toán giao dịch";
+          ? `Hoàn tiền cho khách hàng ${p.order.customer.fullName}`
+          : "Thanh toán giao dịch";
 
       return {
         id: `TX${p.id.slice(0, 6).toUpperCase()}`,
@@ -453,4 +453,3 @@ export class ApiV1AdminDashboardController extends ApiV1Controller {
     this.renderJson(result);
   }
 }
-

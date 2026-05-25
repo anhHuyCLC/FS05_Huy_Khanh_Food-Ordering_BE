@@ -5,7 +5,7 @@
   "author": "Peter Pham",
   "license": "MIT",
   "scripts": {
-    "build": "vite build && tsc && tsc-alias",
+    "build": "prisma generate && vite build && tsc && tsc-alias",
     "start": "node dist/index.js",
     "serverless": "vite build && tsc && tsc-alias && serverless offline --noPrependStageInUrl",
     "dev": "nodemon -e js,ts,pug,vue,json index.ts",
