@@ -277,6 +277,9 @@ model Restaurant {
   approvalStatus  String   @default("PENDING") @map("approval_status") // PENDING, APPROVED, REJECTED
   rejectionReason String?  @map("rejection_reason")
   commissionRate  Decimal  @default(10.0) @map("commission_rate") @db.Decimal(5, 2) // % chiết khấu quán trả hệ thống
+  cuisineType     String?  @map("cuisine_type") @db.VarChar(100)
+  openTime        String?  @map("open_time") @db.VarChar(10)
+  closeTime       String?  @map("close_time") @db.VarChar(10)
 
   owner       Profile            @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   categories  Category[]
@@ -302,6 +305,8 @@ model DriverProfile {
   approvalStatus  String   @default("PENDING") @map("approval_status") // PENDING, APPROVED, REJECTED
   rejectionReason String?  @map("rejection_reason")
   commissionRate  Decimal  @default(15.0) @map("commission_rate") @db.Decimal(5, 2) // Tỷ lệ hoa hồng đơn hàng của tài xế
+  driverLicenseNumber String? @map("driver_license_number") @db.VarChar(50)
+  nationalIdNumber     String? @map("national_id_number") @db.VarChar(50)
 
 
   profile      Profile             @relation(fields: [id], references: [id], onDelete: Cascade)
@@ -475,6 +480,11 @@ model Order {
   note              String?  @db.Text
 
   groupParticipants Json? @default("[]") @map("group_participants") // { userId, amountContributed }
+
+  // [BỔ SUNG MỚI] Hỗ trợ Tự động gán tài xế tuần tự
+  assignmentQueue     Json?     @default("[]") @map("assignment_queue")
+  currentDriverId     String?   @map("current_driver_id") @db.Uuid
+  assignmentExpiresAt DateTime? @map("assignment_expires_at")
 
   // Fraud Detection (Gian lận) [NEW]
   deviceIp  String?  @map("device_ip") @db.VarChar(50)

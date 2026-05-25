@@ -21,7 +21,8 @@ export class AuthorizeMiddleware extends ApplicationMiddleware {
       return next();
     }
 
-    if (!user.permissions?.includes(this.requiredPermission)) {
+    const reqPerm = this.requiredPermission.toUpperCase();
+    if (!user.permissions?.map((p) => p.toUpperCase()).includes(reqPerm)) {
       return res.status(403).json({
         success: false,
         error: "Forbidden: You don't have enough permission to perform this action.",
