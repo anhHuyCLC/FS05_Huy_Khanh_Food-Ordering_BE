@@ -160,23 +160,24 @@ export class AuthController extends ApiV1Controller {
           create: {
             fullName: `${firstname} ${lastname}`,
             phone: phonenumber,
-            ...(userRole === "DRIVER" && {
+            // Sửa lại cú pháp toán tử 3 ngôi
+            ...(userRole === "DRIVER" ? {
               driverProfile: {
                 create: {
                   vehicleInfo: vehicleType || vehicleInfo || "MOTORBIKE",
-                  licensePlate,
+                  licensePlate: licensePlate!,
                   driverLicenseNumber,
                   nationalIdNumber,
                   approvalStatus: "PENDING",
                   currentStatus: "offline",
                 },
               },
-            }),
-            ...(userRole === "RESTAURANT" && {
+            } : {}),
+            ...(userRole === "RESTAURANT" ? {
               restaurants: {
                 create: {
-                  name: restaurantName,
-                  address: restaurantAddress,
+                  name: restaurantName!,
+                  address: restaurantAddress!,
                   description: restaurantDescription,
                   cuisineType,
                   openTime,
@@ -185,7 +186,7 @@ export class AuthController extends ApiV1Controller {
                   isActive: false,
                 },
               },
-            }),
+            } : {}),
           },
         },
       },

@@ -1,8 +1,8 @@
-import OpenAI from "openai";
 import env from "@configs/env";
-import { ApplicationService } from "./application.service";
-import { ChatMessage } from "../types/chat.types";
+import OpenAI from "openai";
 import { buildSystemPrompt } from "../prompts/system.prompt";
+import { ChatMessage } from "../types/chat.types";
+import { ApplicationService } from "./application.service";
 
 export class AiService extends ApplicationService {
   private client: OpenAI | null = null;
