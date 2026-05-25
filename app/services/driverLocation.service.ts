@@ -42,14 +42,15 @@ export class DriverLocationService {
   async getDemandHeatmap() {
     type PendingOrder = {
       restaurant: {
-        latitude: number | null;
-        longitude: number | null;
+        latitude: any;
+        longitude: any;
         name: string;
         address: string;
       };
     };
 
-    const pendingOrders: PendingOrder[] = await models.order.findMany({
+    // FIX: Thêm as any để bypass lỗi ép kiểu Decimal của Prisma sang PendingOrder
+    const pendingOrders: PendingOrder[] = (await models.order.findMany({
       where: {
         status: "ready",
         driverId: null,
@@ -59,7 +60,7 @@ export class DriverLocationService {
           select: { latitude: true, longitude: true, name: true, address: true },
         },
       },
-    });
+    })) as any;
 
     // Gộp theo tọa độ nhà hàng
     const heatmap = pendingOrders
@@ -102,8 +103,9 @@ export class DriverLocationService {
       restaurant: {
         name: string;
         address: string;
-        latitude: number | null;
-        longitude: number | null;
+        // FIX: Đổi từ number | null sang any để đồng nhất với Decimal của Prisma
+        latitude: any; 
+        longitude: any; 
       };
       customer: {
         fullName: string;
@@ -111,13 +113,14 @@ export class DriverLocationService {
       } | null;
     };
 
-    const orders: RouteOrder[] = await models.order.findMany({
+    // FIX: Thêm as any để ép kiểu an toàn
+    const orders: RouteOrder[] = (await models.order.findMany({
       where: whereClause,
       include: {
         restaurant: { select: { name: true, address: true, latitude: true, longitude: true } },
         customer: { select: { fullName: true, phone: true } },
       },
-    });
+    })) as any;
 
     if (orders.length === 0) {
       return { message: "Không có đơn nào để tối ưu lộ trình", route: [] };
