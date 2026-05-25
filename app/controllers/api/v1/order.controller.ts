@@ -497,6 +497,11 @@ export class OrderControllerV1 extends ApiV1Controller {
       }),
     ]);
 
+    if (newStatus === "accepted") {
+      const { DriverAssignmentService } = require("@services/driverAssignment.service");
+      new DriverAssignmentService().triggerAssignment(orderId).catch(console.error);
+    }
+
     this.renderJson(updatedOrder);
   }
 

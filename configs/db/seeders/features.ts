@@ -72,6 +72,20 @@ export async function seedFeatures() {
     "Standard user role for customers",
   );
 
+  // Role DRIVER (cho tài xế)
+  await ensureRole(
+    "DRIVER",
+    "Driver",
+    "Driver role for delivery partners",
+  );
+
+  // Role RESTAURANT (cho quán ăn)
+  await ensureRole(
+    "RESTAURANT",
+    "Restaurant",
+    "Restaurant partner role",
+  );
+
   // ADMIN role có full quyền AM và UM
   await assignPermissionToRole("ADMIN", "AM");
   await assignPermissionToRole("ADMIN", "UM");

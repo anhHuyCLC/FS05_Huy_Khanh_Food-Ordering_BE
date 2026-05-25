@@ -112,4 +112,50 @@ export class RegisterValidator {
   @IsString()
   @IsIn(['CUSTOMER', 'ADMIN', 'DRIVER', 'RESTAURANT'], { message: 'Role must be one of: CUSTOMER, ADMIN, DRIVER, RESTAURANT' })
   role?: string;
+
+  // Driver fields
+  @IsOptional()
+  @IsString()
+  vehicleType?: string;
+
+  @IsOptional()
+  @IsString()
+  vehicleInfo?: string;
+
+  @IsOptional()
+  @IsString()
+  licensePlate?: string;
+
+  @IsOptional()
+  @IsString()
+  driverLicenseNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  nationalIdNumber?: string;
+
+  // Restaurant fields
+  @IsOptional()
+  @IsString()
+  restaurantName?: string;
+
+  @IsOptional()
+  @IsString()
+  restaurantAddress?: string;
+
+  @IsOptional()
+  @IsString()
+  cuisineType?: string;
+
+  @IsOptional()
+  @IsString()
+  openTime?: string;
+
+  @IsOptional()
+  @IsString()
+  closeTime?: string;
+
+  @IsOptional()
+  @IsString()
+  restaurantDescription?: string;
 }

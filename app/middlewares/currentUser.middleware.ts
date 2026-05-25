@@ -51,7 +51,7 @@ export class CurrentUserMiddleware extends ApplicationMiddleware {
         const perms = req.user?.permissions ?? [];
         const locals = res.locals as Record<string, unknown>;
         locals.hasAdminAccess = perms.some((p: string) =>
-          ADMIN_FEATURE_CODES.some((code) => p.startsWith(`${code}:`)),
+          ADMIN_FEATURE_CODES.some((code) => p.startsWith(`${code}::`)),
         );
       }
 

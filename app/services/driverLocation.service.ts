@@ -107,7 +107,7 @@ export class DriverLocationService {
       };
       customer: {
         fullName: string;
-        phone: string;
+        phone: string | null;
       } | null;
     };
 
