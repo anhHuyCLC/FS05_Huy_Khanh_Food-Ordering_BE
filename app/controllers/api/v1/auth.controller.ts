@@ -136,24 +136,38 @@ export class AuthController extends ApiV1Controller {
     }
 
     const newUser = await models.user.create({
-      data: {
-        email,
-        firstName: firstname,
-        middleName: middlename,
-        lastName: lastname,
-        phoneNumber: phonenumber,
-        address,
-        status: UserStatus.ACTIVE,
-        deleted: false,
-        passwords: {
-          create: {
-            password: hashedPassword,
-            type: PasswordType.PASSWORD,
-          },
-        },
-        roles: {
-          create: {
-            role: { connect: { code: userRole } },
+  data: {
+    email,
+    firstName: firstname,
+    middleName: middlename,
+    lastName: lastname,
+    phoneNumber: phonenumber,
+    address,
+    status: UserStatus.ACTIVE,
+    deleted: false,
+    passwords: {
+      create: {
+        password: hashedPassword,
+        type: PasswordType.PASSWORD,
+      },
+    },
+    roles: {
+      create: {
+        role: { connect: { code: userRole } },
+      },
+    },
+    profile: {
+      create: {
+        fullName: [firstname, middlename, lastname].filter(Boolean).join(" "),
+        phone: phonenumber ?? null,
+        ...(userRole === "DRIVER" && {
+          driverProfile: {
+            create: {
+              approvalStatus: "PENDING",
+              currentStatus:  "offline",
+              walletBalance:  0,
+              commissionRate: 15,
+            },
           },
         },
         profile: {
@@ -189,7 +203,9 @@ export class AuthController extends ApiV1Controller {
           },
         },
       },
-    });
+    },
+  },
+});
 
     this.renderJson({
       user: {

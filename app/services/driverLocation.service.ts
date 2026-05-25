@@ -32,7 +32,7 @@ export class DriverLocationService {
       include: { driver: { select: { currentStatus: true } } },
     });
     if (!location) throw new NotFoundError("Không tìm thấy vị trí tài xế");
-    return location;
+    return location ?? null;
   }
 
   /**
