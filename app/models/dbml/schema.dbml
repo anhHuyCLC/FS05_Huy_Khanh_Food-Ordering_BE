@@ -307,6 +307,7 @@ Table promotions {
   validFrom DateTime [not null]
   validTo DateTime [not null]
   isActive Boolean [default: true]
+  promotionType String [not null, default: 'food']
   restaurant restaurants
   orders orders [not null]
   applicableItems menu_items [not null]

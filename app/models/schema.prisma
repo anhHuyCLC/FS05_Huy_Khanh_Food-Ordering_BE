@@ -399,6 +399,7 @@ model Promotion {
   validFrom          DateTime @map("valid_from") @db.Timestamptz()
   validTo            DateTime @map("valid_to") @db.Timestamptz()
   isActive           Boolean? @default(true) @map("is_active")
+  promotionType      String   @default("food") @map("promotion_type") @db.VarChar(50)
 
   restaurant      Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   orders          Order[]

@@ -244,7 +244,8 @@ export class OrderControllerV1 extends ApiV1Controller {
       },
     });
 
-    if (menuItems.length !== menuItemIds.length) {
+    const uniqueMenuItemIds = Array.from(new Set(menuItemIds));
+    if (menuItems.length !== uniqueMenuItemIds.length) {
       return this.renderJson(
         {
           success: false,
@@ -289,9 +290,34 @@ export class OrderControllerV1 extends ApiV1Controller {
       };
     });
 
-    // Xử lý mã khuyến mãi
+    // Tính phí giao hàng (delivery fee) trước
+    let deliveryFee = 0;
+    const isDineIn = data.orderType === "dine_in";
+    if (!isDineIn) {
+      let restLat = restaurant.latitude ? Number(restaurant.latitude) : null;
+      let restLon = restaurant.longitude ? Number(restaurant.longitude) : null;
+      if (restLat === null || restLon === null) {
+        const rCoords = getStableCoords(restaurant.id, restaurant.address || restaurant.name);
+        restLat = rCoords.latitude;
+        restLon = rCoords.longitude;
+      }
+
+      let delivLat = data.deliveryLatitude ? Number(data.deliveryLatitude) : null;
+      let delivLon = data.deliveryLongitude ? Number(data.deliveryLongitude) : null;
+      if (delivLat === null || delivLon === null) {
+        const dCoords = getStableCoords("delivery", data.deliveryAddress || "Da Nang");
+        delivLat = dCoords.latitude;
+        delivLon = dCoords.longitude;
+      }
+
+      const distance = calculateDistance(restLat, restLon, delivLat, delivLon);
+      deliveryFee = calculateDeliveryFee(distance);
+    }
+
+    // Xử lý mã khuyến mãi sau khi có deliveryFee
     let promotionId: string | null = null;
     let discountAmount = 0;
+    let promotionType = "food";
 
     if (data.promotionCode) {
       const promo = await models.promotion.findFirst({
@@ -326,40 +352,26 @@ export class OrderControllerV1 extends ApiV1Controller {
       }
 
       promotionId = promo.id;
-      if (promo.discountPercentage) {
-        discountAmount = (totalAmount * Number(promo.discountPercentage)) / 100;
-      } else if (promo.fixedDiscount) {
-        discountAmount = Math.min(Number(promo.fixedDiscount), totalAmount);
+      promotionType = promo.promotionType;
+      if (promo.promotionType === "shipping") {
+        if (promo.discountPercentage) {
+          discountAmount = (deliveryFee * Number(promo.discountPercentage)) / 100;
+        } else if (promo.fixedDiscount) {
+          discountAmount = Math.min(Number(promo.fixedDiscount), deliveryFee);
+        }
+      } else {
+        if (promo.discountPercentage) {
+          discountAmount = (totalAmount * Number(promo.discountPercentage)) / 100;
+        } else if (promo.fixedDiscount) {
+          discountAmount = Math.min(Number(promo.fixedDiscount), totalAmount);
+        }
       }
-    }
-
-    // Tính phí giao hàng (delivery fee)
-    let deliveryFee = 0;
-    const isDineIn = data.orderType === "dine_in";
-    if (!isDineIn) {
-      let restLat = restaurant.latitude ? Number(restaurant.latitude) : null;
-      let restLon = restaurant.longitude ? Number(restaurant.longitude) : null;
-      if (restLat === null || restLon === null) {
-        const rCoords = getStableCoords(restaurant.id, restaurant.address || restaurant.name);
-        restLat = rCoords.latitude;
-        restLon = rCoords.longitude;
-      }
-
-      let delivLat = data.deliveryLatitude ? Number(data.deliveryLatitude) : null;
-      let delivLon = data.deliveryLongitude ? Number(data.deliveryLongitude) : null;
-      if (delivLat === null || delivLon === null) {
-        const dCoords = getStableCoords("delivery", data.deliveryAddress || "Da Nang");
-        delivLat = dCoords.latitude;
-        delivLon = dCoords.longitude;
-      }
-
-      const distance = calculateDistance(restLat, restLon, delivLat, delivLon);
-      deliveryFee = calculateDeliveryFee(distance);
     }
 
     const finalAmount = Math.max(0, totalAmount - discountAmount + deliveryFee);
     const rate = restaurant.commissionRate ? Number(restaurant.commissionRate) / 100 : 0.1;
-    const foodTotalAfterDiscount = Math.max(0, totalAmount - discountAmount);
+    const foodDiscount = promotionType === "shipping" ? 0 : discountAmount;
+    const foodTotalAfterDiscount = Math.max(0, totalAmount - foodDiscount);
     const platformFee = foodTotalAfterDiscount * rate;
     const restaurantNet = foodTotalAfterDiscount - platformFee;
 
@@ -641,7 +653,7 @@ export class OrderControllerV1 extends ApiV1Controller {
   // ─────────────────────────────────────────────────────────────
   async checkPromotion() {
     const data = this.req.body;
-    const { promotionCode, restaurantId, totalAmount } = data;
+    const { promotionCode, restaurantId, totalAmount, deliveryFee } = data;
 
     if (!promotionCode || !totalAmount) {
       return this.renderJson({ success: false, message: "Thiếu thông tin (promotionCode, totalAmount)" }, 400);
@@ -670,16 +682,48 @@ export class OrderControllerV1 extends ApiV1Controller {
     }
 
     let discountAmount = 0;
-    if (promo.discountPercentage) {
-      discountAmount = (Number(totalAmount) * Number(promo.discountPercentage)) / 100;
-    } else if (promo.fixedDiscount) {
-      discountAmount = Math.min(Number(promo.fixedDiscount), Number(totalAmount));
+    if (promo.promotionType === "shipping") {
+      const fee = Number(deliveryFee ?? 0);
+      if (promo.discountPercentage) {
+        discountAmount = (fee * Number(promo.discountPercentage)) / 100;
+      } else if (promo.fixedDiscount) {
+        discountAmount = Math.min(Number(promo.fixedDiscount), fee);
+      }
+    } else {
+      if (promo.discountPercentage) {
+        discountAmount = (Number(totalAmount) * Number(promo.discountPercentage)) / 100;
+      } else if (promo.fixedDiscount) {
+        discountAmount = Math.min(Number(promo.fixedDiscount), Number(totalAmount));
+      }
     }
 
     return this.renderJson({
       discountAmount: Math.round(discountAmount),
-      promotionCode: promo.code
+      promotionCode: promo.code,
+      promotionType: promo.promotionType
     });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // GET /promotions
+  // Lấy danh sách mã giảm giá hoạt động
+  // ─────────────────────────────────────────────────────────────
+  async getPromotions() {
+    const { restaurantId } = this.req.query as Record<string, string>;
+
+    const promotions = await models.promotion.findMany({
+      where: {
+        isActive: true,
+        validFrom: { lte: new Date() },
+        validTo: { gte: new Date() },
+        OR: [
+          restaurantId ? { restaurantId } : null,
+          { restaurantId: null }
+        ].filter(Boolean) as any,
+      },
+    });
+
+    this.renderJson(promotions);
   }
 
   // ─────────────────────────────────────────────────────────────

@@ -4,9 +4,17 @@ import models from "@models";
 export async function seedRestaurants() {
   console.log("🌱 Seeding restaurants...");
 
-  const owners = await models.profile.findMany({
-    take: 5,
+  const restaurantUsers = await models.user.findMany({
+    where: {
+      roles: {
+        some: {
+          role: { code: "RESTAURANT" }
+        }
+      }
+    },
+    include: { profile: true }
   });
+
   const daNangRestaurants = [
     { name: "Mì Quảng Bà Mua", desc: "Đậm đà hương vị Mì Quảng chính gốc", address: "95A Nguyễn Tri Phương, Hải Châu, Đà Nẵng", lat: 16.0617, lng: 108.2120, img: "https://loremflickr.com/800/600/noodle,vietnam?random=1" },
     { name: "Bánh Xèo Bà Dưỡng", desc: "Bánh xèo giòn rụm, nem lụi thơm ngon", address: "K280/23 Hoàng Diệu, Hải Châu, Đà Nẵng", lat: 16.0594, lng: 108.2154, img: "https://loremflickr.com/800/600/pancake,vietnam?random=2" },
@@ -22,9 +30,12 @@ export async function seedRestaurants() {
 
   for (let i = 0; i < daNangRestaurants.length; i++) {
     const r = daNangRestaurants[i];
+    const ownerUser = restaurantUsers[i % restaurantUsers.length];
+    if (!ownerUser || !ownerUser.profile) continue;
+
     await models.restaurant.create({
       data: {
-        ownerId: owners[i % owners.length].id,
+        ownerId: ownerUser.profile.id,
         name: r.name,
         description: r.desc,
         address: r.address,
@@ -32,6 +43,8 @@ export async function seedRestaurants() {
         latitude: new Prisma.Decimal(r.lat),
         longitude: new Prisma.Decimal(r.lng),
         isActive: true,
+        approvalStatus: "APPROVED",
+        commissionRate: new Prisma.Decimal(10.0),
         rating: new Prisma.Decimal(4.5 + Math.random() * 0.5),
       },
     });

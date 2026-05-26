@@ -6,7 +6,7 @@ export class ApplicationMiddleware {
    * Định nghĩa Type cho User kèm Permissions
    */
   public userWithPermissions:
-    | (User & { features?: string[]; permissions?: string[] })
+    | (User & { features?: string[]; permissions?: string[]; roles?: string[] })
     | null = null;
 
   /**
@@ -16,7 +16,7 @@ export class ApplicationMiddleware {
   public async getUserById(
     id: string,
     isGetPermission = false,
-  ): Promise<(User & { features?: string[]; permissions?: string[] }) | null> {
+  ): Promise<(User & { features?: string[]; permissions?: string[]; roles?: string[] }) | null> {
     const user = await models.user.findUnique({
       where: {
         id,
@@ -24,14 +24,19 @@ export class ApplicationMiddleware {
     });
 
     if (user && isGetPermission) {
-      const [permissionFeaturesFromRoles, directUserPermissions] =
+      const [permissionFeaturesFromRoles, directUserPermissions, userRoles] =
         await Promise.all([
           this.getPermissionsFromRoles(id),
           this.getDirectUserPermissions(id),
+          models.userToRole.findMany({
+            where: { userId: id },
+            include: { role: true },
+          }),
         ]);
 
       const features = new Set<string>();
       const permissions = new Set<string>();
+      const roles = userRoles.map((ur) => ur.role.code);
 
       permissionFeaturesFromRoles.forEach(
         ({
@@ -43,6 +48,7 @@ export class ApplicationMiddleware {
         }) => {
           features.add(featureCode);
           permissions.add(`${featureCode}::${permissionCode}`);
+          permissions.add(`${featureCode}:${permissionCode}`);
         },
       );
 
@@ -56,6 +62,7 @@ export class ApplicationMiddleware {
         }) => {
           features.add(featureCode);
           permissions.add(`${featureCode}::${permissionCode}`);
+          permissions.add(`${featureCode}:${permissionCode}`);
         },
       );
 
@@ -63,6 +70,7 @@ export class ApplicationMiddleware {
         ...user,
         features: Array.from(features),
         permissions: Array.from(permissions),
+        roles,
       };
     }
 

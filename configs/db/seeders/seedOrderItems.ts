@@ -5,21 +5,27 @@ export async function seedOrderItems() {
   console.log("🌱 Seeding order items...");
 
   const orders = await models.order.findMany();
-  const menuItems = await models.menuItem.findMany();
 
-  for (let i = 0; i < 10; i++) {
-    await models.orderItem.create({
-      data: {
-        orderId: orders[i % orders.length].id,
-        menuItemId: menuItems[i % menuItems.length].id,
-        quantity: 2,
-        unitPrice: new Prisma.Decimal(100000),
-        selectedOptions: {
-          size: "Medium",
-        },
-        note: `Order item ${i}`,
-      },
+  for (let i = 0; i < orders.length; i++) {
+    const order = orders[i];
+    const menuItem = await models.menuItem.findFirst({
+      where: { restaurantId: order.restaurantId }
     });
+
+    if (menuItem) {
+      await models.orderItem.create({
+        data: {
+          orderId: order.id,
+          menuItemId: menuItem.id,
+          quantity: 2,
+          unitPrice: menuItem.basePrice,
+          selectedOptions: {
+            size: "Medium",
+          },
+          note: `Order item for order ${i + 1}`,
+        },
+      });
+    }
   }
 
   console.log("✅ Order items seeded");

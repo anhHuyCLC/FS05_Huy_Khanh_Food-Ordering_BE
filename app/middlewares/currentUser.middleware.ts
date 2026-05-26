@@ -35,7 +35,7 @@ export class CurrentUserMiddleware extends ApplicationMiddleware {
           req.user = {
             id: fullUser.id,
             email: fullUser.email,
-            roles: [],
+            roles: (fullUser as any).roles || [],
             permissions: fullUser.permissions || [],
             tokenVersion: (fullUser as any).tokenVersion || 1
           };
