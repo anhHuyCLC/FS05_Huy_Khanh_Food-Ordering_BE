@@ -278,7 +278,7 @@ model Restaurant {
   rejectionReason String?  @map("rejection_reason")
   commissionRate  Decimal  @default(10.0) @map("commission_rate") @db.Decimal(5, 2) // % chiết khấu quán trả hệ thống
 
-  owner       Profile            @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  owner       Profile           @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   categories  Category[]
   menuItems   MenuItem[]
   orders      Order[]            @relation("RestaurantOrders")

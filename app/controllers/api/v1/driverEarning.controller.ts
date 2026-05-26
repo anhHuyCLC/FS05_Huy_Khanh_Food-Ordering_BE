@@ -1,6 +1,4 @@
-// ============================================================
-// app/controllers/api/v1/driver/driverEarning.controller.ts
-// ============================================================
+
 import { ApiV1Controller } from "..";
 import { DriverEarningService } from "@services/driverEarning.service";
 import { EarningFilterValidator } from "@validators/driver.validator";
