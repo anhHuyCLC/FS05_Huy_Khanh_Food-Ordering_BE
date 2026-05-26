@@ -50,6 +50,54 @@ export const FEATURES = [
     parentCode: null as string | null,
     sortOrder: 2,
   },
+  {
+    code: "ADDRESS",
+    name: "Address Management",
+    description: "Quản lý địa chỉ giao hàng",
+    type: "FEATURE",
+    parentCode: null as string | null,
+    sortOrder: 3,
+  },
+  {
+    code: "CART",
+    name: "Cart Management",
+    description: "Quản lý giỏ hàng",
+    type: "FEATURE",
+    parentCode: null as string | null,
+    sortOrder: 4,
+  },
+  {
+    code: "MENU",
+    name: "Menu Management",
+    description: "Quản lý thực đơn",
+    type: "FEATURE",
+    parentCode: null as string | null,
+    sortOrder: 5,
+  },
+  {
+    code: "ORDER",
+    name: "Order Management",
+    description: "Quản lý đơn hàng",
+    type: "FEATURE",
+    parentCode: null as string | null,
+    sortOrder: 6,
+  },
+  {
+    code: "DRIVER_PROFILE",
+    name: "Driver Profile",
+    description: "Hồ sơ tài xế",
+    type: "FEATURE",
+    parentCode: null as string | null,
+    sortOrder: 7,
+  },
+  {
+    code: "RESTAURANT_PROFILE",
+    name: "Restaurant Profile",
+    description: "Hồ sơ đối tác nhà hàng",
+    type: "FEATURE",
+    parentCode: null as string | null,
+    sortOrder: 8,
+  },
 ];
 
 export async function seedFeatures() {
@@ -72,9 +120,42 @@ export async function seedFeatures() {
     "Standard user role for customers",
   );
 
-  // ADMIN role có full quyền AM và UM
-  await assignPermissionToRole("ADMIN", "AM");
-  await assignPermissionToRole("ADMIN", "UM");
-  await assignPermissionToRole("ADMIN", "CHAT");
+  // Role DRIVER (cho tài xế)
+  await ensureRole(
+    "DRIVER",
+    "Driver",
+    "Driver role for delivery partners",
+  );
+
+  // Role RESTAURANT (cho quán ăn)
+  await ensureRole(
+    "RESTAURANT",
+    "Restaurant",
+    "Restaurant partner role",
+  );
+
+  // ADMIN role has full permissions for all features
+  for (const feature of FEATURES) {
+    await assignPermissionToRole("ADMIN", feature.code);
+  }
+
+  // CUSTOMER role permissions
+  await assignPermissionToRole("CUSTOMER", "CHAT");
+  await assignPermissionToRole("CUSTOMER", "ADDRESS");
+  await assignPermissionToRole("CUSTOMER", "CART");
+  await assignPermissionToRole("CUSTOMER", "MENU", ["READ"]);
+  await assignPermissionToRole("CUSTOMER", "ORDER", ["READ", "CREATE", "UPDATE"]);
+
+  // RESTAURANT role permissions
+  await assignPermissionToRole("RESTAURANT", "CHAT");
+  await assignPermissionToRole("RESTAURANT", "MENU");
+  await assignPermissionToRole("RESTAURANT", "ORDER", ["READ", "UPDATE"]);
+  await assignPermissionToRole("RESTAURANT", "RESTAURANT_PROFILE", ["READ", "UPDATE"]);
+
+  // DRIVER role permissions
+  await assignPermissionToRole("DRIVER", "CHAT");
+  await assignPermissionToRole("DRIVER", "ORDER", ["READ", "UPDATE"]);
+  await assignPermissionToRole("DRIVER", "DRIVER_PROFILE", ["READ", "UPDATE"]);
+
   console.log("[seedFeatures] Done");
 }

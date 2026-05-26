@@ -10,9 +10,13 @@ export class OrderRouteV1 extends RailsRoute {
 
     this.post("/orders/check-promotion", action(OrderControllerV1, "checkPromotion"));
 
+    this.get("/promotions", action(OrderControllerV1, "getPromotions"));
+
     this.get("/orders/:orderId", action(OrderControllerV1, "show"));
 
     this.patch("/orders/:orderId/cancel", action(OrderControllerV1, "cancel"));
+
+    this.post("/orders/:orderId/review", action(OrderControllerV1, "createReview"));
 
     this.get("/orders/:orderId/history", action(OrderControllerV1, "statusHistory"));
 

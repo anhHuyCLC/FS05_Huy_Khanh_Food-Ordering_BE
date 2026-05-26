@@ -1,4 +1,6 @@
 import models from "@models";
+import bcrypt from "bcrypt";
+import { PasswordType, UserStatus } from "@configs/db/enums/user";
 
 export async function seedProfiles() {
   console.log("🌱 Seeding profiles...");
@@ -19,21 +21,52 @@ export async function seedProfiles() {
   const firstNames = ["Huy", "Nam", "Mai", "Lan", "Hải", "Sơn", "Hoa", "Tuấn", "Linh", "Minh"];
   const lastNames = ["Trần", "Nguyễn", "Lê", "Phạm", "Hoàng", "Vũ", "Võ", "Đặng", "Bùi", "Đỗ"];
 
+  const hashedPassword = await bcrypt.hash("Abcd@1234", 10);
+
   for (let i = 1; i <= 10; i++) {
     const firstName = firstNames[i % 10];
     const lastName = lastNames[i % 10];
     const address = daNangAddresses[(i - 1) % 10];
 
+    let email = "";
+    let roleCode = "";
+    let indexInRole = 0;
+
+    if (i <= 3) {
+      roleCode = "CUSTOMER";
+      indexInRole = i;
+      email = `customer${indexInRole}@gmail.com`;
+    } else if (i <= 6) {
+      roleCode = "RESTAURANT";
+      indexInRole = i - 3;
+      email = `restaurant${indexInRole}@gmail.com`;
+    } else {
+      roleCode = "DRIVER";
+      indexInRole = i - 6;
+      email = `driver${indexInRole}@gmail.com`;
+    }
+
     const user = await models.user.create({
       data: {
         firstName: firstName,
         lastName: lastName,
-        email: `user${i}@gmail.com`,
-        status: "ACTIVE",
+        email: email,
+        status: UserStatus.ACTIVE,
         avatarUrl: `https://i.pravatar.cc/300?img=${i}`,
         gender: i % 2 === 0 ? "male" : "female",
         phoneNumber: `090000000${i}`,
         address: address,
+        passwords: {
+          create: {
+            password: hashedPassword,
+            type: PasswordType.PASSWORD,
+          },
+        },
+        roles: {
+          create: {
+            role: { connect: { code: roleCode } },
+          },
+        },
       },
     });
 

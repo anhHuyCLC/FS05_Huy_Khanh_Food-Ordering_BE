@@ -14,8 +14,16 @@ export class DriverOrderService {
 
     const orders = await models.order.findMany({
       where: {
-        status: "ready",
-        driverId: null,
+        OR: [
+          {
+            status: "ready",
+            driverId: null,
+          },
+          {
+            currentDriverId: profileId,
+            assignmentExpiresAt: { gt: new Date() },
+          },
+        ],
       },
       include: {
         restaurant: { select: { name: true, address: true, latitude: true, longitude: true } },
@@ -74,7 +82,10 @@ export class DriverOrderService {
   async acceptOrder(profileId: string, orderId: string) {
     const order = await models.order.findUnique({ where: { id: orderId } });
     if (!order) throw new NotFoundError("Đơn hàng không tìm thấy");
-    if (order.status !== "ready") {
+
+    const isOfferedToMe = order.currentDriverId === profileId && order.assignmentExpiresAt && order.assignmentExpiresAt > new Date();
+
+    if (order.status !== "ready" && !isOfferedToMe) {
       throw new BadRequestError("Đơn hàng không ở trạng thái sẵn sàng để nhận");
     }
     if (order.driverId) {
@@ -90,8 +101,11 @@ export class DriverOrderService {
       where: { id: orderId },
       data: {
         driverId: profileId,
-        status: "accepted",
+        ...(order.status === "ready" && { status: "accepted" }),
         acceptedAt: new Date(),
+        currentDriverId: null,
+        assignmentExpiresAt: null,
+        assignmentQueue: [],
       },
       include: {
         restaurant: { select: { name: true, address: true, latitude: true, longitude: true } },
@@ -102,7 +116,7 @@ export class DriverOrderService {
 
     // Ghi log OrderStatusHistory
     await models.orderStatusHistory.create({
-      data: { orderId, status: "accepted" },
+      data: { orderId, status: updated.status! },
     });
 
     // Cập nhật trạng thái tài xế -> busy
@@ -115,11 +129,20 @@ export class DriverOrderService {
   }
 
   /**
-   * 5.1 Bỏ qua / từ chối đơn (không thay đổi trạng thái đơn, chỉ ghi nhận)
+   * 5.1 Bỏ qua / từ chối đơn
    */
   async rejectOrder(profileId: string, orderId: string, reason?: string) {
     const order = await models.order.findUnique({ where: { id: orderId } });
     if (!order) throw new NotFoundError("Đơn hàng không tìm thấy");
+
+    // Nếu đây là offer hiện tại cho tài xế này -> chuyển tiếp sang tài xế tiếp theo ngay lập tức
+    if (order.currentDriverId === profileId) {
+      const { DriverAssignmentService } = require("./driverAssignment.service");
+      const service = new DriverAssignmentService();
+      await service.offerToNextDriver(orderId);
+      return { message: "Đã từ chối đơn hàng", orderId, reason: reason ?? null };
+    }
+
     if (order.driverId && order.driverId !== profileId) {
       throw new ForbiddenError("Đơn hàng này không thuộc về bạn");
     }

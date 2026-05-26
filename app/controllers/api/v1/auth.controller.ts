@@ -1,10 +1,6 @@
 import { PasswordType, UserStatus } from "@configs/db/enums";
-import { Prisma } from "@db";
-import { generateToken } from "@lib";
 import models from "@models";
 import { AuthGoogleVerifyService, AuthRefreshTokenService, GoogleOAuthCallbackService } from "@services";
-import { AuthLoginService } from "../../../services/auth/authLogin.service";
-import { AuthMeService } from "../../../services/auth/authMe.service";
 import {
   GoogleVerifyValidator,
   LoginValidator,
@@ -12,6 +8,8 @@ import {
   RegisterValidator,
 } from "@validators/auth.validator";
 import { BadRequestError, Security, UnauthorizedError } from "ts-rails";
+import { AuthLoginService } from "../../../services/auth/authLogin.service";
+import { AuthMeService } from "../../../services/auth/authMe.service";
 import { ApiV1Controller } from "./apiV1.controller";
 
 export class AuthController extends ApiV1Controller {
@@ -92,9 +90,22 @@ export class AuthController extends ApiV1Controller {
       phonenumber,
       address,
       role,
+      vehicleType,
+      vehicleInfo,
+      licensePlate,
+      driverLicenseNumber,
+      nationalIdNumber,
+      restaurantName,
+      restaurantAddress,
+      cuisineType,
+      openTime,
+      closeTime,
+      restaurantDescription,
     } = await this.params(RegisterValidator).permit(
       "email", "password", "confirmpassword", "firstname", "middlename", "lastname",
-      "phonenumber", "address", "role"
+      "phonenumber", "address", "role",
+      "vehicleType", "vehicleInfo", "licensePlate", "driverLicenseNumber", "nationalIdNumber",
+      "restaurantName", "restaurantAddress", "cuisineType", "openTime", "closeTime", "restaurantDescription"
     );
 
     if (password !== confirmpassword) {
@@ -110,45 +121,75 @@ export class AuthController extends ApiV1Controller {
     // Gán vai trò mặc định là CUSTOMER nếu không được cung cấp
     const userRole = role || "CUSTOMER";
 
+    // Validate role-specific fields
+    if (userRole === "DRIVER") {
+      if (!licensePlate) {
+        throw new BadRequestError("Biển số xe là bắt buộc đối với tài xế");
+      }
+    } else if (userRole === "RESTAURANT") {
+      if (!restaurantName) {
+        throw new BadRequestError("Tên nhà hàng là bắt buộc đối với đối tác");
+      }
+      if (!restaurantAddress) {
+        throw new BadRequestError("Địa chỉ nhà hàng là bắt buộc đối với đối tác");
+      }
+    }
+
     const newUser = await models.user.create({
-  data: {
-    email,
-    firstName: firstname,
-    middleName: middlename,
-    lastName: lastname,
-    phoneNumber: phonenumber,
-    address,
-    status: UserStatus.ACTIVE,
-    deleted: false,
-    passwords: {
-      create: {
-        password: hashedPassword,
-        type: PasswordType.PASSWORD,
-      },
-    },
-    roles: {
-      create: {
-        role: { connect: { code: userRole } },
-      },
-    },
-    profile: {
-      create: {
-        fullName: [firstname, middlename, lastname].filter(Boolean).join(" "),
-        phone: phonenumber ?? null,
-        ...(userRole === "DRIVER" && {
-          driverProfile: {
-            create: {
-              approvalStatus: "PENDING",
-              currentStatus:  "offline",
-              walletBalance:  0,
-              commissionRate: 15,
-            },
+      data: {
+        email,
+        firstName: firstname,
+        middleName: middlename,
+        lastName: lastname,
+        phoneNumber: phonenumber,
+        address,
+        status: UserStatus.ACTIVE,
+        deleted: false,
+        passwords: {
+          create: {
+            password: hashedPassword,
+            type: PasswordType.PASSWORD,
           },
-        }),
+        },
+        roles: {
+          create: {
+            role: { connect: { code: userRole } },
+          },
+        },
+        profile: {
+          create: {
+            fullName: `${firstname} ${lastname}`,
+            phone: phonenumber,
+            ...(userRole === "DRIVER" ? {
+              driverProfile: {
+                create: {
+                  vehicleInfo: vehicleType || vehicleInfo || "MOTORBIKE",
+                  licensePlate: licensePlate!,
+                  driverLicenseNumber,
+                  nationalIdNumber,
+                  approvalStatus: "PENDING",
+                  currentStatus: "offline",
+                },
+              },
+            } : {}),
+            ...(userRole === "RESTAURANT" ? {
+              restaurants: {
+                create: {
+                  name: restaurantName!,
+                  address: restaurantAddress!,
+                  description: restaurantDescription,
+                  cuisineType,
+                  openTime,
+                  closeTime,
+                  approvalStatus: "PENDING",
+                  isActive: false,
+                },
+              },
+            } : {}),
+          },
+        },
       },
-    },
-  },
-});
+    });
 
     this.renderJson({
       user: {

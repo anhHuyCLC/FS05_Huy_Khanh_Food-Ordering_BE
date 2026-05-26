@@ -4,28 +4,38 @@ import { Prisma } from "@db";
 export async function seedOrders() {
   console.log("🌱 Seeding orders...");
 
-  const customers = await models.profile.findMany({ take: 10 });
+  const customerProfiles = await models.profile.findMany({
+    where: {
+      user: {
+        roles: {
+          some: {
+            role: { code: "CUSTOMER" }
+          }
+        }
+      }
+    }
+  });
+
+  const driverProfiles = await models.driverProfile.findMany();
   const restaurants = await models.restaurant.findMany();
 
   const daNangAddresses = [
     "K44/21 Nguyễn Chánh, Liên Chiểu, Đà Nẵng",
     "120 Lương Nhữ Hộc, Cẩm Lệ, Đà Nẵng",
     "85 Núi Thành, Hải Châu, Đà Nẵng",
-    "202 Đống Đa, Hải Châu, Đà Nẵng",
-    "15 Tôn Quang Phiệt, Sơn Trà, Đà Nẵng",
-    "400 Điện Biên Phủ, Thanh Khê, Đà Nẵng",
-    "30 Lý Thái Tổ, Thanh Khê, Đà Nẵng",
-    "12 Nguyễn Hữu Thọ, Hải Châu, Đà Nẵng",
-    "50 Lê Thanh Nghị, Hải Châu, Đà Nẵng",
-    "88 Ngô Quyền, Sơn Trà, Đà Nẵng",
   ];
 
-  for (let i = 1; i <= 10; i++) {
+  for (let i = 1; i <= 6; i++) {
     const address = daNangAddresses[(i - 1) % daNangAddresses.length];
+    const customer = customerProfiles[i % customerProfiles.length];
+    const restaurant = restaurants[i % restaurants.length];
+    const driver = driverProfiles[i % driverProfiles.length];
+
     await models.order.create({
       data: {
-        customerId: customers[i % customers.length].id,
-        restaurantId: restaurants[i % restaurants.length].id,
+        customerId: customer.id,
+        restaurantId: restaurant.id,
+        driverId: driver ? driver.id : null,
 
         orderType: "standard_delivery",
         status: "completed",
@@ -45,5 +55,5 @@ export async function seedOrders() {
       },
     });
   }
-   console.log("✅ Orders seeded");
+  console.log("✅ Orders seeded");
 }

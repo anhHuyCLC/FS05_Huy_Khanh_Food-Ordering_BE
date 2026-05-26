@@ -1,6 +1,7 @@
 export * from "./admin/adminFeature.controller";
 export * from "./admin/adminRole.controller";
 export * from "./admin/adminUser.controller";
+export * from "./admin/adminDashboard.controller";
 export * from "./apiV1.controller";
 export * from "./auth.controller";
 export * from "./dev.controller";

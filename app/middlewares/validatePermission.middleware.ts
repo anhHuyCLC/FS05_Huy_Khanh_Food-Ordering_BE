@@ -27,7 +27,12 @@ export class ValidateUserPermissionMiddleware extends ApplicationMiddleware {
       }
     }
 
-    if (!user.permissions?.includes(this.permissionCode)) {
+    const codeUpper = this.permissionCode.toUpperCase();
+    const hasPermission = user.permissions?.some((p) => {
+      const pUpper = p.toUpperCase();
+      return pUpper === codeUpper || pUpper.startsWith(`${codeUpper}:`);
+    });
+    if (!hasPermission) {
       const t = (res.locals?.t as (k: string) => string) || ((k: string) => k);
       if (isApiRequest) {
         return res.status(403).json({
@@ -71,9 +76,13 @@ export class ValidateAnyPermissionMiddleware extends ApplicationMiddleware {
       }
     }
 
-    const hasAny = this.permissionCodes.some((code) =>
-      user.permissions?.includes(code),
-    );
+    const hasAny = this.permissionCodes.some((code) => {
+      const codeUpper = code.toUpperCase();
+      return user.permissions?.some((p) => {
+        const pUpper = p.toUpperCase();
+        return pUpper === codeUpper || pUpper.startsWith(`${codeUpper}:`);
+      });
+    });
 
     if (!hasAny) {
       const t = (res.locals?.t as (k: string) => string) || ((k: string) => k);

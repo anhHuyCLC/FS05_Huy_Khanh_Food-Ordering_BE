@@ -61,7 +61,12 @@ async function seed() {
   await models.chatbotSession.deleteMany({});
   await models.savedAddress.deleteMany({});
 
-  const emails = Array.from({ length: 10 }, (_, i) => `user${i + 1}@gmail.com`);
+  const emails = [
+    ...Array.from({ length: 10 }, (_, i) => `user${i + 1}@gmail.com`),
+    ...Array.from({ length: 3 }, (_, i) => `customer${i + 1}@gmail.com`),
+    ...Array.from({ length: 3 }, (_, i) => `restaurant${i + 1}@gmail.com`),
+    ...Array.from({ length: 4 }, (_, i) => `driver${i + 1}@gmail.com`),
+  ];
   await models.profile.deleteMany({
     where: {
       user: {

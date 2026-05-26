@@ -23,6 +23,13 @@ export class ApiV1AdminUserController extends ApiV1Controller {
         where: { deleted: false },
         include: {
           roles: { include: { role: true } },
+          profile: {
+            include: {
+              _count: {
+                select: { orders: true },
+              },
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
         skip,
@@ -30,7 +37,46 @@ export class ApiV1AdminUserController extends ApiV1Controller {
       }),
       models.user.count({ where: { deleted: false } }),
     ]);
-    const result = buildPaginatedResponse(users, total, { page, perPage });
+
+    const mappedUsers = users.map((user) => {
+      // Map roles
+      const roleCodes = user.roles.map((r) => r.role.code);
+      let role = "Customer";
+      if (roleCodes.includes("ADMIN")) {
+        role = "Admin";
+      } else if (roleCodes.includes("DRIVER")) {
+        role = "Driver";
+      } else if (roleCodes.includes("RESTAURANT")) {
+        role = "Restaurant";
+      } else if (roleCodes.length > 0) {
+        const firstCode = roleCodes[0];
+        role = firstCode.charAt(0) + firstCode.slice(1).toLowerCase();
+      }
+
+      // Map status
+      const status = user.status === "ACTIVE" ? "active" : "suspended";
+
+      // Map name
+      const name = user.profile?.fullName || `${user.lastName} ${user.firstName}`.trim() || user.email;
+
+      // Map orders
+      const orders = user.profile?._count?.orders || 0;
+
+      // Map joined
+      const joined = user.createdAt ? new Date(user.createdAt).toLocaleDateString("vi-VN") : "";
+
+      return {
+        id: user.id,
+        name,
+        email: user.email,
+        role,
+        orders,
+        joined,
+        status,
+      };
+    });
+
+    const result = buildPaginatedResponse(mappedUsers, total, { page, perPage });
     this.renderJson(result);
   }
 

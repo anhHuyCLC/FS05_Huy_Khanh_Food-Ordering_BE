@@ -202,6 +202,9 @@ Table restaurants {
   approvalStatus String [not null, default: 'PENDING']
   rejectionReason String
   commissionRate Decimal [not null, default: 10]
+  cuisineType String
+  openTime String
+  closeTime String
   owner profiles [not null]
   categories categories [not null]
   menuItems menu_items [not null]
@@ -222,6 +225,8 @@ Table driver_profiles {
   approvalStatus String [not null, default: 'PENDING']
   rejectionReason String
   commissionRate Decimal [not null, default: 15]
+  driverLicenseNumber String
+  nationalIdNumber String
   profile profiles [not null]
   orders orders [not null]
   transactions wallet_transactions [not null]
@@ -302,6 +307,7 @@ Table promotions {
   validFrom DateTime [not null]
   validTo DateTime [not null]
   isActive Boolean [default: true]
+  promotionType String [not null, default: 'food']
   restaurant restaurants
   orders orders [not null]
   applicableItems menu_items [not null]
@@ -356,6 +362,9 @@ Table orders {
   customerPhone String
   note String
   groupParticipants Json [default: '[]']
+  assignmentQueue Json [default: '[]']
+  currentDriverId String
+  assignmentExpiresAt DateTime
   deviceIp String
   deviceId String
   isFlagged Boolean [not null, default: false]

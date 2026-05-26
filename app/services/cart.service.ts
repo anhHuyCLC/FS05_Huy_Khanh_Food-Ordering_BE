@@ -1,6 +1,6 @@
 import models from "@models";
 import { randomUUID } from "crypto";
-import { NotFoundError, UnauthorizedError } from "ts-rails";
+import { BadRequestError, NotFoundError, UnauthorizedError } from "ts-rails";
 
 export class CartService {
   /**
@@ -248,58 +248,94 @@ export class CartService {
       note?: string;
     }
   ) {
-    // Lấy cart và kiểm tra quyền
-    const cart = await models.cart.findUnique({
-      where: { id: cartId },
-    });
+    if (data.quantity <= 0) {
+      throw new BadRequestError("Số lượng không hợp lệ");
+    }
+
+    const [cart, menuItem] = await Promise.all([
+      models.cart.findUnique({
+        where: { id: cartId },
+        select: {
+          id: true,
+          ownerId: true,
+          isGroupCart: true,
+          restaurantId: true,
+        },
+      }),
+
+      models.menuItem.findUnique({
+        where: { id: data.menuItemId },
+        select: {
+          id: true,
+          restaurantId: true,
+          isAvailable: true,
+          name: true,
+        },
+      }),
+    ]);
 
     if (!cart) {
       throw new NotFoundError("Giỏ hàng không tìm thấy");
+    }
+
+    if (!menuItem) {
+      throw new NotFoundError("Món ăn không tìm thấy");
     }
 
     if (cart.ownerId !== profileId && !cart.isGroupCart) {
       throw new UnauthorizedError("Bạn không có quyền thêm món vào giỏ hàng này");
     }
 
-    // Kiểm tra menuItem thuộc nhà hàng của cart
-    const menuItem = await models.menuItem.findUnique({
-      where: { id: data.menuItemId },
-      select: { id: true, restaurantId: true, isAvailable: true, name: true },
-    });
-
-    if (!menuItem) {
-      throw new NotFoundError("Món ăn không tìm thấy");
-    }
-
     if (menuItem.restaurantId !== cart.restaurantId) {
-      throw new Error("Món ăn không thuộc nhà hàng của giỏ hàng này");
+      throw new BadRequestError("Món ăn không thuộc nhà hàng của giỏ hàng này");
     }
 
     if (!menuItem.isAvailable) {
-      throw new Error(`Món "${menuItem.name}" hiện không có sẵn`);
+      throw new BadRequestError(`Món "${menuItem.name}" hiện không có sẵn`);
     }
 
-    // Kiểm tra xem đã có item cùng menuItemId và selectedOptions trong cart chưa
-    const targetOptions = JSON.parse(JSON.stringify(data.selectedOptions ?? {}));
-    const existingItems = await models.cartItem.findMany({
-      where: {
-        cartId,
-        menuItemId: data.menuItemId,
-      },
-    });
+    const targetOptions = data.selectedOptions ?? {};
 
-    const duplicateItem = existingItems.find((item) => {
-      const existingOptions = JSON.parse(JSON.stringify(item.selectedOptions ?? {}));
-      return this.isDeepEqual(existingOptions, targetOptions);
-    });
+    return models.$transaction(async (tx) => {
+      // Tìm các items có cùng cartId và menuItemId trong cart
+      const existingItems = await tx.cartItem.findMany({
+        where: {
+          cartId,
+          menuItemId: data.menuItemId,
+        },
+      });
 
-    if (duplicateItem) {
-      // Gộp chung lại và tăng số lượng
-      const updatedItem = await models.cartItem.update({
-        where: { id: duplicateItem.id },
+      // So khớp xem đã có món với selectedOptions y hệt chưa
+      const duplicateItem = existingItems.find((item) => {
+        const existingOptions = (item.selectedOptions as Record<string, any>) || {};
+        return this.isDeepEqual(existingOptions, targetOptions);
+      });
+
+      if (duplicateItem) {
+        // Nếu trùng, gộp số lượng lại
+        return tx.cartItem.update({
+          where: { id: duplicateItem.id },
+          data: {
+            quantity: duplicateItem.quantity + data.quantity,
+            note: data.note !== undefined ? data.note : duplicateItem.note,
+          },
+          include: {
+            menuItem: {
+              select: { id: true, name: true, basePrice: true, imageUrl: true },
+            },
+          },
+        });
+      }
+
+      // Tạo cart item mới
+      return tx.cartItem.create({
         data: {
-          quantity: duplicateItem.quantity + data.quantity,
-          note: data.note !== undefined ? data.note : duplicateItem.note,
+          cartId,
+          menuItemId: data.menuItemId,
+          addedByUserId: profileId,
+          quantity: data.quantity,
+          selectedOptions: targetOptions,
+          note: data.note ?? null,
         },
         include: {
           menuItem: {
@@ -307,27 +343,7 @@ export class CartService {
           },
         },
       });
-      return updatedItem;
-    }
-
-    // Tạo cart item mới
-    const cartItem = await models.cartItem.create({
-      data: {
-        cartId,
-        menuItemId: data.menuItemId,
-        addedByUserId: profileId,
-        quantity: data.quantity,
-        selectedOptions: targetOptions,
-        note: data.note ?? null,
-      },
-      include: {
-        menuItem: {
-          select: { id: true, name: true, basePrice: true, imageUrl: true },
-        },
-      },
     });
-
-    return cartItem;
   }
 
   /**

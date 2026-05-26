@@ -1,10 +1,11 @@
 import models from "@models";
-import { NotFoundError, UnauthorizedError } from "ts-rails";
-import { ApiV1Controller } from "./apiV1.controller";
 import {
   CreateAddressValidator,
   UpdateAddressValidator,
 } from "@validators/address.validator";
+import { NotFoundError, UnauthorizedError } from "ts-rails";
+import { Prisma } from "../../../models/generated/prisma";
+import { ApiV1Controller } from "./apiV1.controller";
 
 export class ApiV1AddressController extends ApiV1Controller {
   /**
@@ -93,8 +94,7 @@ export class ApiV1AddressController extends ApiV1Controller {
 
     const isDefault = data.isDefault ?? false;
 
-    const newAddress = await models.$transaction(async (tx) => {
-      // Nếu địa chỉ mới là mặc định, bỏ mặc định của các địa chỉ cũ
+    const newAddress = await models.$transaction(async (tx: Prisma.TransactionClient) => {
       if (isDefault) {
         await tx.savedAddress.updateMany({
           where: { profileId, isDefault: true },
@@ -151,7 +151,7 @@ export class ApiV1AddressController extends ApiV1Controller {
     if (data.phone !== undefined) updateData.phone = data.phone;
     if (data.isDefault !== undefined) updateData.isDefault = data.isDefault;
 
-    const updatedAddress = await models.$transaction(async (tx) => {
+    const updatedAddress = await models.$transaction(async (tx: Prisma.TransactionClient) => {
       if (updateData.isDefault === true) {
         await tx.savedAddress.updateMany({
           where: { profileId, isDefault: true, id: { not: id } },

@@ -1,12 +1,13 @@
+import { Prisma } from "@db";
 import models from "@models";
 import {
   CancelOrderValidator,
   CreateOrderValidator,
+  CreateReviewValidator,
   UpdateOrderStatusValidator,
 } from "@validators/order.validator";
 import { NotFoundError, UnauthorizedError } from "ts-rails";
 import { ApiV1Controller } from "./apiV1.controller";
-import { Prisma } from "@db";
 
 function getStableCoords(id: string, text: string): { latitude: number; longitude: number } {
   const input = `${id}-${text}`;
@@ -26,9 +27,9 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -105,7 +106,7 @@ export class OrderControllerV1 extends ApiV1Controller {
       models.order.findMany({
         where,
         include: {
-          restaurant: { select: { id: true, name: true, address: true } },
+          restaurant: { select: { id: true, name: true, address: true, latitude: true, longitude: true } },
           orderItems: {
             include: {
               menuItem: {
@@ -151,7 +152,7 @@ export class OrderControllerV1 extends ApiV1Controller {
       where: { id: orderId },
       include: {
         restaurant: {
-          select: { id: true, name: true, address: true, ownerId: true },
+          select: { id: true, name: true, address: true, ownerId: true, latitude: true, longitude: true },
         },
         customer: { select: { id: true, fullName: true, phone: true } },
         driver: {
@@ -243,7 +244,8 @@ export class OrderControllerV1 extends ApiV1Controller {
       },
     });
 
-    if (menuItems.length !== menuItemIds.length) {
+    const uniqueMenuItemIds = Array.from(new Set(menuItemIds));
+    if (menuItems.length !== uniqueMenuItemIds.length) {
       return this.renderJson(
         {
           success: false,
@@ -288,9 +290,34 @@ export class OrderControllerV1 extends ApiV1Controller {
       };
     });
 
-    // Xử lý mã khuyến mãi
+    // Tính phí giao hàng (delivery fee) trước
+    let deliveryFee = 0;
+    const isDineIn = data.orderType === "dine_in";
+    if (!isDineIn) {
+      let restLat = restaurant.latitude ? Number(restaurant.latitude) : null;
+      let restLon = restaurant.longitude ? Number(restaurant.longitude) : null;
+      if (restLat === null || restLon === null) {
+        const rCoords = getStableCoords(restaurant.id, restaurant.address || restaurant.name);
+        restLat = rCoords.latitude;
+        restLon = rCoords.longitude;
+      }
+
+      let delivLat = data.deliveryLatitude ? Number(data.deliveryLatitude) : null;
+      let delivLon = data.deliveryLongitude ? Number(data.deliveryLongitude) : null;
+      if (delivLat === null || delivLon === null) {
+        const dCoords = getStableCoords("delivery", data.deliveryAddress || "Da Nang");
+        delivLat = dCoords.latitude;
+        delivLon = dCoords.longitude;
+      }
+
+      const distance = calculateDistance(restLat, restLon, delivLat, delivLon);
+      deliveryFee = calculateDeliveryFee(distance);
+    }
+
+    // Xử lý mã khuyến mãi sau khi có deliveryFee
     let promotionId: string | null = null;
     let discountAmount = 0;
+    let promotionType = "food";
 
     if (data.promotionCode) {
       const promo = await models.promotion.findFirst({
@@ -325,45 +352,31 @@ export class OrderControllerV1 extends ApiV1Controller {
       }
 
       promotionId = promo.id;
-      if (promo.discountPercentage) {
-        discountAmount = (totalAmount * Number(promo.discountPercentage)) / 100;
-      } else if (promo.fixedDiscount) {
-        discountAmount = Math.min(Number(promo.fixedDiscount), totalAmount);
+      promotionType = promo.promotionType;
+      if (promo.promotionType === "shipping") {
+        if (promo.discountPercentage) {
+          discountAmount = (deliveryFee * Number(promo.discountPercentage)) / 100;
+        } else if (promo.fixedDiscount) {
+          discountAmount = Math.min(Number(promo.fixedDiscount), deliveryFee);
+        }
+      } else {
+        if (promo.discountPercentage) {
+          discountAmount = (totalAmount * Number(promo.discountPercentage)) / 100;
+        } else if (promo.fixedDiscount) {
+          discountAmount = Math.min(Number(promo.fixedDiscount), totalAmount);
+        }
       }
-    }
-
-    // Tính phí giao hàng (delivery fee)
-    let deliveryFee = 0;
-    const isDineIn = data.orderType === "dine_in";
-    if (!isDineIn) {
-      let restLat = restaurant.latitude ? Number(restaurant.latitude) : null;
-      let restLon = restaurant.longitude ? Number(restaurant.longitude) : null;
-      if (restLat === null || restLon === null) {
-        const rCoords = getStableCoords(restaurant.id, restaurant.address || restaurant.name);
-        restLat = rCoords.latitude;
-        restLon = rCoords.longitude;
-      }
-
-      let delivLat = data.deliveryLatitude ? Number(data.deliveryLatitude) : null;
-      let delivLon = data.deliveryLongitude ? Number(data.deliveryLongitude) : null;
-      if (delivLat === null || delivLon === null) {
-        const dCoords = getStableCoords("delivery", data.deliveryAddress || "Da Nang");
-        delivLat = dCoords.latitude;
-        delivLon = dCoords.longitude;
-      }
-
-      const distance = calculateDistance(restLat, restLon, delivLat, delivLon);
-      deliveryFee = calculateDeliveryFee(distance);
     }
 
     const finalAmount = Math.max(0, totalAmount - discountAmount + deliveryFee);
     const rate = restaurant.commissionRate ? Number(restaurant.commissionRate) / 100 : 0.1;
-    const foodTotalAfterDiscount = Math.max(0, totalAmount - discountAmount);
+    const foodDiscount = promotionType === "shipping" ? 0 : discountAmount;
+    const foodTotalAfterDiscount = Math.max(0, totalAmount - foodDiscount);
     const platformFee = foodTotalAfterDiscount * rate;
     const restaurantNet = foodTotalAfterDiscount - platformFee;
 
     // Tạo Order + OrderItems trong một transaction
-    const order = await models.$transaction(async (tx) => {
+    const order = await models.$transaction(async (tx: Prisma.TransactionClient) => {
       const newOrder = await tx.order.create({
         data: {
           customerId: currentProfileId,
@@ -495,6 +508,11 @@ export class OrderControllerV1 extends ApiV1Controller {
         },
       }),
     ]);
+
+    if (newStatus === "accepted") {
+      const { DriverAssignmentService } = require("@services/driverAssignment.service");
+      new DriverAssignmentService().triggerAssignment(orderId).catch(console.error);
+    }
 
     this.renderJson(updatedOrder);
   }
@@ -635,7 +653,7 @@ export class OrderControllerV1 extends ApiV1Controller {
   // ─────────────────────────────────────────────────────────────
   async checkPromotion() {
     const data = this.req.body;
-    const { promotionCode, restaurantId, totalAmount } = data;
+    const { promotionCode, restaurantId, totalAmount, deliveryFee } = data;
 
     if (!promotionCode || !totalAmount) {
       return this.renderJson({ success: false, message: "Thiếu thông tin (promotionCode, totalAmount)" }, 400);
@@ -664,15 +682,185 @@ export class OrderControllerV1 extends ApiV1Controller {
     }
 
     let discountAmount = 0;
-    if (promo.discountPercentage) {
-      discountAmount = (Number(totalAmount) * Number(promo.discountPercentage)) / 100;
-    } else if (promo.fixedDiscount) {
-      discountAmount = Math.min(Number(promo.fixedDiscount), Number(totalAmount));
+    if (promo.promotionType === "shipping") {
+      const fee = Number(deliveryFee ?? 0);
+      if (promo.discountPercentage) {
+        discountAmount = (fee * Number(promo.discountPercentage)) / 100;
+      } else if (promo.fixedDiscount) {
+        discountAmount = Math.min(Number(promo.fixedDiscount), fee);
+      }
+    } else {
+      if (promo.discountPercentage) {
+        discountAmount = (Number(totalAmount) * Number(promo.discountPercentage)) / 100;
+      } else if (promo.fixedDiscount) {
+        discountAmount = Math.min(Number(promo.fixedDiscount), Number(totalAmount));
+      }
     }
 
     return this.renderJson({
       discountAmount: Math.round(discountAmount),
-      promotionCode: promo.code
+      promotionCode: promo.code,
+      promotionType: promo.promotionType
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // GET /promotions
+  // Lấy danh sách mã giảm giá hoạt động
+  // ─────────────────────────────────────────────────────────────
+  async getPromotions() {
+    const { restaurantId } = this.req.query as Record<string, string>;
+
+    const promotions = await models.promotion.findMany({
+      where: {
+        isActive: true,
+        validFrom: { lte: new Date() },
+        validTo: { gte: new Date() },
+        OR: [
+          restaurantId ? { restaurantId } : null,
+          { restaurantId: null }
+        ].filter(Boolean) as any,
+      },
+    });
+
+    this.renderJson(promotions);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // POST /orders/:orderId/review
+  // Khách hàng đánh giá nhà hàng & tài xế sau khi đơn hoàn thành
+  // ─────────────────────────────────────────────────────────────
+  async createReview() {
+    const { orderId } = this.req.params;
+    const currentProfileId = await this.getProfileId();
+
+    const data = await this.params(CreateReviewValidator).permit(
+      "restaurantRating",
+      "restaurantComment",
+      "driverRating",
+      "driverComment"
+    );
+
+    const order = await models.order.findUnique({
+      where: { id: orderId },
+      include: {
+        restaurant: true,
+        driver: true,
+      },
+    });
+
+    if (!order) throw new NotFoundError("Đơn hàng không tìm thấy");
+
+    if (order.customerId !== currentProfileId) {
+      throw new UnauthorizedError("Bạn không có quyền đánh giá đơn hàng này");
+    }
+
+    if (order.status !== "completed") {
+      return this.renderJson(
+        {
+          success: false,
+          message: "Chỉ có thể đánh giá khi đơn hàng đã hoàn thành",
+        },
+        400
+      );
+    }
+
+    const existingRestaurantReview = await models.restaurantReview.findFirst({
+      where: {
+        orderId: order.id,
+        reviewerId: currentProfileId,
+      },
+    });
+
+    if (existingRestaurantReview) {
+      return this.renderJson(
+        {
+          success: false,
+          message: "Bạn đã đánh giá đơn hàng này rồi",
+        },
+        400
+      );
+    }
+
+    const result = await models.$transaction(async (tx: Prisma.TransactionClient) => {
+      let restaurantReview = null;
+      let driverReview = null;
+
+      if (data.restaurantRating) {
+        restaurantReview = await tx.restaurantReview.create({
+          data: {
+            orderId: order.id,
+            reviewerId: currentProfileId,
+            restaurantId: order.restaurantId,
+            rating: data.restaurantRating,
+            comment: data.restaurantComment || null,
+          },
+        });
+
+        const allRestReviews = await tx.restaurantReview.findMany({
+          where: { restaurantId: order.restaurantId },
+          select: { rating: true },
+        });
+        const ratingsSum = allRestReviews.reduce((sum, r) => sum + r.rating, 0) + data.restaurantRating;
+        const ratingsCount = allRestReviews.length + 1;
+        const newRating = parseFloat((ratingsSum / ratingsCount).toFixed(2));
+
+        await tx.restaurant.update({
+          where: { id: order.restaurantId },
+          data: { rating: new Prisma.Decimal(newRating) },
+        });
+      }
+
+      if (order.driverId && data.driverRating) {
+        const existingDriverReview = await tx.driverReview.findUnique({
+          where: {
+            reviewerId_driverId: {
+              reviewerId: currentProfileId,
+              driverId: order.driverId,
+            },
+          },
+        });
+
+        if (existingDriverReview) {
+          driverReview = await tx.driverReview.update({
+            where: { id: existingDriverReview.id },
+            data: {
+              rating: data.driverRating,
+              comment: data.driverComment || null,
+            },
+          });
+        } else {
+          driverReview = await tx.driverReview.create({
+            data: {
+              reviewerId: currentProfileId,
+              driverId: order.driverId,
+              rating: data.driverRating,
+              comment: data.driverComment || null,
+            },
+          });
+        }
+
+        const allDriverReviews = await tx.driverReview.findMany({
+          where: { driverId: order.driverId },
+          select: { rating: true },
+        });
+        const ratingsSum = allDriverReviews.reduce((sum, r) => sum + r.rating, 0) + data.driverRating;
+        const ratingsCount = allDriverReviews.length + 1;
+        const newRating = parseFloat((ratingsSum / ratingsCount).toFixed(2));
+
+        await tx.driverProfile.update({
+          where: { id: order.driverId },
+          data: { rating: new Prisma.Decimal(newRating) },
+        });
+      }
+
+      return { restaurantReview, driverReview };
+    });
+
+    this.renderJson({
+      success: true,
+      message: "Đánh giá thành công",
+      data: result,
     });
   }
 }

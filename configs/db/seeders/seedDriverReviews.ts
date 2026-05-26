@@ -1,18 +1,29 @@
-import models from "@models";
 
+import models from "@models";
 export async function seedDriverReviews() {
   console.log("🌱 Seeding driver reviews...");
 
-  const profiles = await models.profile.findMany();
+  const customerProfiles = await models.profile.findMany({
+    where: {
+      user: {
+        roles: {
+          some: {
+            role: { code: "CUSTOMER" }
+          }
+        }
+      }
+    }
+  });
+
   const drivers = await models.driverProfile.findMany();
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < customerProfiles.length; i++) {
     await models.driverReview.create({
       data: {
-        reviewerId: profiles[i % profiles.length].id,
+        reviewerId: customerProfiles[i].id,
         driverId: drivers[i % drivers.length].id,
         rating: 5,
-        comment: `Driver review ${i}`,
+        comment: `Driver review ${i + 1}`,
       },
     });
   }
