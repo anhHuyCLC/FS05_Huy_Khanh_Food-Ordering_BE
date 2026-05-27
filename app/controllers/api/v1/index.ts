@@ -12,5 +12,7 @@ export * from "./restaurant.controller";
 export * from "./chat.controller";
 export * from "./order.controller";
 export * from "./cart.controller";
+export * from "./socialPost.controller";
+export * from "./upload.controller";
 
 

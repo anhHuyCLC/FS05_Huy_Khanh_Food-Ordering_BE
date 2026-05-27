@@ -8,6 +8,7 @@ import {
 } from "@validators/order.validator";
 import { NotFoundError, UnauthorizedError } from "ts-rails";
 import { ApiV1Controller } from "./apiV1.controller";
+import dayjs from "dayjs";
 
 function getStableCoords(id: string, text: string): { latitude: number; longitude: number } {
   const input = `${id}-${text}`;
@@ -215,7 +216,9 @@ export class OrderControllerV1 extends ApiV1Controller {
       "promotionCode",
       "note",
       "tableNumber",
-      "reservationTime"
+      "reservationTime",
+      "paymentMethod",
+      "paymentProvider"
     );
 
     if (!data.items || data.items.length === 0) {
@@ -375,6 +378,31 @@ export class OrderControllerV1 extends ApiV1Controller {
     const platformFee = foodTotalAfterDiscount * rate;
     const restaurantNet = foodTotalAfterDiscount - platformFee;
 
+    // Determine payment details
+    const methodInput = (data.paymentMethod as any) || "cash";
+    const providerInput = (data.paymentProvider as any) || null;
+
+    let paymentCode: string | null = null;
+    let paymentUrl: string | null = null;
+
+    if (methodInput !== "cash" && providerInput === "vnpay") {
+      paymentCode = `${dayjs().format("YYMMDD")}${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+      const { VNPayService } = require("@services/vnpay.service");
+      const vnpayService = new VNPayService();
+
+      let clientIp = this.req.ip || this.req.socket.remoteAddress || "127.0.0.1";
+      if (clientIp === "::1" || clientIp === "::ffff:127.0.0.1") {
+        clientIp = "127.0.0.1";
+      }
+
+      paymentUrl = vnpayService.createPaymentUrl(
+        clientIp,
+        paymentCode,
+        finalAmount
+      );
+    }
+
     // Tạo Order + OrderItems trong một transaction
     const order = await models.$transaction(async (tx: Prisma.TransactionClient) => {
       const newOrder = await tx.order.create({
@@ -405,6 +433,16 @@ export class OrderControllerV1 extends ApiV1Controller {
               unitPrice: new Prisma.Decimal(oi.unitPrice),
             })),
           },
+          payment: {
+            create: [{
+              method: methodInput,
+              provider: providerInput,
+              status: "pending",
+              amount: finalAmount,
+              paymentCode: paymentCode,
+              paymentUrl: paymentUrl,
+            }]
+          }
         },
         include: {
           orderItems: {
@@ -414,6 +452,7 @@ export class OrderControllerV1 extends ApiV1Controller {
           },
           restaurant: { select: { id: true, name: true } },
           promotion: { select: { code: true } },
+          payment: true,
         },
       });
 
@@ -432,6 +471,7 @@ export class OrderControllerV1 extends ApiV1Controller {
     const createdOrderWithFee = {
       ...order,
       deliveryFee: Math.round(deliveryFee),
+      paymentUrl: order.payment?.[0]?.paymentUrl || null,
     };
 
     this.renderJson(createdOrderWithFee, 201);

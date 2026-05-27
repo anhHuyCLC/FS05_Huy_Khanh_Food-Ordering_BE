@@ -11,6 +11,10 @@ export const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
   "image/jpg",
   "image/png",
+  "video/mp4",
+  "video/quicktime",
+  "video/webm",
+  "video/x-matroska",
 ] as const;
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -46,13 +50,19 @@ export class DiskStorageAdapter implements StorageAdapter {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    const fileName = `${Date.now()}_${path.basename(file.originalname, path.extname(file.originalname))}.jpg`;
+    const isVideo = file.mimetype.startsWith("video/");
+    const ext = isVideo ? path.extname(file.originalname) || ".mp4" : ".jpg";
+    const fileName = `${Date.now()}_${path.basename(file.originalname, path.extname(file.originalname))}${ext}`;
     const filePath = path.join(uploadDir, fileName);
 
-    await sharp(file.buffer)
-      .resize({ width: 1024, withoutEnlargement: true })
-      .jpeg({ quality: 80 })
-      .toFile(filePath);
+    if (isVideo) {
+      fs.writeFileSync(filePath, file.buffer);
+    } else {
+      await sharp(file.buffer)
+        .resize({ width: 1024, withoutEnlargement: true })
+        .jpeg({ quality: 80 })
+        .toFile(filePath);
+    }
 
     return `/uploads/${fileName}`;
   }
