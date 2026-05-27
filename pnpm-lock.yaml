@@ -152,6 +152,9 @@ importers:
       ts-rails:
         specifier: ^1.0.10
         version: 1.0.10(class-transformer@0.5.1)(class-validator@0.15.1)(cookie-parser@1.4.7)(dayjs@1.11.20)(express@4.22.1)(http-errors@2.0.1)(method-override@3.0.0)(nodemailer@6.10.1)(pluralize@8.0.0)(reflect-metadata@0.2.2)(socket.io@4.8.3)(swagger-ui-express@5.0.1(express@4.22.1))
+      vnpay:
+        specifier: ^2.5.0
+        version: 2.5.0
       vue:
         specifier: ^3.5.32
         version: 3.5.32(typescript@5.9.3)
@@ -5173,6 +5176,9 @@ packages:
         optional: true
       yaml:
         optional: true
+
+  vnpay@2.5.0:
+    resolution: {integrity: sha512-kyUYxG0pyEnRu/ha0gSVqkPCajmql523W2PQzgCkH4ct4XdEuzdiQnssi/k9XMcv+TvoPzuweEJG+4hWNU2DAQ==}
 
   void-elements@3.1.0:
     resolution: {integrity: sha512-Dhxzh5HZuiHQhbvTW9AMetFfBHDMYpo23Uo9btPXgdYP+3T5S+p+jgNy7spra+veYhBP2dCSgxR/i2Y02h5/6w==}
@@ -11168,6 +11174,10 @@ snapshots:
       fsevents: 2.3.3
       jiti: 2.6.1
       tsx: 4.21.0
+
+  vnpay@2.5.0:
+    dependencies:
+      dayjs: 1.11.20
 
   void-elements@3.1.0: {}
 

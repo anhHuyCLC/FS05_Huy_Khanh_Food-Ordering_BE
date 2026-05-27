@@ -53,6 +53,7 @@ async function seed() {
   await models.category.deleteMany({});
   await models.restaurant.deleteMany({});
   await models.postInteraction.deleteMany({});
+  await models.postComment.deleteMany({});
   await models.socialPost.deleteMany({});
   await models.message.deleteMany({});
   await models.conversationParticipant.deleteMany({});
@@ -67,6 +68,27 @@ async function seed() {
     ...Array.from({ length: 3 }, (_, i) => `restaurant${i + 1}@gmail.com`),
     ...Array.from({ length: 4 }, (_, i) => `driver${i + 1}@gmail.com`),
   ];
+  await models.userToRole.deleteMany({
+    where: {
+      user: {
+        email: { in: emails }
+      }
+    }
+  });
+  await models.userToPermission.deleteMany({
+    where: {
+      user: {
+        email: { in: emails }
+      }
+    }
+  });
+  await models.password.deleteMany({
+    where: {
+      user: {
+        email: { in: emails }
+      }
+    }
+  });
   await models.profile.deleteMany({
     where: {
       user: {

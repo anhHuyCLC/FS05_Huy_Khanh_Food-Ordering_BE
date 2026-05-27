@@ -1,7 +1,7 @@
 import * as channels from "@channels";
 import { ApplicationController } from "@controllers/application.controller";
 import { setupBullMQWorker } from "@lib/jobs/worker";
-import { appPath, vendorPath } from "@lib/utils/path";
+import { appPath, vendorPath, rootPath } from "@lib/utils/path";
 import cors from "cors";
 import express from "express";
 import flash from "express-flash";
@@ -121,6 +121,9 @@ export class Application extends RailsApplication {
     vendors.forEach((v) => {
       this.app.use(v.path, express.static(v.dir));
     });
+
+    // 3. Uploaded Files
+    this.app.use("/uploads", express.static(rootPath("public", "uploads")));
   }
 
   protected mountRoutes() {
