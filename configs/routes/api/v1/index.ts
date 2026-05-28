@@ -12,7 +12,7 @@ import { OrderRouteV1 } from "./order.route";
 import { PaymentRouteV1 } from "./payment.route";
 import { DriverRouteV1 } from "./driver.route";
 import { ProfileRouteV1 } from "./profile.route";
-import { RestaurantRoute } from "./restaurant";
+import { RestaurantRoute } from "./restaurant.route";
 import { MapRouteV1 } from "./map.route";
 import { DriverLocationController } from "@controllers/api/v1/driverLocation.controller";
 import { SocialPostRoute } from "./socialPost.route";

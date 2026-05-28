@@ -13,7 +13,7 @@ export class DriverLocationController extends ApiV1Controller {
 
   /** PATCH /api/v1/driver/location */
   async updateLocation() {
-    const profileId = (this.req as any).user?.profileId as string;
+    const profileId = (this.req as any).driverProfileId as string;
     const { latitude, longitude } = await this.params(UpdateLocationValidator).permit(
       "latitude",
       "longitude"
@@ -42,11 +42,12 @@ export class DriverLocationController extends ApiV1Controller {
     } catch (_) {}
 
     this.renderJson({ success: true, data: result });
+    console.log(result);
   }
 
   /** GET /api/v1/driver/location */
   async getLocation() {
-    const profileId = (this.req as any).user?.profileId as string;
+    const profileId = (this.req as any).driverProfileId as string;
     const result = await this.service.getLocation(profileId);
     this.renderJson({ success: true, data: result });
   }
@@ -66,7 +67,7 @@ export class DriverLocationController extends ApiV1Controller {
 
   /** POST /api/v1/driver/route-optimize */
   async routeOptimize() {
-    const profileId = (this.req as any).user?.profileId as string;
+    const profileId = (this.req as any).driverProfileId as string;
     const { orderIds } = await this.params(RouteOptimizationValidator).permit("orderIds");
     const result = await this.service.optimizeRoute(profileId, orderIds);
     this.renderJson({ success: true, data: result });

@@ -25,7 +25,7 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClientSingleton | undefined;
 };
 
-const models =
+const models: PrismaClient =
   globalForPrisma.prisma ??
   prismaClientSingleton();
 

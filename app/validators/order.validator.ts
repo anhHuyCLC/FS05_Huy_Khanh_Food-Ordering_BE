@@ -83,6 +83,7 @@ export class CreateOrderValidator {
   @IsString({ message: "reservationTime phải là chuỗi" })
   reservationTime?: string;
 
+
   @IsOptional()
   @IsIn(["cash", "e_wallet", "bank_transfer"], { message: "paymentMethod không hợp lệ" })
   paymentMethod?: "cash" | "e_wallet" | "bank_transfer";
@@ -90,6 +91,7 @@ export class CreateOrderValidator {
   @IsOptional()
   @IsIn(["momo", "vnpay"], { message: "paymentProvider không hợp lệ" })
   paymentProvider?: "momo" | "vnpay";
+
 }
 
 // -------------------- Update Order Status (restaurant/driver) --------------------

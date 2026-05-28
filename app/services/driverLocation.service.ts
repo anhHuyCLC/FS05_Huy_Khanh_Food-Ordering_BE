@@ -29,34 +29,14 @@ export class DriverLocationService {
   /**
    * 5.1 Cập nhật vị trí tài xế real-time
    */
-  async updateLocation(
-    profileId: string,
-    latitude: number,
-    longitude: number
-  ) {
-    const existing = await models.driverLocation.findUnique({
-      where: { driverId: profileId },
-    });
-
-    let location;
-
-    if (existing) {
-      location = await models.driverLocation.update({
-        where: { driverId: profileId },
-        data: { latitude, longitude },
-      });
-    } else {
-      location = await models.driverLocation.create({
-        data: {
-          driverId: profileId,
-          latitude,
-          longitude,
-        },
-      });
-    }
-
-    return location;
-  }
+  async updateLocation(profileId: string, latitude: number, longitude: number) {
+  const location = await models.driverLocation.upsert({
+    where:  { driverId: profileId },
+    update: { latitude, longitude },
+    create: { driverId: profileId, latitude, longitude },
+  });
+  return location;
+}
 
   /**
    * 5.1 Lấy vị trí hiện tại của tài xế
@@ -73,9 +53,7 @@ export class DriverLocationService {
       },
     });
 
-    if (!location) {
-      throw new NotFoundError("Không tìm thấy vị trí tài xế");
-    }
+    if (!location) return null;
 
     return location;
   }
@@ -113,21 +91,40 @@ export class DriverLocationService {
       },
     }));
 
-    const heatmap = pendingOrders
-      .filter(
-        (o) =>
-          o.restaurant.latitude != null &&
-          o.restaurant.longitude != null
-      )
-      .map((o) => ({
-        latitude: o.restaurant.latitude!,
-        longitude: o.restaurant.longitude!,
-        name: o.restaurant.name,
-        address: o.restaurant.address,
-        weight: 1,
-      }));
+    // Gộp các nhà hàng trùng tọa độ, đếm số đơn
+const grouped: Record<string, {
+  latitude: number; longitude: number;
+  name: string; address: string; count: number;
+}> = {};
 
-    return heatmap;
+for (const o of pendingOrders) {
+  const r = o.restaurant;
+  if (r.latitude == null || r.longitude == null) continue;
+  const key = `${r.latitude}_${r.longitude}`;
+  if (grouped[key]) {
+    grouped[key].count += 1;
+  } else {
+    grouped[key] = {
+      latitude:  Number(r.latitude),
+      longitude: Number(r.longitude),
+      name:      r.name,
+      address:   r.address,
+      count:     1,
+    };
+  }
+}
+
+// Tính weight = count / maxCount (0.0 – 1.0)
+const maxCount = Math.max(...Object.values(grouped).map((g) => g.count), 1);
+
+return Object.values(grouped).map((g) => ({
+  latitude:   g.latitude,
+  longitude:  g.longitude,
+  name:       g.name,
+  address:    g.address,
+  weight:     parseFloat((g.count / maxCount).toFixed(2)),
+  orderCount: g.count,
+}));
   }
 
   /**

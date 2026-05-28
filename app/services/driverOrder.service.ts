@@ -1,6 +1,22 @@
 import models from "@models";
 import { BadRequestError, ForbiddenError, NotFoundError } from "ts-rails";
 
+function calculateDistance(
+  lat1: number, lon1: number,
+  lat2: number, lon2: number
+): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 export class DriverOrderService {
   /**
    * 5.1 Danh sách đơn đang chờ tài xế nhận (các đơn status = "ready" chưa có driverId)
@@ -8,9 +24,9 @@ export class DriverOrderService {
   async getAvailableOrders(profileId: string) {
     const driver = await models.driverProfile.findUnique({ where: { id: profileId } });
     if (!driver) throw new NotFoundError("Hồ sơ tài xế không tìm thấy");
-    if (driver.currentStatus !== "online") {
-      throw new ForbiddenError("Bạn phải ở trạng thái online để xem đơn chờ nhận");
-    }
+    // if (driver.currentStatus !== "online") {
+    //   throw new ForbiddenError("Bạn phải ở trạng thái online để xem đơn chờ nhận");
+    // }
 
     const orders = await models.order.findMany({
       where: {
@@ -35,7 +51,30 @@ export class DriverOrderService {
       orderBy: { createdAt: "asc" },
     });
 
-    return orders;
+   const driverLoc = await models.driverLocation.findUnique({
+      where: { driverId: profileId },
+    });
+
+    // Gắn distance vào từng đơn
+    return orders.map((order) => {
+      let distance: number | null = null;
+
+      if (
+        driverLoc &&
+        order.restaurant.latitude &&
+        order.restaurant.longitude
+      ) {
+        const dist = calculateDistance(
+          Number(driverLoc.latitude),
+          Number(driverLoc.longitude),
+          Number(order.restaurant.latitude),
+          Number(order.restaurant.longitude)
+        );
+        distance = Math.round(dist * 10) / 10; // làm tròn 1 chữ số thập phân
+      }
+
+      return { ...order, distance };
+    });
   }
 
   /**
@@ -93,9 +132,9 @@ export class DriverOrderService {
     }
 
     const driver = await models.driverProfile.findUnique({ where: { id: profileId } });
-    if (!driver || driver.currentStatus !== "online") {
-      throw new ForbiddenError("Bạn phải online để nhận đơn");
-    }
+    // if (!driver || driver.currentStatus !== "online") {
+    //   throw new ForbiddenError("Bạn phải online để nhận đơn");
+    // }
 
     const updated = await models.order.update({
       where: { id: orderId },
@@ -173,41 +212,46 @@ export class DriverOrderService {
     const updateData: any = { status: mapped.orderStatus };
     if (mapped.timestampField) updateData[mapped.timestampField] = new Date();
 
-    const updated = await models.order.update({
-      where: { id: orderId },
-      data: updateData,
-    });
+    const result = await models.$transaction(async (tx) => {
+  const updated = await tx.order.update({
+    where: { id: orderId },
+    data:  updateData,
+  });
 
-    await models.orderStatusHistory.create({
-      data: { orderId, status: mapped.orderStatus },
-    });
+  await tx.orderStatusHistory.create({
+    data: { orderId, status: mapped.orderStatus },
+  });
 
-    // Khi hoàn thành -> tài xế về online
-    if (status === "completed") {
-      await models.driverProfile.update({
-        where: { id: profileId },
-        data: { currentStatus: "online" },
-      });
+  if (status === "completed") {
+    const driver = await tx.driverProfile.findUnique({ where: { id: profileId } });
+     if (driver) {
+          // ✅ Fix: commissionRate là % hệ thống thu — tài xế nhận phần còn lại
+          const commissionRate = Number(driver.commissionRate) / 100; // vd: 0.15
+          const earning =
+            Number(order.finalAmount) * (1 - commissionRate); // tài xế nhận 85%
 
-      // Cộng thu nhập vào ví tài xế
-      const driver = await models.driverProfile.findUnique({ where: { id: profileId } });
-      if (driver) {
-        const earning = Number(order.finalAmount) * (Number(driver.commissionRate) / 100);
-        await models.driverProfile.update({
-          where: { id: profileId },
-          data: { walletBalance: { increment: earning } },
-        });
-        await models.walletTransaction.create({
-          data: {
-            driverId: profileId,
-            amount: earning,
-            transactionType: "earning",
-            description: `Thu nhập từ đơn #${orderId.slice(0, 8)}`,
-          },
-        });
-      }
-    }
+          await tx.driverProfile.update({
+            where: { id: profileId },
+            data: {
+              currentStatus: "online",
+              walletBalance: { increment: earning },
+            },
+          });
 
-    return { message: "Cập nhật trạng thái thành công", order: updated };
+          await tx.walletTransaction.create({
+            data: {
+              driverId: profileId,
+              amount: earning,
+              transactionType: "earning",
+              description: `Thu nhập từ đơn #${orderId.slice(0, 8).toUpperCase()}`,
+            },
+          });
+        }
   }
-}
+
+  return updated;
+});
+
+return { message: "Cập nhật trạng thái thành công", order: result };
+  }
+} 

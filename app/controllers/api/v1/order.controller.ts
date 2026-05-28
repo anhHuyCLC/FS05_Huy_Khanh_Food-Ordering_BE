@@ -10,27 +10,35 @@ import { NotFoundError, UnauthorizedError } from "ts-rails";
 import { ApiV1Controller } from "./apiV1.controller";
 import dayjs from "dayjs";
 
-function getStableCoords(id: string, text: string): { latitude: number; longitude: number } {
+function getStableCoords(
+  id: string,
+  text: string,
+): { latitude: number; longitude: number } {
   const input = `${id}-${text}`;
   let hash = 0;
   for (let i = 0; i < input.length; i++) {
     hash = input.charCodeAt(i) + ((hash << 5) - hash);
   }
-  const lat = 16.054404 + ((hash % 100) / 1000);
-  const lon = 108.202167 + (((hash >> 2) % 100) / 1000);
+  const lat = 16.054404 + (hash % 100) / 1000;
+  const lon = 108.202167 + ((hash >> 2) % 100) / 1000;
   return { latitude: lat, longitude: lon };
 }
 
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
   const R = 6371; // km
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
-    Math.cos((lat2 * Math.PI) / 180) *
-    Math.sin(dLon / 2) *
-    Math.sin(dLon / 2);
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -41,6 +49,44 @@ function calculateDeliveryFee(distance: number): number {
   }
   const additionalKm = Math.ceil(distance - 2);
   return 15000 + additionalKm * 5000;
+}
+
+function isPromotionActive(promotion: any) {
+  const now = new Date();
+  const validFrom = new Date(promotion.validFrom);
+  const validTo = new Date(promotion.validTo);
+
+  return (
+    promotion.isActive &&
+    promotion.promotionType === "food" &&
+    validFrom <= now &&
+    validTo >= now
+  );
+}
+
+function getBestMenuItemPromotionDiscount(
+  unitPrice: number,
+  promotions: any[],
+) {
+  let bestDiscount = 0;
+  for (const promotion of promotions || []) {
+    if (!isPromotionActive(promotion)) continue;
+
+    if (promotion.discountPercentage) {
+      const discount = (Number(promotion.discountPercentage) / 100) * unitPrice;
+      bestDiscount = Math.max(bestDiscount, discount);
+    }
+
+    if (promotion.fixedDiscount) {
+      bestDiscount = Math.max(bestDiscount, Number(promotion.fixedDiscount));
+    }
+  }
+
+  return Math.min(bestDiscount, unitPrice);
+}
+
+function getActiveMenuItemPromotions(promotions: any[]) {
+  return (promotions || []).filter(isPromotionActive);
 }
 
 /**
@@ -107,16 +153,33 @@ export class OrderControllerV1 extends ApiV1Controller {
       models.order.findMany({
         where,
         include: {
-          restaurant: { select: { id: true, name: true, address: true, latitude: true, longitude: true } },
+          restaurant: {
+            select: {
+              id: true,
+              name: true,
+              address: true,
+              latitude: true,
+              longitude: true,
+            },
+          },
           orderItems: {
             include: {
               menuItem: {
-                select: { id: true, name: true, imageUrl: true, basePrice: true },
+                select: {
+                  id: true,
+                  name: true,
+                  imageUrl: true,
+                  basePrice: true,
+                },
               },
             },
           },
           promotion: {
-            select: { code: true, discountPercentage: true, fixedDiscount: true },
+            select: {
+              code: true,
+              discountPercentage: true,
+              fixedDiscount: true,
+            },
           },
           payment: { select: { status: true, method: true, amount: true } },
         },
@@ -128,7 +191,10 @@ export class OrderControllerV1 extends ApiV1Controller {
     ]);
 
     const ordersWithDeliveryFee = orders.map((order: any) => {
-      const deliveryFee = Number(order.finalAmount) - Number(order.totalAmount) + Number(order.discountAmount || 0);
+      const deliveryFee =
+        Number(order.finalAmount) -
+        Number(order.totalAmount) +
+        Number(order.discountAmount || 0);
       return {
         ...order,
         deliveryFee: Math.round(deliveryFee),
@@ -153,7 +219,14 @@ export class OrderControllerV1 extends ApiV1Controller {
       where: { id: orderId },
       include: {
         restaurant: {
-          select: { id: true, name: true, address: true, ownerId: true, latitude: true, longitude: true },
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            ownerId: true,
+            latitude: true,
+            longitude: true,
+          },
         },
         customer: { select: { id: true, fullName: true, phone: true } },
         driver: {
@@ -191,7 +264,10 @@ export class OrderControllerV1 extends ApiV1Controller {
       throw new UnauthorizedError("Bạn không có quyền xem đơn hàng này");
     }
 
-    const deliveryFee = Number(order.finalAmount) - Number(order.totalAmount) + Number(order.discountAmount || 0);
+    const deliveryFee =
+      Number(order.finalAmount) -
+      Number(order.totalAmount) +
+      Number(order.discountAmount || 0);
     this.renderJson({
       ...order,
       deliveryFee: Math.round(deliveryFee),
@@ -217,12 +293,19 @@ export class OrderControllerV1 extends ApiV1Controller {
       "note",
       "tableNumber",
       "reservationTime",
+<<<<<<< HEAD
+      "paymentMethod"
+=======
       "paymentMethod",
       "paymentProvider"
+>>>>>>> 03b72390017ba54344f609513e854f93635b244e
     );
 
     if (!data.items || data.items.length === 0) {
-      return this.renderJson({ success: false, message: "Giỏ hàng trống" }, 400);
+      return this.renderJson(
+        { success: false, message: "Giỏ hàng trống" },
+        400,
+      );
     }
 
     // Kiểm tra nhà hàng tồn tại & đang hoạt động
@@ -233,7 +316,7 @@ export class OrderControllerV1 extends ApiV1Controller {
     if (!restaurant.isActive) {
       return this.renderJson(
         { success: false, message: "Nhà hàng hiện không hoạt động" },
-        400
+        400,
       );
     }
 
@@ -245,6 +328,9 @@ export class OrderControllerV1 extends ApiV1Controller {
         restaurantId: data.restaurantId,
         isAvailable: true,
       },
+      include: {
+        appliedPromotions: true,
+      },
     });
 
     const uniqueMenuItemIds = Array.from(new Set(menuItemIds));
@@ -254,16 +340,20 @@ export class OrderControllerV1 extends ApiV1Controller {
           success: false,
           message: "Một hoặc nhiều món ăn không hợp lệ hoặc không có sẵn",
         },
-        400
+        400,
       );
     }
 
     type MenuItemRow = (typeof menuItems)[number];
-    const menuItemMap = new Map<string, MenuItemRow>(menuItems.map((m: any) => [m.id, m]));
+    const menuItemMap = new Map<string, MenuItemRow>(
+      menuItems.map((m: any) => [m.id, m]),
+    );
 
-
-    // Tính tổng tiền
+    // Tính tổng tiền và áp dụng khuyến mãi Flash Sale cho từng món
     let totalAmount = 0;
+    let itemLevelDiscount = 0;
+    let orderLevelDiscount = 0;
+
     const orderItemsData = (data.items as any[]).map((item: any) => {
       const menuItem = menuItemMap.get(item.menuItemId)!;
       let optionTotal = 0;
@@ -273,21 +363,41 @@ export class OrderControllerV1 extends ApiV1Controller {
           const optionValue = options[key];
           if (Array.isArray(optionValue)) {
             for (const choice of optionValue) {
-              if (choice && typeof choice === "object" && choice.additionalPrice) {
+              if (
+                choice &&
+                typeof choice === "object" &&
+                choice.additionalPrice
+              ) {
                 optionTotal += Number(choice.additionalPrice);
               }
             }
-          } else if (optionValue && typeof optionValue === "object" && optionValue.additionalPrice) {
+          } else if (
+            optionValue &&
+            typeof optionValue === "object" &&
+            optionValue.additionalPrice
+          ) {
             optionTotal += Number(optionValue.additionalPrice);
           }
         }
       }
-      const unitPrice = Number(menuItem.basePrice) + optionTotal;
-      totalAmount += unitPrice * item.quantity;
+
+      const originalUnitPrice = Number(menuItem.basePrice) + optionTotal;
+      const itemPromotionDiscount = getBestMenuItemPromotionDiscount(
+        originalUnitPrice,
+        menuItem.appliedPromotions || [],
+      );
+      const discountedUnitPrice = Math.max(
+        0,
+        originalUnitPrice - itemPromotionDiscount,
+      );
+
+      totalAmount += originalUnitPrice * item.quantity;
+      itemLevelDiscount += itemPromotionDiscount * item.quantity;
+
       return {
         menuItemId: item.menuItemId,
         quantity: item.quantity,
-        unitPrice,
+        unitPrice: discountedUnitPrice,
         selectedOptions: item.selectedOptions ?? {},
         note: item.note ?? null,
       };
@@ -300,15 +410,25 @@ export class OrderControllerV1 extends ApiV1Controller {
       let restLat = restaurant.latitude ? Number(restaurant.latitude) : null;
       let restLon = restaurant.longitude ? Number(restaurant.longitude) : null;
       if (restLat === null || restLon === null) {
-        const rCoords = getStableCoords(restaurant.id, restaurant.address || restaurant.name);
+        const rCoords = getStableCoords(
+          restaurant.id,
+          restaurant.address || restaurant.name,
+        );
         restLat = rCoords.latitude;
         restLon = rCoords.longitude;
       }
 
-      let delivLat = data.deliveryLatitude ? Number(data.deliveryLatitude) : null;
-      let delivLon = data.deliveryLongitude ? Number(data.deliveryLongitude) : null;
+      let delivLat = data.deliveryLatitude
+        ? Number(data.deliveryLatitude)
+        : null;
+      let delivLon = data.deliveryLongitude
+        ? Number(data.deliveryLongitude)
+        : null;
       if (delivLat === null || delivLon === null) {
-        const dCoords = getStableCoords("delivery", data.deliveryAddress || "Da Nang");
+        const dCoords = getStableCoords(
+          "delivery",
+          data.deliveryAddress || "Da Nang",
+        );
         delivLat = dCoords.latitude;
         delivLon = dCoords.longitude;
       }
@@ -319,7 +439,6 @@ export class OrderControllerV1 extends ApiV1Controller {
 
     // Xử lý mã khuyến mãi sau khi có deliveryFee
     let promotionId: string | null = null;
-    let discountAmount = 0;
     let promotionType = "food";
 
     if (data.promotionCode) {
@@ -338,8 +457,11 @@ export class OrderControllerV1 extends ApiV1Controller {
 
       if (!promo) {
         return this.renderJson(
-          { success: false, message: "Mã khuyến mãi không hợp lệ hoặc đã hết hạn" },
-          400
+          {
+            success: false,
+            message: "Mã khuyến mãi không hợp lệ hoặc đã hết hạn",
+          },
+          400,
         );
       }
 
@@ -350,7 +472,7 @@ export class OrderControllerV1 extends ApiV1Controller {
             success: false,
             message: `Đơn hàng tối thiểu ${minOrder.toLocaleString("vi-VN")}đ để dùng mã này`,
           },
-          400
+          400,
         );
       }
 
@@ -358,22 +480,34 @@ export class OrderControllerV1 extends ApiV1Controller {
       promotionType = promo.promotionType;
       if (promo.promotionType === "shipping") {
         if (promo.discountPercentage) {
-          discountAmount = (deliveryFee * Number(promo.discountPercentage)) / 100;
+          orderLevelDiscount =
+            (deliveryFee * Number(promo.discountPercentage)) / 100;
         } else if (promo.fixedDiscount) {
-          discountAmount = Math.min(Number(promo.fixedDiscount), deliveryFee);
+          orderLevelDiscount = Math.min(
+            Number(promo.fixedDiscount),
+            deliveryFee,
+          );
         }
       } else {
         if (promo.discountPercentage) {
-          discountAmount = (totalAmount * Number(promo.discountPercentage)) / 100;
+          orderLevelDiscount =
+            (totalAmount * Number(promo.discountPercentage)) / 100;
         } else if (promo.fixedDiscount) {
-          discountAmount = Math.min(Number(promo.fixedDiscount), totalAmount);
+          orderLevelDiscount = Math.min(
+            Number(promo.fixedDiscount),
+            totalAmount,
+          );
         }
       }
     }
 
+    const discountAmount = itemLevelDiscount + orderLevelDiscount;
     const finalAmount = Math.max(0, totalAmount - discountAmount + deliveryFee);
-    const rate = restaurant.commissionRate ? Number(restaurant.commissionRate) / 100 : 0.1;
-    const foodDiscount = promotionType === "shipping" ? 0 : discountAmount;
+    const rate = restaurant.commissionRate
+      ? Number(restaurant.commissionRate) / 100
+      : 0.1;
+    const foodDiscount =
+      promotionType === "shipping" ? itemLevelDiscount : discountAmount;
     const foodTotalAfterDiscount = Math.max(0, totalAmount - foodDiscount);
     const platformFee = foodTotalAfterDiscount * rate;
     const restaurantNet = foodTotalAfterDiscount - platformFee;
@@ -404,6 +538,53 @@ export class OrderControllerV1 extends ApiV1Controller {
     }
 
     // Tạo Order + OrderItems trong một transaction
+<<<<<<< HEAD
+    const order = await models.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const newOrder = await tx.order.create({
+          data: {
+            customerId: currentProfileId,
+            restaurantId: data.restaurantId,
+            orderType: (data.orderType as any) ?? "standard_delivery",
+            status: "pending",
+            totalAmount,
+            discountAmount,
+            finalAmount,
+            platformFee,
+            restaurantNet,
+            promotionId,
+            deliveryAddress: data.deliveryAddress ?? null,
+            deliveryLatitude: data.deliveryLatitude
+              ? new Prisma.Decimal(data.deliveryLatitude)
+              : null,
+            deliveryLongitude: data.deliveryLongitude
+              ? new Prisma.Decimal(data.deliveryLongitude)
+              : null,
+            customerPhone: data.customerPhone ?? null,
+            note: data.note ?? null,
+            tableNumber: data.tableNumber ?? null,
+            reservationTime: data.reservationTime
+              ? new Date(data.reservationTime as string)
+              : null,
+            deviceIp: (this.req.ip ?? null) as string | null,
+            orderItems: {
+              create: orderItemsData.map((oi) => ({
+                ...oi,
+                unitPrice: new Prisma.Decimal(oi.unitPrice),
+              })),
+            },
+          },
+          include: {
+            orderItems: {
+              include: {
+                menuItem: { select: { id: true, name: true, imageUrl: true } },
+              },
+            },
+            restaurant: { select: { id: true, name: true } },
+            promotion: { select: { code: true } },
+          },
+        });
+=======
     const order = await models.$transaction(async (tx: Prisma.TransactionClient) => {
       const newOrder = await tx.order.create({
         data: {
@@ -455,18 +636,32 @@ export class OrderControllerV1 extends ApiV1Controller {
           payment: true,
         },
       });
+>>>>>>> 03b72390017ba54344f609513e854f93635b244e
 
-      // Ghi lịch sử trạng thái ban đầu
-      await tx.orderStatusHistory.create({
-        data: {
-          orderId: newOrder.id,
-          status: "pending",
-          note: "Đơn hàng vừa được tạo",
-        },
-      });
+        // Ghi lịch sử trạng thái ban đầu
+        await tx.orderStatusHistory.create({
+          data: {
+            orderId: newOrder.id,
+            status: "pending",
+            note: "Đơn hàng vừa được tạo",
+          },
+        });
+        
+         if (data.paymentMethod) {
+        await tx.payment.create({
+          data: {
+            orderId: newOrder.id,
+            method: data.paymentMethod as any,
+            status: data.paymentMethod === "cash" ? "pending" : "pending",
+            amount: new Prisma.Decimal(finalAmount),
+            currency: "VND",
+          },
+        });
+      }
 
-      return newOrder;
-    });
+        return newOrder;
+      },
+    );
 
     const createdOrderWithFee = {
       ...order,
@@ -485,7 +680,10 @@ export class OrderControllerV1 extends ApiV1Controller {
     const { orderId } = this.req.params;
     const currentProfileId = await this.getProfileId();
 
-    const data = await this.params(UpdateOrderStatusValidator).permit("status", "note");
+    const data = await this.params(UpdateOrderStatusValidator).permit(
+      "status",
+      "note",
+    );
     const newStatus = data.status as string;
 
     const order = await models.order.findUnique({
@@ -504,7 +702,7 @@ export class OrderControllerV1 extends ApiV1Controller {
           success: false,
           message: `Không thể chuyển từ "${currentStatus}" sang "${newStatus}"`,
         },
-        400
+        400,
       );
     }
 
@@ -516,10 +714,14 @@ export class OrderControllerV1 extends ApiV1Controller {
     const driverStatuses = ["delivering", "completed"];
 
     if (restaurantStatuses.includes(newStatus) && !isOwner) {
-      throw new UnauthorizedError("Chỉ chủ nhà hàng mới có thể cập nhật trạng thái này");
+      throw new UnauthorizedError(
+        "Chỉ chủ nhà hàng mới có thể cập nhật trạng thái này",
+      );
     }
     if (driverStatuses.includes(newStatus) && !isDriver) {
-      throw new UnauthorizedError("Chỉ tài xế mới có thể cập nhật trạng thái này");
+      throw new UnauthorizedError(
+        "Chỉ tài xế mới có thể cập nhật trạng thái này",
+      );
     }
 
     // Gán timestamp tương ứng theo trạng thái
@@ -549,9 +751,27 @@ export class OrderControllerV1 extends ApiV1Controller {
       }),
     ]);
 
-    if (newStatus === "accepted") {
-      const { DriverAssignmentService } = require("@services/driverAssignment.service");
-      new DriverAssignmentService().triggerAssignment(orderId).catch(console.error);
+    if (newStatus === "ready") {
+      const {
+        DriverAssignmentService,
+      } = require("@services/driverAssignment.service");
+      new DriverAssignmentService()
+        .triggerAssignment(orderId)
+        .catch(console.error);
+    }
+
+    if (newStatus === "cancelled" && order.driverId) {
+      const io = (this.req as any).app?.get("io");
+      if (io) {
+        io.to(`driver:${order.driverId}`).emit("driver:order_cancelled", {
+          orderId,
+          message: "Đơn hàng đã bị huỷ",
+        });
+      }
+      await models.driverProfile.update({
+        where: { id: order.driverId },
+        data: { currentStatus: "online" },
+      });
     }
 
     this.renderJson(updatedOrder);
@@ -580,7 +800,7 @@ export class OrderControllerV1 extends ApiV1Controller {
           success: false,
           message: "Chỉ có thể huỷ khi đơn hàng đang ở trạng thái chờ xác nhận",
         },
-        400
+        400,
       );
     }
 
@@ -615,7 +835,9 @@ export class OrderControllerV1 extends ApiV1Controller {
     });
     if (!restaurant) throw new NotFoundError("Nhà hàng không tìm thấy");
     if (restaurant.ownerId !== currentProfileId) {
-      throw new UnauthorizedError("Bạn không có quyền xem đơn hàng của nhà hàng này");
+      throw new UnauthorizedError(
+        "Bạn không có quyền xem đơn hàng của nhà hàng này",
+      );
     }
 
     const { status, page, limit } = this.req.query as Record<string, string>;
@@ -646,7 +868,10 @@ export class OrderControllerV1 extends ApiV1Controller {
     ]);
 
     const ordersWithDeliveryFee = orders.map((order: any) => {
-      const deliveryFee = Number(order.finalAmount) - Number(order.totalAmount) + Number(order.discountAmount || 0);
+      const deliveryFee =
+        Number(order.finalAmount) -
+        Number(order.totalAmount) +
+        Number(order.discountAmount || 0);
       return {
         ...order,
         deliveryFee: Math.round(deliveryFee),
@@ -696,7 +921,13 @@ export class OrderControllerV1 extends ApiV1Controller {
     const { promotionCode, restaurantId, totalAmount, deliveryFee } = data;
 
     if (!promotionCode || !totalAmount) {
-      return this.renderJson({ success: false, message: "Thiếu thông tin (promotionCode, totalAmount)" }, 400);
+      return this.renderJson(
+        {
+          success: false,
+          message: "Thiếu thông tin (promotionCode, totalAmount)",
+        },
+        400,
+      );
     }
 
     const promo = await models.promotion.findFirst({
@@ -705,20 +936,29 @@ export class OrderControllerV1 extends ApiV1Controller {
         isActive: true,
         validFrom: { lte: new Date() },
         validTo: { gte: new Date() },
-        OR: [
-          { restaurantId: restaurantId || null },
-          { restaurantId: null },
-        ],
+        OR: [{ restaurantId: restaurantId || null }, { restaurantId: null }],
       },
     });
 
     if (!promo) {
-      return this.renderJson({ success: false, message: "Mã khuyến mãi không hợp lệ hoặc đã hết hạn" }, 400);
+      return this.renderJson(
+        {
+          success: false,
+          message: "Mã khuyến mãi không hợp lệ hoặc đã hết hạn",
+        },
+        400,
+      );
     }
 
     const minOrder = Number(promo.minOrderValue ?? 0);
     if (totalAmount < minOrder) {
-      return this.renderJson({ success: false, message: `Đơn hàng tối thiểu ${minOrder.toLocaleString("vi-VN")}đ để dùng mã này` }, 400);
+      return this.renderJson(
+        {
+          success: false,
+          message: `Đơn hàng tối thiểu ${minOrder.toLocaleString("vi-VN")}đ để dùng mã này`,
+        },
+        400,
+      );
     }
 
     let discountAmount = 0;
@@ -731,16 +971,20 @@ export class OrderControllerV1 extends ApiV1Controller {
       }
     } else {
       if (promo.discountPercentage) {
-        discountAmount = (Number(totalAmount) * Number(promo.discountPercentage)) / 100;
+        discountAmount =
+          (Number(totalAmount) * Number(promo.discountPercentage)) / 100;
       } else if (promo.fixedDiscount) {
-        discountAmount = Math.min(Number(promo.fixedDiscount), Number(totalAmount));
+        discountAmount = Math.min(
+          Number(promo.fixedDiscount),
+          Number(totalAmount),
+        );
       }
     }
 
     return this.renderJson({
       discountAmount: Math.round(discountAmount),
       promotionCode: promo.code,
-      promotionType: promo.promotionType
+      promotionType: promo.promotionType,
     });
   }
 
@@ -758,7 +1002,7 @@ export class OrderControllerV1 extends ApiV1Controller {
         validTo: { gte: new Date() },
         OR: [
           restaurantId ? { restaurantId } : null,
-          { restaurantId: null }
+          { restaurantId: null },
         ].filter(Boolean) as any,
       },
     });
@@ -778,7 +1022,7 @@ export class OrderControllerV1 extends ApiV1Controller {
       "restaurantRating",
       "restaurantComment",
       "driverRating",
-      "driverComment"
+      "driverComment",
     );
 
     const order = await models.order.findUnique({
@@ -801,7 +1045,7 @@ export class OrderControllerV1 extends ApiV1Controller {
           success: false,
           message: "Chỉ có thể đánh giá khi đơn hàng đã hoàn thành",
         },
-        400
+        400,
       );
     }
 
@@ -818,84 +1062,90 @@ export class OrderControllerV1 extends ApiV1Controller {
           success: false,
           message: "Bạn đã đánh giá đơn hàng này rồi",
         },
-        400
+        400,
       );
     }
 
-    const result = await models.$transaction(async (tx: Prisma.TransactionClient) => {
-      let restaurantReview = null;
-      let driverReview = null;
+    const result = await models.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        let restaurantReview = null;
+        let driverReview = null;
 
-      if (data.restaurantRating) {
-        restaurantReview = await tx.restaurantReview.create({
-          data: {
-            orderId: order.id,
-            reviewerId: currentProfileId,
-            restaurantId: order.restaurantId,
-            rating: data.restaurantRating,
-            comment: data.restaurantComment || null,
-          },
-        });
-
-        const allRestReviews = await tx.restaurantReview.findMany({
-          where: { restaurantId: order.restaurantId },
-          select: { rating: true },
-        });
-        const ratingsSum = allRestReviews.reduce((sum, r) => sum + r.rating, 0) + data.restaurantRating;
-        const ratingsCount = allRestReviews.length + 1;
-        const newRating = parseFloat((ratingsSum / ratingsCount).toFixed(2));
-
-        await tx.restaurant.update({
-          where: { id: order.restaurantId },
-          data: { rating: new Prisma.Decimal(newRating) },
-        });
-      }
-
-      if (order.driverId && data.driverRating) {
-        const existingDriverReview = await tx.driverReview.findUnique({
-          where: {
-            reviewerId_driverId: {
-              reviewerId: currentProfileId,
-              driverId: order.driverId,
-            },
-          },
-        });
-
-        if (existingDriverReview) {
-          driverReview = await tx.driverReview.update({
-            where: { id: existingDriverReview.id },
+        if (data.restaurantRating) {
+          restaurantReview = await tx.restaurantReview.create({
             data: {
-              rating: data.driverRating,
-              comment: data.driverComment || null,
+              orderId: order.id,
+              reviewerId: currentProfileId,
+              restaurantId: order.restaurantId,
+              rating: data.restaurantRating,
+              comment: data.restaurantComment || null,
             },
           });
-        } else {
-          driverReview = await tx.driverReview.create({
-            data: {
-              reviewerId: currentProfileId,
-              driverId: order.driverId,
-              rating: data.driverRating,
-              comment: data.driverComment || null,
-            },
+
+          const allRestReviews = await tx.restaurantReview.findMany({
+            where: { restaurantId: order.restaurantId },
+            select: { rating: true },
+          });
+          const ratingsSum =
+            allRestReviews.reduce((sum, r) => sum + r.rating, 0) +
+            data.restaurantRating;
+          const ratingsCount = allRestReviews.length + 1;
+          const newRating = parseFloat((ratingsSum / ratingsCount).toFixed(2));
+
+          await tx.restaurant.update({
+            where: { id: order.restaurantId },
+            data: { rating: new Prisma.Decimal(newRating) },
           });
         }
 
-        const allDriverReviews = await tx.driverReview.findMany({
-          where: { driverId: order.driverId },
-          select: { rating: true },
-        });
-        const ratingsSum = allDriverReviews.reduce((sum, r) => sum + r.rating, 0) + data.driverRating;
-        const ratingsCount = allDriverReviews.length + 1;
-        const newRating = parseFloat((ratingsSum / ratingsCount).toFixed(2));
+        if (order.driverId && data.driverRating) {
+          const existingDriverReview = await tx.driverReview.findUnique({
+            where: {
+              reviewerId_driverId: {
+                reviewerId: currentProfileId,
+                driverId: order.driverId,
+              },
+            },
+          });
 
-        await tx.driverProfile.update({
-          where: { id: order.driverId },
-          data: { rating: new Prisma.Decimal(newRating) },
-        });
-      }
+          if (existingDriverReview) {
+            driverReview = await tx.driverReview.update({
+              where: { id: existingDriverReview.id },
+              data: {
+                rating: data.driverRating,
+                comment: data.driverComment || null,
+              },
+            });
+          } else {
+            driverReview = await tx.driverReview.create({
+              data: {
+                reviewerId: currentProfileId,
+                driverId: order.driverId,
+                rating: data.driverRating,
+                comment: data.driverComment || null,
+              },
+            });
+          }
 
-      return { restaurantReview, driverReview };
-    });
+          const allDriverReviews = await tx.driverReview.findMany({
+            where: { driverId: order.driverId },
+            select: { rating: true },
+          });
+          const ratingsSum =
+            allDriverReviews.reduce((sum, r) => sum + r.rating, 0) +
+            data.driverRating;
+          const ratingsCount = allDriverReviews.length + 1;
+          const newRating = parseFloat((ratingsSum / ratingsCount).toFixed(2));
+
+          await tx.driverProfile.update({
+            where: { id: order.driverId },
+            data: { rating: new Prisma.Decimal(newRating) },
+          });
+        }
+
+        return { restaurantReview, driverReview };
+      },
+    );
 
     this.renderJson({
       success: true,

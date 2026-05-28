@@ -222,7 +222,7 @@ export class DriverChannel extends ApplicationChannel {
       if (validator.status === "completed") {
         const driver = await models.driverProfile.findUnique({ where: { id: driverProfileId } });
         if (driver) {
-          const earning = Number(order.finalAmount) * (Number(driver.commissionRate) / 100);
+          const earning = Number(order.finalAmount) * (1 - Number(driver.commissionRate) / 100);
           await models.driverProfile.update({
             where: { id: driverProfileId },
             data: { walletBalance: { increment: earning }, currentStatus: "online" },

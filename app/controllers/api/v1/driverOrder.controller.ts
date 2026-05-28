@@ -14,7 +14,7 @@ export class DriverOrderController extends ApiV1Controller {
 
   /** GET /api/v1/driver/orders/available */
   async available() {
-    const profileId = (this.req as any).user?.profileId as string;
+    const profileId = (this.req as any).driverProfileId as string;
    
     const orders = await this.service.getAvailableOrders(profileId);
     this.renderJson({ success: true, data: orders, count: orders.length });
@@ -22,14 +22,14 @@ export class DriverOrderController extends ApiV1Controller {
 
   /** GET /api/v1/driver/orders/active */
   async active() {
-    const profileId = (this.req as any).user?.profileId as string;
+    const profileId = (this.req as any).driverProfileId as string;
     const orders = await this.service.getMyActiveOrders(profileId);
     this.renderJson({ success: true, data: orders });
   }
 
   /** GET /api/v1/driver/orders/history */
   async history() {
-    const profileId = (this.req as any).user?.profileId as string;
+    const profileId = (this.req as any).driverProfileId as string;
     const skip = parseInt(this.req.query.skip as string) || 0;
     const take = parseInt(this.req.query.take as string) || 20;
     const orders = await this.service.getOrderHistory(profileId, skip, take);
@@ -38,7 +38,7 @@ export class DriverOrderController extends ApiV1Controller {
 
   /** POST /api/v1/driver/orders/:orderId/respond */
   async respond() {
-    const profileId = (this.req as any).user?.profileId as string;
+    const profileId = (this.req as any).driverProfileId as string;
     const orderId = this.req.params.orderId;
     const { action, reason } = await this.params(RespondOrderValidator).permit("action", "reason");
 
@@ -66,7 +66,7 @@ export class DriverOrderController extends ApiV1Controller {
 
   /** PATCH /api/v1/driver/orders/:orderId/delivery-status */
   async updateDeliveryStatus() {
-    const profileId = (this.req as any).user?.profileId as string;
+    const profileId = (this.req as any).driverProfileId as string;
     const orderId = this.req.params.orderId;
     const { status } = await this.params(UpdateOrderDeliveryStatusValidator).permit("status");
 
