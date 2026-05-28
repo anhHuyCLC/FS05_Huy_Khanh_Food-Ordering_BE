@@ -71,9 +71,9 @@ export class ValidateDriverRoleMiddleware extends ApplicationMiddleware {
         error: `Hồ sơ tài xế bị từ chối${profile.driverProfile.rejectionReason ? ": " + profile.driverProfile.rejectionReason : ""}`,
       });
     }
-    console.log("USER =", req.user);
-    console.log("ROLES =", req.user?.roles);
-    console.log("PROFILE =", profile);  
+    // console.log("USER =", req.user);
+    // console.log("ROLES =", req.user?.roles);
+    // console.log("PROFILE =", profile);  
 
     // 5. Gán driverProfileId vào req để controller dùng
     (req as any).driverProfileId = profile.driverProfile.id;

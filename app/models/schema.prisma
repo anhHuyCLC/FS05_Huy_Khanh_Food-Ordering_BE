@@ -285,7 +285,7 @@ model Restaurant {
   categories  Category[]
   menuItems   MenuItem[]
   orders      Order[]            @relation("RestaurantOrders")
-  socialPosts SocialPost[]
+  socialPosts SocialPost[]  
   promotions  Promotion[]
   carts       Cart[]
   reviews     RestaurantReview[]
@@ -639,6 +639,7 @@ model DriverReview {
   id         String @id @default(uuid()) @db.Uuid
   reviewerId String @db.Uuid
   driverId   String @db.Uuid
+  orderId    String? @map("order_id") @db.Uuid
 
   rating    Int
   comment   String?
@@ -647,8 +648,10 @@ model DriverReview {
 
   reviewer Profile       @relation("DriverReviewer", fields: [reviewerId], references: [id])
   driver   DriverProfile @relation(fields: [driverId], references: [id])
+  order    Order?        @relation(fields: [orderId], references: [id]) 
 
   @@unique([reviewerId, driverId])
+  @@index([orderId])
   @@index([driverId])
   @@index([reviewerId])
   @@map("driver_reviews")

@@ -82,6 +82,11 @@ export class CreateOrderValidator {
   @IsOptional()
   @IsString()
   reservationTime?: string;
+   @IsOptional()
+  @IsIn(["cash", "e_wallet", "bank_transfer"], {
+    message: "paymentMethod không hợp lệ (cash | e_wallet | bank_transfer)",
+  })
+  paymentMethod?: string;
 }
 
 // -------------------- Update Order Status (restaurant/driver) --------------------

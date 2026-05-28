@@ -2,6 +2,50 @@ import models from "@models";
 import { NotFoundError, UnauthorizedError } from "ts-rails";
 
 export class MenuItemService {
+  private calculateActivePromotionDiscount(baseAmount: number, promotions: any[] = []) {
+    const now = new Date();
+    let bestDiscount = 0;
+    const activePromotions = promotions.filter((promotion: any) => {
+      const validFrom = new Date(promotion.validFrom);
+      const validTo = new Date(promotion.validTo);
+      return (
+        promotion.isActive &&
+        promotion.promotionType === "food" &&
+        validFrom <= now &&
+        validTo >= now
+      );
+    });
+
+    for (const promotion of activePromotions) {
+      if (promotion.discountPercentage) {
+        const discount =
+          (Number(promotion.discountPercentage) / 100) * baseAmount;
+        bestDiscount = Math.max(bestDiscount, discount);
+      }
+      if (promotion.fixedDiscount) {
+        bestDiscount = Math.max(bestDiscount, Number(promotion.fixedDiscount));
+      }
+    }
+
+    return { bestDiscount, activePromotions };
+  }
+
+  private decorateMenuItem(item: any) {
+    const { bestDiscount, activePromotions } = this.calculateActivePromotionDiscount(
+      Number(item.basePrice),
+      item.appliedPromotions || []
+    );
+
+    return {
+      ...item,
+      effectivePrice: Number(
+        Math.max(0, Number(item.basePrice) - bestDiscount).toFixed(2)
+      ),
+      activePromotions,
+      promotionDiscountAmount: Number(bestDiscount.toFixed(2)),
+    };
+  }
+
   /**
    * Lấy danh sách MenuItem của một nhà hàng
    */
@@ -23,10 +67,10 @@ export class MenuItemService {
       },
       orderBy: { createdAt: "desc" },
       skip: filters?.skip || 0,
-      take: filters?.take || 20,
+      take: filters?.take || 50,
     });
 
-    return items;
+    return items.map((item) => this.decorateMenuItem(item));
   }
 
   /**
@@ -64,7 +108,7 @@ export class MenuItemService {
       throw new NotFoundError("Món ăn không tìm thấy");
     }
 
-    return item;
+    return this.decorateMenuItem(item);
   }
 
   /**
