@@ -8,6 +8,7 @@ import {
 } from "@validators/order.validator";
 import { NotFoundError, UnauthorizedError } from "ts-rails";
 import { ApiV1Controller } from "./apiV1.controller";
+import dayjs from "dayjs";
 
 function getStableCoords(
   id: string,
@@ -292,7 +293,12 @@ export class OrderControllerV1 extends ApiV1Controller {
       "note",
       "tableNumber",
       "reservationTime",
+<<<<<<< HEAD
       "paymentMethod"
+=======
+      "paymentMethod",
+      "paymentProvider"
+>>>>>>> 03b72390017ba54344f609513e854f93635b244e
     );
 
     if (!data.items || data.items.length === 0) {
@@ -506,7 +512,33 @@ export class OrderControllerV1 extends ApiV1Controller {
     const platformFee = foodTotalAfterDiscount * rate;
     const restaurantNet = foodTotalAfterDiscount - platformFee;
 
+    // Determine payment details
+    const methodInput = (data.paymentMethod as any) || "cash";
+    const providerInput = (data.paymentProvider as any) || null;
+
+    let paymentCode: string | null = null;
+    let paymentUrl: string | null = null;
+
+    if (methodInput !== "cash" && providerInput === "vnpay") {
+      paymentCode = `${dayjs().format("YYMMDD")}${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+      const { VNPayService } = require("@services/vnpay.service");
+      const vnpayService = new VNPayService();
+
+      let clientIp = this.req.ip || this.req.socket.remoteAddress || "127.0.0.1";
+      if (clientIp === "::1" || clientIp === "::ffff:127.0.0.1") {
+        clientIp = "127.0.0.1";
+      }
+
+      paymentUrl = vnpayService.createPaymentUrl(
+        clientIp,
+        paymentCode,
+        finalAmount
+      );
+    }
+
     // Tạo Order + OrderItems trong một transaction
+<<<<<<< HEAD
     const order = await models.$transaction(
       async (tx: Prisma.TransactionClient) => {
         const newOrder = await tx.order.create({
@@ -552,6 +584,59 @@ export class OrderControllerV1 extends ApiV1Controller {
             promotion: { select: { code: true } },
           },
         });
+=======
+    const order = await models.$transaction(async (tx: Prisma.TransactionClient) => {
+      const newOrder = await tx.order.create({
+        data: {
+          customerId: currentProfileId,
+          restaurantId: data.restaurantId,
+          orderType: (data.orderType as any) ?? "standard_delivery",
+          status: "pending",
+          totalAmount,
+          discountAmount,
+          finalAmount,
+          platformFee,
+          restaurantNet,
+          promotionId,
+          deliveryAddress: data.deliveryAddress ?? null,
+          deliveryLatitude: data.deliveryLatitude ? new Prisma.Decimal(data.deliveryLatitude) : null,
+          deliveryLongitude: data.deliveryLongitude ? new Prisma.Decimal(data.deliveryLongitude) : null,
+          customerPhone: data.customerPhone ?? null,
+          note: data.note ?? null,
+          tableNumber: data.tableNumber ?? null,
+          reservationTime: data.reservationTime
+            ? new Date(data.reservationTime as string)
+            : null,
+          deviceIp: (this.req.ip ?? null) as string | null,
+          orderItems: {
+            create: orderItemsData.map((oi) => ({
+              ...oi,
+              unitPrice: new Prisma.Decimal(oi.unitPrice),
+            })),
+          },
+          payment: {
+            create: [{
+              method: methodInput,
+              provider: providerInput,
+              status: "pending",
+              amount: finalAmount,
+              paymentCode: paymentCode,
+              paymentUrl: paymentUrl,
+            }]
+          }
+        },
+        include: {
+          orderItems: {
+            include: {
+              menuItem: { select: { id: true, name: true, imageUrl: true } },
+            },
+          },
+          restaurant: { select: { id: true, name: true } },
+          promotion: { select: { code: true } },
+          payment: true,
+        },
+      });
+>>>>>>> 03b72390017ba54344f609513e854f93635b244e
 
         // Ghi lịch sử trạng thái ban đầu
         await tx.orderStatusHistory.create({
@@ -581,6 +666,7 @@ export class OrderControllerV1 extends ApiV1Controller {
     const createdOrderWithFee = {
       ...order,
       deliveryFee: Math.round(deliveryFee),
+      paymentUrl: order.payment?.[0]?.paymentUrl || null,
     };
 
     this.renderJson(createdOrderWithFee, 201);

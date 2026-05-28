@@ -1,5 +1,5 @@
 import env from "@configs/env";
-import { MyPermissionController } from "@controllers/api";
+import { MyPermissionController, UploadControllerV1 } from "@controllers/api";
 import { action, RailsRoute } from "ts-rails";
 import { AddressRouteV1 } from "./address.route";
 import { ApiV1AdminRoute } from "./admin";
@@ -9,11 +9,14 @@ import { ChatRouteV1 } from "./chat.route";
 import { ApiV1DevRoute } from "./dev";
 import { MenuItemRouteV1 } from "./menuItem.route";
 import { OrderRouteV1 } from "./order.route";
+import { PaymentRouteV1 } from "./payment.route";
 import { DriverRouteV1 } from "./driver.route";
 import { ProfileRouteV1 } from "./profile.route";
 import { RestaurantRoute } from "./restaurant.route";
 import { MapRouteV1 } from "./map.route";
 import { DriverLocationController } from "@controllers/api/v1/driverLocation.controller";
+import { SocialPostRoute } from "./socialPost.route";
+import { fileUploader } from "@lib";
 
 export class ApiV1Route extends RailsRoute {
   public draw() {
@@ -32,6 +35,12 @@ export class ApiV1Route extends RailsRoute {
     // Profile routes
     this.path("/profiles", ProfileRouteV1.draw());
 
+    // Social Post routes
+    this.path("/social-posts", SocialPostRoute.draw());
+
+    // File upload route
+    this.post("/upload", [fileUploader.single("file"), action(UploadControllerV1, "upload")]);
+
     // Menu Item routes
     this.path("/", MenuItemRouteV1.draw());
 
@@ -40,6 +49,9 @@ export class ApiV1Route extends RailsRoute {
 
     // Order routes
     this.path("/", OrderRouteV1.draw());
+
+    // Payment routes
+    this.path("/", PaymentRouteV1.draw());
 
     // Cart routes
     this.path("/", CartRouteV1.draw());

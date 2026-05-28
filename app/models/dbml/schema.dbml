@@ -185,6 +185,7 @@ Table profiles {
   missionProgresses user_missions [not null]
   pointHistories point_histories [not null]
   savedAddresses saved_addresses [not null]
+  postComments post_comments [not null]
 }
 
 Table restaurants {
@@ -433,6 +434,7 @@ Table social_posts {
   restaurant restaurants
   interactions post_interactions [not null]
   reports post_reports [not null]
+  comments post_comments [not null]
 }
 
 Table post_interactions {
@@ -676,6 +678,16 @@ Table saved_addresses {
   updatedAt DateTime [default: `now()`, not null]
 }
 
+Table post_comments {
+  id String [pk]
+  postId String [not null]
+  userId String [not null]
+  content String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  post social_posts [not null]
+  user profiles [not null]
+}
+
 Table createdBy {
   rolecreatedId String [ref: > roles.id]
   featurecreatedId String [ref: > features.id]
@@ -862,3 +874,7 @@ Ref: user_missions.missionId > missions.id [delete: Cascade]
 Ref: point_histories.profileId > profiles.id [delete: Cascade]
 
 Ref: saved_addresses.profileId > profiles.id [delete: Cascade]
+
+Ref: post_comments.postId > social_posts.id [delete: Cascade]
+
+Ref: post_comments.userId > profiles.id [delete: Cascade]
