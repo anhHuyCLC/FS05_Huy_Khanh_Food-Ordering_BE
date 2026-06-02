@@ -142,7 +142,7 @@ export class DriverAssignmentService {
       where: { id: orderId },
       data: {
         currentDriverId: firstOffer.id,
-        assignmentExpiresAt: new Date(Date.now() + 30 * 1000), // Offer hết hạn trong 30 giây
+        assignmentExpiresAt: new Date(Date.now() + 300 * 1000), // Offer hết hạn trong 30 giây
         assignmentQueue: remainingQueue as any,
       },
     });
@@ -237,8 +237,11 @@ export class DriverAssignmentService {
     console.log(`[DriverAssignmentService] All rooms:`, Array.from(io.sockets.adapter.rooms.keys() as Iterable<string>).filter((r) => r.startsWith("driver:")));
 
     console.log(`[DriverAssignmentService] Sending driver:new_order to driver:${driverId}`);
+    const assignmentExpiresAt = new Date(Date.now() + 30 * 1000).toISOString();
     io.to(`driver:${driverId}`).emit("driver:new_order", {
+      id: order.id,
       orderId: order.id,
+      status: order.status ?? "ready",
       restaurant: {
         name: order.restaurant.name,
         address: order.restaurant.address,
@@ -246,6 +249,7 @@ export class DriverAssignmentService {
       deliveryAddress: order.deliveryAddress,
       finalAmount: Number(order.finalAmount),
       distance: Math.round(distance * 10) / 10, // Làm tròn 1 chữ số thập phân
+      assignmentExpiresAt,
       expiresIn: 30000, // 30 giây
       orderItems: order.orderItems,
       createdAt: order.createdAt,

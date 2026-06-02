@@ -9,7 +9,7 @@ import {
 } from "@validators/driver.validator";
 import { DriverChannel } from "@channels/driver.channel";
 
-export class DriverOrderController extends ApiV1Controller {
+export class  DriverOrderController extends ApiV1Controller {
   private service = new DriverOrderService();
 
   /** GET /api/v1/driver/orders/available */
@@ -17,14 +17,14 @@ export class DriverOrderController extends ApiV1Controller {
     const profileId = (this.req as any).driverProfileId as string;
    
     const orders = await this.service.getAvailableOrders(profileId);
-    this.renderJson({ success: true, data: orders, count: orders.length });
+    this.renderJson(orders);
   }
 
   /** GET /api/v1/driver/orders/active */
   async active() {
     const profileId = (this.req as any).driverProfileId as string;
     const orders = await this.service.getMyActiveOrders(profileId);
-    this.renderJson({ success: true, data: orders });
+    this.renderJson(orders);
   }
 
   /** GET /api/v1/driver/orders/history */
@@ -33,13 +33,21 @@ export class DriverOrderController extends ApiV1Controller {
     const skip = parseInt(this.req.query.skip as string) || 0;
     const take = parseInt(this.req.query.take as string) || 20;
     const orders = await this.service.getOrderHistory(profileId, skip, take);
-    this.renderJson({ success: true, data: orders });
+    this.renderJson(orders);
   }
 
   /** POST /api/v1/driver/orders/:orderId/respond */
   async respond() {
     const profileId = (this.req as any).driverProfileId as string;
     const orderId = this.req.params.orderId;
+    // DEBUG: log incoming headers/body to help diagnose 400 Bad Request
+    try {
+      // eslint-disable-next-line no-console
+      console.log("[DriverOrderController.respond] headers:", JSON.stringify(this.req.headers));
+      // eslint-disable-next-line no-console
+      console.log("[DriverOrderController.respond] body:", JSON.stringify((this.req as any).body));
+    } catch (_) {}
+
     const { action, reason } = await this.params(RespondOrderValidator).permit("action", "reason");
 
     let result;
@@ -56,15 +64,16 @@ export class DriverOrderController extends ApiV1Controller {
             message: "Tài xế đã nhận đơn của bạn",
           });
           const restaurantId = result?.restaurantId;
-          if (restaurantId) io.to(`restaurant:${restaurantId}`).emit("order:status_changed", { orderId });
-          io.to("admin").emit("order:status_changed", { orderId });
+          if (restaurantId) io.to(`restaurant:${restaurantId}`).emit("order:status_changed", { orderId, status: "accepted" });
+          io.to("admin").emit("order:status_changed", { orderId, status: "accepted" });
+          io.to("drivers:available").emit("driver:order_taken", { orderId });
         }
       } catch (_) {}
     } else {
       result = await this.service.rejectOrder(profileId, orderId, reason);
     }
 
-    this.renderJson({ success: true, data: result });
+    this.renderJson(result);
   }
 
   /** PATCH /api/v1/driver/orders/:orderId/delivery-status */
@@ -90,6 +99,6 @@ export class DriverOrderController extends ApiV1Controller {
       }
     } catch (_) {}
 
-    this.renderJson({ success: true, data: result });
+    this.renderJson(result);
   }
 }

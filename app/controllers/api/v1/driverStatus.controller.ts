@@ -21,6 +21,6 @@ export class DriverStatusController extends ApiV1Controller {
     const profileId = (this.req as any).driverProfileId as string;
     const { status } = await this.params(UpdateDriverStatusValidator).permit("status");
     const result = await this.service.updateStatus(profileId, status!);
-    this.renderJson({ success: true, data: result });
+    this.renderJson(result);
   }
 }

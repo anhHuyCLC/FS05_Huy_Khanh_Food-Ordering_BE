@@ -87,6 +87,10 @@ export class Application extends RailsApplication {
       }),
     );
 
+    // Parse JSON bodies for API endpoints.
+    this.app.use(express.json());
+    this.app.use(express.urlencoded({ extended: true }));
+
     const sessionMiddleware = initializeSession();
 
     // If we want purely stateless API, we could conditionalize this:
