@@ -13,6 +13,8 @@ export interface UserDto {
   profile?: {
     rewardPoints?: number;
     badgeLevel?: string;
+    achievedBadges?: any[];
+    missionProgresses?: any[];
   };
   roles: {
     code: string;
@@ -45,7 +47,9 @@ export const mapUserToDto = (
     status: user.status,
     profile: user.profile ? {
       rewardPoints: user.profile.rewardPoints,
-      badgeLevel: user.profile.badgeLevel
+      badgeLevel: user.profile.badgeLevel,
+      achievedBadges: user.profile.achievedBadges,
+      missionProgresses: user.profile.missionProgresses
     } : undefined,
     roles: user.roles?.map((r: any) => ({
       code: r.role?.code,

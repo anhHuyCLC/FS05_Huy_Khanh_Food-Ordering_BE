@@ -232,6 +232,9 @@ export class OrderControllerV1 extends ApiV1Controller {
         driver: {
           select: {
             id: true,
+            vehicleInfo: true,
+            licensePlate: true,
+            rating: true,
             profile: { select: { fullName: true, phone: true } },
           },
         },
@@ -536,57 +539,62 @@ export class OrderControllerV1 extends ApiV1Controller {
 
     // Tạo Order + OrderItems trong một transaction
 
-    const order = await models.$transaction(async (tx: Prisma.TransactionClient) => {
-      const newOrder = await tx.order.create({
-        data: {
-          customerId: currentProfileId,
-          restaurantId: data.restaurantId,
-          orderType: (data.orderType as any) ?? "standard_delivery",
-          status: "pending",
-          totalAmount,
-          discountAmount,
-          finalAmount,
-          platformFee,
-          restaurantNet,
-          promotionId,
-          deliveryAddress: data.deliveryAddress ?? null,
-          deliveryLatitude: data.deliveryLatitude ? new Prisma.Decimal(data.deliveryLatitude) : null,
-          deliveryLongitude: data.deliveryLongitude ? new Prisma.Decimal(data.deliveryLongitude) : null,
-          customerPhone: data.customerPhone ?? null,
-          note: data.note ?? null,
-          tableNumber: data.tableNumber ?? null,
-          reservationTime: data.reservationTime
-            ? new Date(data.reservationTime as string)
-            : null,
-          deviceIp: (this.req.ip ?? null) as string | null,
-          orderItems: {
-            create: orderItemsData.map((oi) => ({
-              ...oi,
-              unitPrice: new Prisma.Decimal(oi.unitPrice),
-            })),
-          },
-          payment: {
-            create: [{
-              method: methodInput,
-              provider: providerInput,
-              status: "pending",
-              amount: finalAmount,
-              paymentCode: paymentCode,
-              paymentUrl: paymentUrl,
-            }]
-          }
-        },
-        include: {
-          orderItems: {
-            include: {
-              menuItem: { select: { id: true, name: true, imageUrl: true } },
+    const order = await models.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const newOrder = await tx.order.create({
+          data: {
+            customerId: currentProfileId,
+            restaurantId: data.restaurantId,
+            orderType: (data.orderType as any) ?? "standard_delivery",
+            status: "pending",
+            totalAmount,
+            discountAmount,
+            finalAmount,
+            platformFee,
+            restaurantNet,
+            promotionId,
+            deliveryAddress: data.deliveryAddress ?? null,
+            deliveryLatitude: data.deliveryLatitude
+              ? new Prisma.Decimal(data.deliveryLatitude)
+              : null,
+            deliveryLongitude: data.deliveryLongitude
+              ? new Prisma.Decimal(data.deliveryLongitude)
+              : null,
+            customerPhone: data.customerPhone ?? null,
+            note: data.note ?? null,
+            tableNumber: data.tableNumber ?? null,
+            reservationTime: data.reservationTime
+              ? new Date(data.reservationTime as string)
+              : null,
+            deviceIp: (this.req.ip ?? null) as string | null,
+            orderItems: {
+              create: orderItemsData.map((oi) => ({
+                ...oi,
+                unitPrice: new Prisma.Decimal(oi.unitPrice),
+              })),
             },
+            payment: {
+              create: [{
+                method: methodInput,
+                provider: providerInput,
+                status: "pending",
+                amount: finalAmount,
+                paymentCode: paymentCode,
+                paymentUrl: paymentUrl,
+              }]
+            }
           },
-          restaurant: { select: { id: true, name: true } },
-          promotion: { select: { code: true } },
-          payment: true,
-        },
-      });
+          include: {
+            orderItems: {
+              include: {
+                menuItem: { select: { id: true, name: true, imageUrl: true } },
+              },
+            },
+            restaurant: { select: { id: true, name: true } },
+            promotion: { select: { code: true } },
+            payment: true,
+          },
+        });
 
 
         // Ghi lịch sử trạng thái ban đầu
@@ -597,18 +605,6 @@ export class OrderControllerV1 extends ApiV1Controller {
             note: "Đơn hàng vừa được tạo",
           },
         });
-        
-         if (data.paymentMethod) {
-        await tx.payment.create({
-          data: {
-            orderId: newOrder.id,
-            method: data.paymentMethod as any,
-            status: data.paymentMethod === "cash" ? "pending" : "pending",
-            amount: new Prisma.Decimal(finalAmount),
-            currency: "VND",
-          },
-        });
-      }
 
         return newOrder;
       },
@@ -702,7 +698,21 @@ export class OrderControllerV1 extends ApiV1Controller {
       }),
     ]);
 
-    if (newStatus === "ready") {
+    const io = (this.req as any).app?.get("io");
+    if (io) {
+      // Phát sự kiện cập nhật trạng thái đơn hàng realtime cho Customer
+      io.to(`order:${orderId}`).emit("tracking:status", {
+        status: newStatus,
+        timestamp: new Date().toISOString(),
+      });
+      
+      // Phát sự kiện đến restaurant owner và admin (không broadcast toàn bộ)
+      io.to(`restaurant:${order.restaurantId}`).emit("order:status_changed", { orderId, status: newStatus });
+      io.to("admin").emit("order:status_changed", { orderId, status: newStatus });
+    }
+
+    // Khi nhà hàng nhận đơn (accepted), tìm tài xế phù hợp
+    if (newStatus === "accepted") {
       const {
         DriverAssignmentService,
       } = require("@services/driverAssignment.service");
@@ -712,7 +722,6 @@ export class OrderControllerV1 extends ApiV1Controller {
     }
 
     if (newStatus === "cancelled" && order.driverId) {
-      const io = (this.req as any).app?.get("io");
       if (io) {
         io.to(`driver:${order.driverId}`).emit("driver:order_cancelled", {
           orderId,
@@ -723,6 +732,13 @@ export class OrderControllerV1 extends ApiV1Controller {
         where: { id: order.driverId },
         data: { currentStatus: "online" },
       });
+    }
+
+    if (newStatus === "completed") {
+      const { GamificationService } = require("@services/gamification.service");
+      GamificationService.rewardOrderPoints(orderId).catch((err: any) =>
+        console.error("Error rewarding points:", err)
+      );
     }
 
     this.renderJson(updatedOrder);
@@ -1033,15 +1049,11 @@ export class OrderControllerV1 extends ApiV1Controller {
             },
           });
 
-          const allRestReviews = await tx.restaurantReview.findMany({
+          const aggregate = await tx.restaurantReview.aggregate({
             where: { restaurantId: order.restaurantId },
-            select: { rating: true },
+            _avg: { rating: true },
           });
-          const ratingsSum =
-            allRestReviews.reduce((sum, r) => sum + r.rating, 0) +
-            data.restaurantRating;
-          const ratingsCount = allRestReviews.length + 1;
-          const newRating = parseFloat((ratingsSum / ratingsCount).toFixed(2));
+          const newRating = parseFloat((aggregate._avg.rating || 0).toFixed(2));
 
           await tx.restaurant.update({
             where: { id: order.restaurantId },
@@ -1078,15 +1090,11 @@ export class OrderControllerV1 extends ApiV1Controller {
             });
           }
 
-          const allDriverReviews = await tx.driverReview.findMany({
+          const aggregate = await tx.driverReview.aggregate({
             where: { driverId: order.driverId },
-            select: { rating: true },
+            _avg: { rating: true },
           });
-          const ratingsSum =
-            allDriverReviews.reduce((sum, r) => sum + r.rating, 0) +
-            data.driverRating;
-          const ratingsCount = allDriverReviews.length + 1;
-          const newRating = parseFloat((ratingsSum / ratingsCount).toFixed(2));
+          const newRating = parseFloat((aggregate._avg.rating || 0).toFixed(2));
 
           await tx.driverProfile.update({
             where: { id: order.driverId },

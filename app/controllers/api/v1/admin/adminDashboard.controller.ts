@@ -452,4 +452,75 @@ export class ApiV1AdminDashboardController extends ApiV1Controller {
 
     this.renderJson(result);
   }
+
+  // GET /api/v1/admin/reports
+  async reports() {
+    const reports = await models.postReport.findMany({
+      where: { status: "PENDING" },
+      include: {
+        post: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                avatarUrl: true
+              }
+            }
+          }
+        },
+        reporter: {
+          select: {
+            id: true,
+            fullName: true
+          }
+        }
+      },
+      orderBy: { createdAt: "desc" }
+    });
+
+    this.renderJson({
+      success: true,
+      data: reports
+    });
+  }
+
+  // PATCH /api/v1/admin/reports/:id
+  async moderateReport() {
+    const reportId = this.req.params.id;
+    const { status } = this.req.body;
+
+    if (!status || !["RESOLVED", "DISMISSED"].includes(status)) {
+      return this.renderJson({
+        success: false,
+        message: "Trạng thái kiểm duyệt không hợp lệ. Chỉ chấp nhận RESOLVED hoặc DISMISSED."
+      }, 400);
+    }
+
+    const report = await models.postReport.findUnique({
+      where: { id: reportId },
+      include: { post: true }
+    });
+
+    if (!report) {
+      throw new NotFoundError("Báo cáo vi phạm không tìm thấy");
+    }
+
+    const updatedReport = await models.postReport.update({
+      where: { id: reportId },
+      data: { status }
+    });
+
+    if (status === "RESOLVED" && report.post) {
+      await models.socialPost.delete({
+        where: { id: report.postId }
+      });
+    }
+
+    this.renderJson({
+      success: true,
+      message: status === "RESOLVED" ? "Đã duyệt báo cáo và xóa bài viết vi phạm" : "Đã từ chối báo cáo vi phạm",
+      data: updatedReport
+    });
+  }
 }

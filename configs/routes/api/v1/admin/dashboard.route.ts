@@ -75,6 +75,14 @@ export class ApiV1AdminDashboardRoute extends RailsRoute {
     this.get("/payouts", action(ApiV1AdminDashboardController, "payouts"), {
       setPermissionForAny: [Feature.AdministrationManagement],
     });
+
+    this.get("/reports", action(ApiV1AdminDashboardController, "reports"), {
+      setPermissionForAny: [Feature.AdministrationManagement],
+    });
+
+    this.patch("/reports/:id", action(ApiV1AdminDashboardController, "moderateReport"), {
+      setPermissionForAny: [Feature.AdministrationManagement],
+    });
   }
 }
 

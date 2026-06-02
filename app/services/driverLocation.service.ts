@@ -152,7 +152,7 @@ return Object.values(grouped).map((g) => ({
     const whereClause: any = {
       driverId: profileId,
       status: {
-        in: ["accepted", "delivering"],
+        in: ["accepted", "preparing", "ready", "delivering"],
       },
     };
 

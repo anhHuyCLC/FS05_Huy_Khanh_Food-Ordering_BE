@@ -20,7 +20,20 @@ export class AuthLoginService {
           orderBy: { createdAt: Prisma.SortOrder.desc },
           take: 1,
         },
-        profile: true,
+        profile: {
+          include: {
+            achievedBadges: {
+              include: {
+                badge: true,
+              },
+            },
+            missionProgresses: {
+              include: {
+                mission: true,
+              },
+            },
+          },
+        },
         roles: {
           include: {
             role: {

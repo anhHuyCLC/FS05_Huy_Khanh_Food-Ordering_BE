@@ -62,6 +62,16 @@ export class Application extends RailsApplication {
    */
   protected startBackgroundProcessor() {
     // setupBullMQWorker();
+
+    // Kiểm tra và xử lý các offer tài xế hết hạn (30s timeout) mỗi 10 giây
+    setInterval(async () => {
+      try {
+        const { DriverAssignmentService } = require("@services/driverAssignment.service");
+        await new DriverAssignmentService().checkExpiredAssignments();
+      } catch (err) {
+        console.error("[ExpiredAssignmentChecker] Error:", err);
+      }
+    }, 10_000);
   }
 
   protected setupViewEngine() {

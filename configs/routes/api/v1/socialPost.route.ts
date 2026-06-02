@@ -6,6 +6,7 @@ export class SocialPostRoute extends RailsRoute {
     this.get("/", action(SocialPostControllerV1, "index"));
     this.post("/", action(SocialPostControllerV1, "create"));
     this.get("/leaderboard", action(SocialPostControllerV1, "leaderboard"));
+    this.get("/stats", action(SocialPostControllerV1, "getSidebarStats"));
     this.get("/:id", action(SocialPostControllerV1, "show"));
     this.patch("/:id", action(SocialPostControllerV1, "update"));
     this.delete("/:id", action(SocialPostControllerV1, "destroy"));
@@ -13,6 +14,7 @@ export class SocialPostRoute extends RailsRoute {
     this.post("/:id/comments", action(SocialPostControllerV1, "createComment"));
     this.get("/:id/comments", action(SocialPostControllerV1, "indexComments"));
     this.post("/:id/share", action(SocialPostControllerV1, "share"));
+    this.post("/:id/report", action(SocialPostControllerV1, "reportPost"));
     
     // Follow routes
     this.post("/users/:profileId/follow", action(SocialPostControllerV1, "toggleFollow"));

@@ -186,6 +186,7 @@ Table profiles {
   pointHistories point_histories [not null]
   savedAddresses saved_addresses [not null]
   postComments post_comments [not null]
+  favoriteRestaurants favorite_restaurants [not null]
 }
 
 Table restaurants {
@@ -214,6 +215,7 @@ Table restaurants {
   promotions promotions [not null]
   carts carts [not null]
   reviews restaurant_reviews [not null]
+  favoritedBy favorite_restaurants [not null]
 }
 
 Table driver_profiles {
@@ -385,6 +387,7 @@ Table orders {
   orderItems order_items [not null]
   payment payments [not null]
   restaurantReviews restaurant_reviews [not null]
+  driverReviews driver_reviews [not null]
   orderStatusHistories OrderStatusHistory [not null]
   driverReviews driver_reviews [not null]
 }
@@ -691,6 +694,18 @@ Table post_comments {
   user profiles [not null]
 }
 
+Table favorite_restaurants {
+  profileId String [not null]
+  restaurantId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  profile profiles [not null]
+  restaurant restaurants [not null]
+
+  indexes {
+    (profileId, restaurantId) [pk]
+  }
+}
+
 Table createdBy {
   rolecreatedId String [ref: > roles.id]
   featurecreatedId String [ref: > features.id]
@@ -883,3 +898,7 @@ Ref: saved_addresses.profileId > profiles.id [delete: Cascade]
 Ref: post_comments.postId > social_posts.id [delete: Cascade]
 
 Ref: post_comments.userId > profiles.id [delete: Cascade]
+
+Ref: favorite_restaurants.profileId > profiles.id [delete: Cascade]
+
+Ref: favorite_restaurants.restaurantId > restaurants.id [delete: Cascade]
