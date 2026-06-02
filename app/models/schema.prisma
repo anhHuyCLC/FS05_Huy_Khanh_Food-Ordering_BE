@@ -514,6 +514,7 @@ model Order {
   payment              Payment[]
   restaurantReviews    RestaurantReview[]
   orderStatusHistories OrderStatusHistory[]
+  driverReviews         DriverReview[]
 
   @@index([customerId])
   @@index([restaurantId])

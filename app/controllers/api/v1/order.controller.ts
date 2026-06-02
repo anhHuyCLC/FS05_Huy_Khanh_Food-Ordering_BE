@@ -293,7 +293,6 @@ export class OrderControllerV1 extends ApiV1Controller {
       "note",
       "tableNumber",
       "reservationTime",
-
       "paymentMethod",
       "paymentProvider"
 
