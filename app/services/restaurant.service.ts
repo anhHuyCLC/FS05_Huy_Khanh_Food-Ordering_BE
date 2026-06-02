@@ -136,6 +136,38 @@ export class RestaurantService {
     });
   }
 
+  static async activePromotions(restaurantId: string) {
+    const restaurant = await models.restaurant.findUnique({
+      where: { id: restaurantId },
+      select: { id: true },
+    });
+
+    if (!restaurant) {
+      throw new NotFoundError("Nhà hàng không tìm thấy");
+    }
+
+    const now = new Date();
+    return await models.promotion.findMany({
+      where: {
+        restaurantId,
+        isActive: true,
+        validFrom: { lte: now },
+        validTo: { gte: now },
+      },
+      include: {
+        applicableItems: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        validFrom: "desc",
+      },
+    });
+  }
+
   static async createPromotion(
     restaurantId: string,
     profileId: string | undefined,

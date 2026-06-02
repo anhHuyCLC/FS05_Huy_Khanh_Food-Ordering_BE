@@ -27,6 +27,13 @@ export class ApiV1RestaurantController extends ApiV1Controller {
     this.renderJson(result);
   }
 
+  async activePromotions() {
+    const result = await RestaurantService.activePromotions(
+      this.req.params.restaurantId
+    );
+    this.renderJson(result);
+  }
+
   async createPromotion() {
     const result = await RestaurantService.createPromotion(
       this.req.params.restaurantId,

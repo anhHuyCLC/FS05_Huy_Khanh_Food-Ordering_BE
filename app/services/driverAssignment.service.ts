@@ -70,11 +70,33 @@ export class DriverAssignmentService {
 
     console.log(`[DriverAssignmentService] Found ${onlineDrivers.length} online drivers`);
 
+    // DEBUG: Log chi tiết từng tài xế
+    for (const driver of onlineDrivers) {
+      console.log(`[DriverAssignmentService] Driver ${driver.id}: approvalStatus=${driver.approvalStatus}, currentStatus=${driver.currentStatus}, locations count=${driver.locations?.length ?? 0}`);
+      if (driver.locations && driver.locations.length > 0) {
+        const loc = driver.locations[0];
+        console.log(`[DriverAssignmentService]   Location: lat=${loc.latitude}, lng=${loc.longitude}`);
+      }
+    }
+
+    // DEBUG: Cũng log tất cả tài xế online (không lọc approvalStatus) để so sánh
+    const allOnlineDrivers = await models.driverProfile.findMany({
+      where: { currentStatus: "online" },
+      include: { locations: true },
+    });
+    console.log(`[DriverAssignmentService] Total online drivers (any approval): ${allOnlineDrivers.length}`);
+    for (const d of allOnlineDrivers) {
+      console.log(`[DriverAssignmentService]   id=${d.id}, approval=${d.approvalStatus}, status=${d.currentStatus}, hasLocation=${(d.locations?.length ?? 0) > 0}`);
+    }
+
     const driversWithDistance: Array<{ id: string; distance: number }> = [];
 
     for (const driver of onlineDrivers) {
       const location = driver.locations && driver.locations.length > 0 ? driver.locations[0] : null;
-      if (!location) continue;
+      if (!location) {
+        console.log(`[DriverAssignmentService] Driver ${driver.id} skipped: no location`);
+        continue;
+      }
 
       const distance = calculateDistance(
         restLat,
@@ -83,9 +105,13 @@ export class DriverAssignmentService {
         Number(location.longitude)
       );
 
+      console.log(`[DriverAssignmentService] Driver ${driver.id} distance: ${distance.toFixed(2)} km (max 5km)`);
+
       // Bán kính tối đa 5km để giao hàng hiệu quả
       if (distance <= 5.0) {
         driversWithDistance.push({ id: driver.id, distance });
+      } else {
+        console.log(`[DriverAssignmentService] Driver ${driver.id} skipped: too far (${distance.toFixed(2)} km)`);
       }
     }
 
@@ -204,6 +230,11 @@ export class DriverAssignmentService {
       console.warn("[DriverAssignmentService] io instance not found in express app settings");
       return;
     }
+
+    // DEBUG: Kiểm tra room driver có socket nào không
+    const room = io.sockets.adapter.rooms.get(`driver:${driverId}`);
+    console.log(`[DriverAssignmentService] Room driver:${driverId} has ${room?.size ?? 0} connected sockets`);
+    console.log(`[DriverAssignmentService] All rooms:`, Array.from(io.sockets.adapter.rooms.keys() as Iterable<string>).filter((r) => r.startsWith("driver:")));
 
     console.log(`[DriverAssignmentService] Sending driver:new_order to driver:${driverId}`);
     io.to(`driver:${driverId}`).emit("driver:new_order", {
