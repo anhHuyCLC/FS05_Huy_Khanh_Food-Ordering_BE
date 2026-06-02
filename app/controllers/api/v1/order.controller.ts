@@ -298,6 +298,7 @@ export class OrderControllerV1 extends ApiV1Controller {
       "reservationTime",
       "paymentMethod",
       "paymentProvider"
+
     );
 
     if (!data.items || data.items.length === 0) {
@@ -537,6 +538,7 @@ export class OrderControllerV1 extends ApiV1Controller {
     }
 
     // Tạo Order + OrderItems trong một transaction
+
     const order = await models.$transaction(
       async (tx: Prisma.TransactionClient) => {
         const newOrder = await tx.order.create({
@@ -593,6 +595,7 @@ export class OrderControllerV1 extends ApiV1Controller {
             payment: true,
           },
         });
+
 
         // Ghi lịch sử trạng thái ban đầu
         await tx.orderStatusHistory.create({
@@ -703,9 +706,15 @@ export class OrderControllerV1 extends ApiV1Controller {
         timestamp: new Date().toISOString(),
       });
       
-      // Phát sự kiện đến restaurant owner và admin (không broadcast toàn bộ)
+      // Phát sự kiện đến restaurant owner và admin
       io.to(`restaurant:${order.restaurantId}`).emit("order:status_changed", { orderId, status: newStatus });
       io.to("admin").emit("order:status_changed", { orderId, status: newStatus });
+      
+      // Phát sự kiện cập nhật đến tài xế đang online, để UI tài xế tự refresh danh sách
+      io.to("drivers:available").emit("order:status_changed", { orderId, status: newStatus });
+      if (order.driverId) {
+        io.to(`driver:${order.driverId}`).emit("order:status_changed", { orderId, status: newStatus });
+      }
     }
 
     // Khi nhà hàng nhận đơn (accepted), tìm tài xế phù hợp

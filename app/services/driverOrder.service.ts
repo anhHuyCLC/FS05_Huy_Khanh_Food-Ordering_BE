@@ -34,6 +34,12 @@ export class DriverOrderService {
           {
             status: "ready",
             driverId: null,
+            currentDriverId: null,
+          },
+          {
+            status: "ready",
+            driverId: null,
+            assignmentExpiresAt: { lte: new Date() },
           },
           {
             currentDriverId: profileId,
@@ -122,12 +128,40 @@ export class DriverOrderService {
     const order = await models.order.findUnique({ where: { id: orderId } });
     if (!order) throw new NotFoundError("Đơn hàng không tìm thấy");
 
-    const isOfferedToMe = order.currentDriverId === profileId && order.assignmentExpiresAt && order.assignmentExpiresAt > new Date();
+    const isOfferedToMe =
+      order.currentDriverId === profileId &&
+      order.assignmentExpiresAt &&
+      order.assignmentExpiresAt > new Date();
+
+    const isOfferedToAnotherDriver =
+      order.currentDriverId &&
+      order.currentDriverId !== profileId &&
+      order.assignmentExpiresAt &&
+      order.assignmentExpiresAt > new Date();
+
+    console.log("[DriverOrderService.acceptOrder] Validation state:", {
+      orderId,
+      profileId,
+      orderStatus: order.status,
+      orderDriverId: order.driverId,
+      orderCurrentDriverId: order.currentDriverId,
+      orderAssignmentExpiresAt: order.assignmentExpiresAt,
+      isOfferedToMe,
+      isOfferedToAnotherDriver,
+      now: new Date(),
+    });
+
+    if (isOfferedToAnotherDriver) {
+      console.log("[DriverOrderService.acceptOrder] FAIL: Offered to another driver");
+      throw new BadRequestError("Đơn hàng này đang được gán cho tài xế khác");
+    }
 
     if (order.status !== "ready" && !isOfferedToMe) {
+      console.log("[DriverOrderService.acceptOrder] FAIL: Order not ready and not offered to me");
       throw new BadRequestError("Đơn hàng không ở trạng thái sẵn sàng để nhận");
     }
     if (order.driverId) {
+      console.log("[DriverOrderService.acceptOrder] FAIL: Order already has driverId assigned");
       throw new BadRequestError("Đơn hàng đã được tài xế khác nhận");
     }
 
@@ -152,6 +186,8 @@ export class DriverOrderService {
         orderItems: { include: { menuItem: { select: { name: true } } } },
       },
     });
+
+    console.log("[DriverOrderService.acceptOrder] SUCCESS: Order accepted");
 
     // Ghi log OrderStatusHistory
     await models.orderStatusHistory.create({

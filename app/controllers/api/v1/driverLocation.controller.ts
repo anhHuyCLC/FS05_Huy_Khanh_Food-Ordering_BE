@@ -49,7 +49,9 @@ export class DriverLocationController extends ApiV1Controller {
   async getLocation() {
     const profileId = (this.req as any).driverProfileId as string;
     const result = await this.service.getLocation(profileId);
-    this.renderJson(result);
+
+    this.renderJson( result );
+
   }
 
   /** GET /api/v1/driver/location/:driverId — public, dành cho khách theo dõi */
