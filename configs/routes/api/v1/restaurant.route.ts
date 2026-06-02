@@ -28,6 +28,8 @@ export class RestaurantRoute extends RailsRoute {
 
     this.get("/recommendations", action(ApiV1RestaurantController, "getRecommendations"));
 
+    this.get("/:restaurantId/active-promotions", action(ApiV1RestaurantController, "activePromotions"));
+
     // ── Auth required ─────────────────────────────────────────────────────
     this.path(action(AuthMiddleware));
 

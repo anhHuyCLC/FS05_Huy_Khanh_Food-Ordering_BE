@@ -39,7 +39,7 @@ export class DriverLocationController extends ApiV1Controller {
           });
         }
       }
-    } catch (_) {}
+    } catch (_) { }
 
     this.renderJson({ success: true, data: result });
     console.log(result);
@@ -49,7 +49,7 @@ export class DriverLocationController extends ApiV1Controller {
   async getLocation() {
     const profileId = (this.req as any).driverProfileId as string;
     const result = await this.service.getLocation(profileId);
-    this.renderJson({ success: true, data: result });
+    this.renderJson(result);
   }
 
   /** GET /api/v1/driver/location/:driverId — public, dành cho khách theo dõi */
