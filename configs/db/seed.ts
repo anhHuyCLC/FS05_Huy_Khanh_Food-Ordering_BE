@@ -26,6 +26,7 @@ import { seedOptionGroups } from "./seeders/seedOptionGroups";
 import { seedCarts } from "./seeders/seedCarts";
 import { seedMenuItemReviews } from "./seeders/seedMenuItemReviews";
 import { seedOrderItems } from "./seeders/seedOrderItems";
+import { seedFavorites } from "./seeders/seedFavorites";
 
 
 
@@ -61,6 +62,7 @@ async function seed() {
   await models.notification.deleteMany({});
   await models.chatbotSession.deleteMany({});
   await models.savedAddress.deleteMany({});
+  await models.favoriteRestaurant.deleteMany({});
 
   const emails = [
     ...Array.from({ length: 10 }, (_, i) => `user${i + 1}@gmail.com`),
@@ -108,6 +110,7 @@ async function seed() {
   await seedDriverLocations();
 
   await seedRestaurants();
+  await seedFavorites();
 
   await seedCategories();
 

@@ -84,7 +84,7 @@ export class DriverOrderService {
     return models.order.findMany({
       where: {
         driverId: profileId,
-        status: { in: ["accepted", "delivering"] },
+        status: { in: ["accepted", "preparing", "ready", "delivering"] },
       },
       include: {
         restaurant: { select: { name: true, address: true, latitude: true, longitude: true } },
@@ -140,7 +140,7 @@ export class DriverOrderService {
       where: { id: orderId },
       data: {
         driverId: profileId,
-        ...(order.status === "ready" && { status: "accepted" }),
+        // Giữ nguyên status hiện tại (ready) — driver sẽ chuyển sang delivering sau
         acceptedAt: new Date(),
         currentDriverId: null,
         assignmentExpiresAt: null,

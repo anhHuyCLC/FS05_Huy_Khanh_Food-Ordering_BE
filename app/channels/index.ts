@@ -2,3 +2,4 @@
 // vì Application.ts sẽ lặp qua object này để khởi tạo instance.
 export * from "./chat.channel";
 export * from "./driver.channel";
+export * from "./order.channel";

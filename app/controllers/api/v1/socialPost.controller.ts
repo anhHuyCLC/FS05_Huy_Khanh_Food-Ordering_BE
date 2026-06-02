@@ -1,7 +1,8 @@
 import models from "@models";
 import { NotFoundError, UnauthorizedError, BadRequestError } from "ts-rails";
 import { ApiV1Controller } from "./apiV1.controller";
-import { CreatePostValidator, CreateCommentValidator } from "@validators/socialPost.validator";
+import { CreatePostValidator, CreateCommentValidator, CreateReportValidator } from "@validators/socialPost.validator";
+import dayjs from "dayjs";
 
 export class SocialPostControllerV1 extends ApiV1Controller {
   
@@ -61,6 +62,10 @@ export class SocialPostControllerV1 extends ApiV1Controller {
     }
 
     const tab = this.req.query.tab as string || "for_you";
+    const { page, limit } = this.req.query as Record<string, string>;
+    const take = parseInt(limit) || 10;
+    const skip = (parseInt(page) - 1 || 0) * take;
+
     const whereClause: any = {};
     let orderClause: any = { createdAt: "desc" };
 
@@ -78,26 +83,31 @@ export class SocialPostControllerV1 extends ApiV1Controller {
       ];
     }
 
-    const posts = await models.socialPost.findMany({
-      where: whereClause,
-      orderBy: orderClause,
-      include: {
-        user: {
-          select: {
-            id: true,
-            fullName: true,
-            avatarUrl: true,
-            badgeLevel: true,
-          }
-        },
-        restaurant: {
-          select: {
-            id: true,
-            name: true,
+    const [posts, total] = await Promise.all([
+      models.socialPost.findMany({
+        where: whereClause,
+        orderBy: orderClause,
+        skip,
+        take,
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              avatarUrl: true,
+              badgeLevel: true,
+            }
+          },
+          restaurant: {
+            select: {
+              id: true,
+              name: true,
+            }
           }
         }
-      }
-    });
+      }),
+      models.socialPost.count({ where: whereClause }),
+    ]);
 
     // Check likes & follows for current user
     let likedPostIds: Set<string> = new Set();
@@ -151,7 +161,15 @@ export class SocialPostControllerV1 extends ApiV1Controller {
       isOwnPost: profileId ? post.userId === profileId : false,
     }));
 
-    this.renderJson(result);
+    this.renderJson({
+      success: true,
+      data: result,
+      meta: {
+        total,
+        page: parseInt(page) || 1,
+        limit: take,
+      }
+    });
   }
 
   /**
@@ -659,28 +677,65 @@ export class SocialPostControllerV1 extends ApiV1Controller {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    // Query weekly activities
-    const posts = await models.socialPost.findMany({
-      where: { createdAt: { gte: sevenDaysAgo } },
-      select: { userId: true, likesCount: true },
-    });
+    // Query weekly activities using database-level groupBy
+    const [postsGroup, restReviewsGroup, menuItemReviewsGroup] = await Promise.all([
+      models.socialPost.groupBy({
+        by: ["userId"],
+        where: { createdAt: { gte: sevenDaysAgo } },
+        _count: { id: true },
+        _sum: { likesCount: true },
+      }),
+      models.restaurantReview.groupBy({
+        by: ["reviewerId"],
+        where: { createdAt: { gte: sevenDaysAgo } },
+        _count: { id: true },
+      }),
+      models.menuItemReview.groupBy({
+        by: ["reviewerId"],
+        where: { createdAt: { gte: sevenDaysAgo } },
+        _count: { id: true },
+      }),
+    ]);
 
-    const restaurantReviews = await models.restaurantReview.findMany({
-      where: { createdAt: { gte: sevenDaysAgo } },
-      select: { reviewerId: true },
-    });
+    // Gather active candidate user IDs
+    const activeUserIds = Array.from(
+      new Set([
+        ...postsGroup.map((p) => p.userId),
+        ...restReviewsGroup.map((r) => r.reviewerId),
+        ...menuItemReviewsGroup.map((m) => m.reviewerId),
+      ])
+    );
 
-    const menuItemReviews = await models.menuItemReview.findMany({
-      where: { createdAt: { gte: sevenDaysAgo } },
-      select: { reviewerId: true },
-    });
+    let profilesToFetch = activeUserIds;
+    if (profilesToFetch.length === 0) {
+      const topProfiles = await models.profile.findMany({
+        where: {
+          user: {
+            roles: {
+              none: {
+                role: { code: "ADMIN" },
+              },
+            },
+          },
+        },
+        take: 10,
+        select: { id: true },
+      });
+      profilesToFetch = topProfiles.map((p) => p.id);
+    }
 
-    const userFollows = await models.userFollow.findMany({
-      select: { followingId: true },
+    // Query follows only for the candidate profiles
+    const followersGroup = await models.userFollow.groupBy({
+      by: ["followingId"],
+      where: { followingId: { in: profilesToFetch } },
+      _count: { followerId: true },
     });
 
     // Score calculations
-    const stats: Record<string, { posts: number; reviews: number; likes: number; followers: number }> = {};
+    const stats: Record<
+      string,
+      { posts: number; reviews: number; likes: number; followers: number }
+    > = {};
 
     const getOrInitStats = (id: string) => {
       if (!stats[id]) {
@@ -689,47 +744,26 @@ export class SocialPostControllerV1 extends ApiV1Controller {
       return stats[id];
     };
 
-    posts.forEach(p => {
+    postsGroup.forEach((p) => {
       const s = getOrInitStats(p.userId);
-      s.posts += 1;
-      s.likes += p.likesCount || 0;
+      s.posts += p._count.id;
+      s.likes += p._sum.likesCount || 0;
     });
 
-    restaurantReviews.forEach(r => {
+    restReviewsGroup.forEach((r) => {
       const s = getOrInitStats(r.reviewerId);
-      s.reviews += 1;
+      s.reviews += r._count.id;
     });
 
-    menuItemReviews.forEach(ir => {
+    menuItemReviewsGroup.forEach((ir) => {
       const s = getOrInitStats(ir.reviewerId);
-      s.reviews += 1;
+      s.reviews += ir._count.id;
     });
 
-    userFollows.forEach(uf => {
+    followersGroup.forEach((uf) => {
       const s = getOrInitStats(uf.followingId);
-      s.followers += 1;
+      s.followers += uf._count.followerId;
     });
-
-    const profileIds = Object.keys(stats);
-
-    // If no recent activity, fall back to all profiles so leaderboard is not empty
-    let profilesToFetch = profileIds;
-    if (profilesToFetch.length === 0) {
-      const topProfiles = await models.profile.findMany({
-        where: {
-          user: {
-            roles: {
-              none: {
-                role: { code: "ADMIN" }
-              }
-            }
-          }
-        },
-        take: 10,
-        select: { id: true }
-      });
-      profilesToFetch = topProfiles.map(p => p.id);
-    }
 
     const profiles = await models.profile.findMany({
       where: {
@@ -737,10 +771,10 @@ export class SocialPostControllerV1 extends ApiV1Controller {
         user: {
           roles: {
             none: {
-              role: { code: "ADMIN" }
-            }
-          }
-        }
+              role: { code: "ADMIN" },
+            },
+          },
+        },
       },
       select: { id: true, fullName: true, avatarUrl: true },
     });
@@ -779,5 +813,122 @@ export class SocialPostControllerV1 extends ApiV1Controller {
     });
 
     this.renderJson(rankedResult);
+  }
+
+  /**
+   * POST /social-posts/:id/report
+   * Báo cáo bài viết vi phạm
+   */
+  async reportPost() {
+    const postId = this.req.params.id;
+    const profileId = await this.getProfileId();
+
+    const data = await this.params(CreateReportValidator).permit("reason");
+
+    // Kiểm tra bài viết tồn tại
+    const post = await models.socialPost.findUnique({
+      where: { id: postId }
+    });
+
+    if (!post) {
+      throw new NotFoundError("Bài viết không tồn tại");
+    }
+
+    // Tạo báo cáo vi phạm
+    const report = await models.postReport.create({
+      data: {
+        postId,
+        reporterId: profileId,
+        reason: data.reason,
+        status: "PENDING"
+      }
+    });
+
+    this.renderJson({
+      success: true,
+      message: "Đã gửi báo cáo bài viết thành công. Ban quản trị sẽ sớm xem xét.",
+      data: report
+    }, 201);
+  }
+
+  /**
+   * GET /social-posts/stats
+   * Get community stats: trending tags & posting streak
+   */
+  async getSidebarStats() {
+    // 1. Trending tags
+    const posts = await models.socialPost.findMany({
+      select: { content: true },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+
+    const tagCounts: Record<string, number> = {};
+    const hashtagRegex = /#([a-zA-Z0-9_vnVN_À-ỹ]+)/g;
+
+    posts.forEach((p) => {
+      if (!p.content) return;
+      const matches = p.content.match(hashtagRegex);
+      if (matches) {
+        matches.forEach((tag) => {
+          const normalized = tag.trim();
+          tagCounts[normalized] = (tagCounts[normalized] || 0) + 1;
+        });
+      }
+    });
+
+    let trendingTags = Object.entries(tagCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([tag]) => tag)
+      .slice(0, 8);
+
+    // Fallbacks if database has no hashtags seeded yet
+    const fallbackTags = ["#RamenNgon", "#BurgerRepublic", "#BuddhaBowl", "#TiramisuLovers", "#PhoGiaTruyen", "#BunBoHue", "#DessertDreams", "#HealthyEats"];
+    if (trendingTags.length < 8) {
+      const remaining = fallbackTags.filter(t => !trendingTags.includes(t));
+      trendingTags = [...trendingTags, ...remaining].slice(0, 8);
+    }
+
+    // 2. Posting streak
+    let streak = 0;
+    const userId = this.currentUser?.id;
+    if (userId) {
+      const profile = await models.profile.findUnique({
+        where: { userId },
+        select: { id: true },
+      });
+
+      if (profile) {
+        const userPosts = await models.socialPost.findMany({
+          where: { userId: profile.id },
+          select: { createdAt: true },
+          orderBy: { createdAt: "desc" },
+        });
+
+        if (userPosts.length > 0) {
+          const dates = new Set<string>();
+          userPosts.forEach(up => {
+            dates.add(dayjs(up.createdAt).format("YYYY-MM-DD"));
+          });
+
+          let checkDate = dayjs();
+          // If haven't posted today, check starting from yesterday
+          if (!dates.has(checkDate.format("YYYY-MM-DD"))) {
+            checkDate = checkDate.subtract(1, "day");
+          }
+
+          while (dates.has(checkDate.format("YYYY-MM-DD"))) {
+            streak++;
+            checkDate = checkDate.subtract(1, "day");
+          }
+        }
+      }
+    }
+
+    this.renderJson({
+      success: true,
+      trendingTags,
+      postingStreak: streak,
+    });
   }
 }

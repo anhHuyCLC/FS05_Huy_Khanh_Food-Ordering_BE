@@ -55,6 +55,9 @@ export class DriverOrderController extends ApiV1Controller {
             driverId: profileId,
             message: "Tài xế đã nhận đơn của bạn",
           });
+          const restaurantId = result?.restaurantId;
+          if (restaurantId) io.to(`restaurant:${restaurantId}`).emit("order:status_changed", { orderId });
+          io.to("admin").emit("order:status_changed", { orderId });
         }
       } catch (_) {}
     } else {
@@ -81,6 +84,9 @@ export class DriverOrderController extends ApiV1Controller {
           status,
           timestamp: new Date().toISOString(),
         });
+        const restaurantId = result?.order?.restaurantId;
+        if (restaurantId) io.to(`restaurant:${restaurantId}`).emit("order:status_changed", { orderId, status });
+        io.to("admin").emit("order:status_changed", { orderId, status });
       }
     } catch (_) {}
 

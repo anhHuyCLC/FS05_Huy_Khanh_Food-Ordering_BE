@@ -34,11 +34,7 @@ export class MenuItemControllerV1 extends ApiV1Controller {
 
     const items = await this.menuItemService.getMenuItems(restaurantId, filters);
 
-    this.renderJson({
-      success: true,
-      data: items,
-      count: items.length,
-    });
+    this.renderJson(items);
   }
 
 
@@ -47,10 +43,7 @@ export class MenuItemControllerV1 extends ApiV1Controller {
 
     const item = await this.menuItemService.getMenuItem(menuItemId);
 
-    this.renderJson({
-      success: true,
-      data: item,
-    });
+    this.renderJson(item);
   }
 
  
@@ -77,14 +70,7 @@ export class MenuItemControllerV1 extends ApiV1Controller {
       currentUserId
     );
 
-    this.renderJson(
-      {
-        success: true,
-        message: "Thêm món ăn thành công",
-        data: newItem,
-      },
-      201
-    );
+    this.renderJson(newItem, 201);
   }
 
   
@@ -111,11 +97,7 @@ export class MenuItemControllerV1 extends ApiV1Controller {
       currentUserId
     );
 
-    this.renderJson({
-      success: true,
-      message: "Cập nhật món ăn thành công",
-      data: updatedItem,
-    });
+    this.renderJson(updatedItem);
   }
 
  
@@ -139,11 +121,7 @@ export class MenuItemControllerV1 extends ApiV1Controller {
       data.reason
     );
 
-    this.renderJson({
-      success: true,
-      message: data.isAvailable ? "Bật hiển thị món ăn" : "Tạm ẩn món ăn thành công",
-      data: updatedItem,
-    });
+    this.renderJson(updatedItem);
   }
 
 
@@ -157,9 +135,6 @@ export class MenuItemControllerV1 extends ApiV1Controller {
 
     await this.menuItemService.deleteMenuItem(menuItemId, currentUserId);
 
-    this.renderJson({
-      success: true,
-      message: "Xóa món ăn thành công",
-    });
+    this.renderJson(null);
   }
 }

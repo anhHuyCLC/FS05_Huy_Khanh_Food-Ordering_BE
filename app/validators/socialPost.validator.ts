@@ -36,3 +36,9 @@ export class CreateCommentValidator {
   @IsString({ message: "Nội dung bình luận phải là chuỗi" })
   content!: string;
 }
+
+export class CreateReportValidator {
+  @IsNotEmpty({ message: "Lý do báo cáo không được để trống" })
+  @IsString({ message: "Lý do báo cáo phải là chuỗi" })
+  reason!: string;
+}

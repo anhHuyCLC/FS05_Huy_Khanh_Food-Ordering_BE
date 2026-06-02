@@ -2,6 +2,7 @@ import { ApiV1Controller } from "./apiV1.controller";
 import { RestaurantService } from "@services/restaurant.service"
 import { RecommendationService } from "@services/recommendation.service";
 import { UnauthorizedError } from "ts-rails";
+import models from "@models";
 
 export class ApiV1RestaurantController extends ApiV1Controller {
   async restaurantList() {
@@ -14,10 +15,7 @@ export class ApiV1RestaurantController extends ApiV1Controller {
       this.currentUser?.profileId
     );
 
-    this.renderJson({
-      success: true,
-      data: result,
-    });
+    this.renderJson(result);
   }
 
   async listPromotions() {
@@ -26,10 +24,7 @@ export class ApiV1RestaurantController extends ApiV1Controller {
       this.currentUser?.profileId
     );
 
-    this.renderJson({
-      success: true,
-      data: result,
-    });
+    this.renderJson(result);
   }
 
   async createPromotion() {
@@ -39,14 +34,7 @@ export class ApiV1RestaurantController extends ApiV1Controller {
       this.req.body
     );
 
-    this.renderJson(
-      {
-        success: true,
-        message: "Tạo khuyến mãi thành công",
-        data: result,
-      },
-      201
-    );
+    this.renderJson(result, 201);
   }
 
   async updatePromotion() {
@@ -56,11 +44,7 @@ export class ApiV1RestaurantController extends ApiV1Controller {
       this.req.body
     );
 
-    this.renderJson({
-      success: true,
-      message: "Cập nhật khuyến mãi thành công",
-      data: result,
-    });
+    this.renderJson(result);
   }
 
   async deletePromotion() {
@@ -69,10 +53,7 @@ export class ApiV1RestaurantController extends ApiV1Controller {
       this.currentUser?.profileId
     );
 
-    this.renderJson({
-      success: true,
-      message: "Xóa khuyến mãi thành công",
-    });
+    this.renderJson(null);
   }
 
   async comboSuggestions() {
@@ -86,21 +67,72 @@ export class ApiV1RestaurantController extends ApiV1Controller {
       restaurantId
     );
 
-    this.renderJson({
-      success: true,
-      data: result,
-    });
+    this.renderJson(result);
   }
   async togglePromotion() {
-  const result = await RestaurantService.togglePromotion(
-    this.req.params.promotionId,
-    this.currentUser?.profileId,
-    this.req.body.isActive
-  );
-  this.renderJson({
-    success: true,
-    message: result.isActive ? "Đã bật khuyến mãi" : "Đã tắt khuyến mãi",
-    data: result,
-  });
-}
+    const result = await RestaurantService.togglePromotion(
+      this.req.params.promotionId,
+      this.currentUser?.profileId,
+      this.req.body.isActive
+    );
+    this.renderJson(result);
+  }
+
+  private async getProfileId(): Promise<string | null> {
+    const userId = this.currentUser?.id;
+    if (!userId) return null;
+    const profile = await models.profile.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+    return profile?.id || null;
+  }
+
+  async getRecommendations() {
+    const profileId = await this.getProfileId();
+    let result: any[] = [];
+
+    if (profileId) {
+      const recentOrders = await models.order.findMany({
+        where: { customerId: profileId, status: "completed" },
+        select: { restaurantId: true },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        distinct: ["restaurantId"],
+      });
+
+      const orderedRestIds = recentOrders.map(o => o.restaurantId);
+      if (orderedRestIds.length > 0) {
+        result = await models.restaurant.findMany({
+          where: {
+            id: { in: orderedRestIds },
+            isActive: true,
+            approvalStatus: "APPROVED",
+          },
+          include: {
+            categories: true,
+          },
+        });
+      }
+    }
+
+    if (result.length < 4) {
+      const excludedIds = result.map(r => r.id);
+      const topRated = await models.restaurant.findMany({
+        where: {
+          id: { notIn: excludedIds },
+          isActive: true,
+          approvalStatus: "APPROVED",
+        },
+        include: {
+          categories: true,
+        },
+        orderBy: { rating: "desc" },
+        take: 4 - result.length,
+      });
+      result = [...result, ...topRated];
+    }
+
+    this.renderJson(result);
+  }
 }

@@ -258,6 +258,7 @@ model Profile {
   pointHistories   PointHistory[]
   savedAddresses   SavedAddress[]
   postComments     PostComment[]
+  favoriteRestaurants FavoriteRestaurant[]
 
   @@map("profiles")
 }
@@ -290,6 +291,7 @@ model Restaurant {
   promotions  Promotion[]
   carts       Cart[]
   reviews     RestaurantReview[]
+  favoritedBy FavoriteRestaurant[]
 
   @@index([ownerId])
   @@map("restaurants")
@@ -513,6 +515,7 @@ model Order {
   orderItems           OrderItem[]
   payment              Payment[]
   restaurantReviews    RestaurantReview[]
+  driverReviews        DriverReview[]
   orderStatusHistories OrderStatusHistory[]
 
   @@index([customerId])
@@ -951,4 +954,16 @@ model PostComment {
   user Profile    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("post_comments")
+}
+
+model FavoriteRestaurant {
+  profileId    String   @map("profile_id") @db.Uuid
+  restaurantId String   @map("restaurant_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  profile    Profile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, restaurantId])
+  @@map("favorite_restaurants")
 }

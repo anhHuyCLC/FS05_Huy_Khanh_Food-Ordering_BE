@@ -31,7 +31,20 @@ export class AuthRefreshTokenService extends ApplicationService {
       include: {
         user: {
           include: {
-            profile: true,
+            profile: {
+              include: {
+                achievedBadges: {
+                  include: {
+                    badge: true,
+                  },
+                },
+                missionProgresses: {
+                  include: {
+                    mission: true,
+                  },
+                },
+              },
+            },
             roles: {
               include: {
                 role: {
