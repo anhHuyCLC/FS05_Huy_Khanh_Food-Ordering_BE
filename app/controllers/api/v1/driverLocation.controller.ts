@@ -27,7 +27,7 @@ export class DriverLocationController extends ApiV1Controller {
       if (io) {
         const models = this.models;
         const activeOrders = await models.order.findMany({
-          where: { driverId: profileId, status: { in: ["accepted", "delivering"] } },
+          where: { driverId: profileId, status: { in: ["accepted", "preparing", "ready", "delivering"] } },
           select: { id: true },
         });
         for (const order of activeOrders) {

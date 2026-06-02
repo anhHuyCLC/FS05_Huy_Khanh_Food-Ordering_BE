@@ -16,6 +16,7 @@ import { RestaurantRoute } from "./restaurant.route";
 import { MapRouteV1 } from "./map.route";
 import { DriverLocationController } from "@controllers/api/v1/driverLocation.controller";
 import { SocialPostRoute } from "./socialPost.route";
+import { FavoriteRouteV1 } from "./favorite.route";
 import { fileUploader } from "@lib";
 
 export class ApiV1Route extends RailsRoute {
@@ -67,6 +68,9 @@ export class ApiV1Route extends RailsRoute {
 
     // Address routes
     this.path("/", AddressRouteV1.draw());
+
+    // Favorite routes
+    this.path("/", FavoriteRouteV1.draw());
 
     // Map routes
     this.path("/", MapRouteV1.draw());

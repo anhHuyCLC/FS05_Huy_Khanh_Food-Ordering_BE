@@ -157,7 +157,7 @@ export class DriverChannel extends ApplicationChannel {
       const activeOrders = await models.order.findMany({
         where: {
           driverId: driverProfileId,
-          status: { in: ["accepted", "delivering"] },
+          status: { in: ["accepted", "preparing", "ready", "delivering"] },
         },
         select: { id: true },
       });
@@ -194,53 +194,10 @@ export class DriverChannel extends ApplicationChannel {
     }
 
     try {
-      const order = await models.order.findUnique({ where: { id: validator.orderId } });
-      if (!order || order.driverId !== driverProfileId) {
-        this.socket.emit("driver:error", { message: "Đơn hàng không tồn tại hoặc không thuộc về bạn" });
-        return;
-      }
-
-      // Map status
-      const statusMap: Record<string, any> = {
-        picked_up:  { status: "delivering", deliveringAt: new Date() },
-        delivering: { status: "delivering" },
-        completed:  { status: "completed",  completedAt: new Date() },
-      };
-
-      const updateData = statusMap[validator.status];
-      const updatedOrder = await models.order.update({
-        where: { id: validator.orderId },
-        data: updateData,
-      });
-
-      // Ghi log
-      await models.orderStatusHistory.create({
-        data: { orderId: validator.orderId, status: updatedOrder.status! },
-      });
-
-      // Nếu hoàn thành -> cộng ví + về online
-      if (validator.status === "completed") {
-        const driver = await models.driverProfile.findUnique({ where: { id: driverProfileId } });
-        if (driver) {
-          const earning = Number(order.finalAmount) * (1 - Number(driver.commissionRate) / 100);
-          await models.driverProfile.update({
-            where: { id: driverProfileId },
-            data: { walletBalance: { increment: earning }, currentStatus: "online" },
-          });
-          await models.walletTransaction.create({
-            data: {
-              driverId: driverProfileId,
-              amount: earning,
-              transactionType: "earning",
-              description: `Thu nhập từ đơn #${validator.orderId.slice(0, 8)}`,
-            },
-          });
-          this.socket.emit("driver:earning", {
-            amount: earning,
-            message: `+${earning.toLocaleString("vi-VN")}đ đã vào ví`,
-          });
-        }
-      }
+      // Delegate sang service duy nhất để tránh duplicate logic (cộng ví 2 lần, etc.)
+      const { DriverOrderService } = await import("@services/driverOrder.service");
+      const service = new DriverOrderService();
+      await service.updateDeliveryStatus(driverProfileId, validator.orderId, validator.status);
 
       // Broadcast cập nhật trạng thái đến room theo dõi đơn (khách hàng đang xem)
       this.broadcastTo(`order:${validator.orderId}`, "tracking:status", {
@@ -255,7 +212,8 @@ export class DriverChannel extends ApplicationChannel {
       });
 
     } catch (error) {
-      this.socket.emit("driver:error", { message: "Lỗi cập nhật trạng thái đơn hàng" });
+      const message = error instanceof Error ? error.message : "Lỗi cập nhật trạng thái đơn hàng";
+      this.socket.emit("driver:error", { message });
     }
   }
 

@@ -40,11 +40,9 @@ export class AiService extends ApplicationService {
 
     const backups = [
       "models/gemma-4-31b-it",
-      "models/gemini-2.5-flash",
-      "models/gemini-2.0-flash",
       "models/gemini-flash-latest",
-      "models/gemini-2.0-flash-lite",
       "models/gemini-3.5-flash",
+      "models/gemini-3.1-pro-preview-customtools",
       "models/gemini-3.1-flash-lite",
     ];
 

@@ -33,7 +33,7 @@ export class DriverStatusService {
       const activeOrderCount = await models.order.count({
         where: {
           driverId: profileId,
-          status: { in: ["accepted", "delivering"] },
+          status: { in: ["accepted", "preparing", "ready", "delivering"] },
         },
       });
       if (activeOrderCount > 0) {

@@ -13,7 +13,20 @@ export class AuthMeService {
         deleted: false,
       },
       include: {
-        profile: true,
+        profile: {
+          include: {
+            achievedBadges: {
+              include: {
+                badge: true,
+              },
+            },
+            missionProgresses: {
+              include: {
+                mission: true,
+              },
+            },
+          },
+        },
         roles: {
           include: {
             role: {
