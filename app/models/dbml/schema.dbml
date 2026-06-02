@@ -389,7 +389,6 @@ Table orders {
   restaurantReviews restaurant_reviews [not null]
   driverReviews driver_reviews [not null]
   orderStatusHistories OrderStatusHistory [not null]
-  driverReviews driver_reviews [not null]
 }
 
 Table order_items {

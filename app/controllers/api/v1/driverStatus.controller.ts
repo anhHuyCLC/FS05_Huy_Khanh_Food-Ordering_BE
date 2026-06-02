@@ -13,7 +13,7 @@ export class DriverStatusController extends ApiV1Controller {
   async show() {
     const profileId = (this.req as any).driverProfileId as string;
     const profile = await this.service.getProfile(profileId);
-    this.renderJson({ success: true, data: profile });
+    this.renderJson(profile);
   }
 
   /** PATCH /api/v1/driver/status */
