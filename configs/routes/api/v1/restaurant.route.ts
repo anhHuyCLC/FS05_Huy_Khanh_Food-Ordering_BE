@@ -35,6 +35,7 @@ export class RestaurantRoute extends RailsRoute {
 
     // Nhà hàng của owner hiện tại
     this.get("/me", action(ApiV1RestaurantController, "myRestaurant"));
+    this.patch("/me/status", action(ApiV1RestaurantController, "updateStatus"));
 
     // Promotions / Flash Sale
     this.get("/:restaurantId/promotions",  action(ApiV1RestaurantController, "listPromotions"));

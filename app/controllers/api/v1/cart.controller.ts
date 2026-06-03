@@ -54,11 +54,7 @@ export class CartControllerV1 extends ApiV1Controller {
 
     const carts = await this.cartService.getMyCarts(profileId);
 
-    this.renderJson({
-      success: true,
-      data: carts,
-      count: carts.length,
-    });
+    this.renderJson(carts);
   }
 
   /**
@@ -71,10 +67,7 @@ export class CartControllerV1 extends ApiV1Controller {
 
     const cart = await this.cartService.getCart(cartId, profileId);
 
-    this.renderJson({
-      success: true,
-      data: cart,
-    });
+    this.renderJson(cart);
   }
 
   /**
@@ -86,10 +79,7 @@ export class CartControllerV1 extends ApiV1Controller {
 
     const cart = await this.cartService.getCartBySessionToken(sessionToken);
 
-    this.renderJson({
-      success: true,
-      data: cart,
-    });
+    this.renderJson(cart);
   }
 
   /**
@@ -110,14 +100,7 @@ export class CartControllerV1 extends ApiV1Controller {
       data.isGroupCart ?? false
     );
 
-    this.renderJson(
-      {
-        success: true,
-        message: result.created ? "Đã tạo giỏ hàng mới" : "Đã lấy giỏ hàng hiện có",
-        data: result.cart,
-      },
-      result.created ? 201 : 200
-    );
+    this.renderJson(result.cart, result.created ? 201 : 200);
   }
 
   /**
@@ -159,10 +142,7 @@ export class CartControllerV1 extends ApiV1Controller {
 
     const totals = await this.cartService.calculateCartTotal(cartId);
 
-    this.renderJson({
-      success: true,
-      data: totals,
-    });
+    this.renderJson(totals);
   }
 
   /**
@@ -175,11 +155,7 @@ export class CartControllerV1 extends ApiV1Controller {
 
     const result = await this.cartService.generateShareToken(cartId, profileId);
 
-    this.renderJson({
-      success: true,
-      message: "Tạo link chia sẻ thành công",
-      data: result,
-    });
+    this.renderJson(result);
   }
 
   // ─── Cart Items ───────────────────────────────────────────────────────────
@@ -206,14 +182,7 @@ export class CartControllerV1 extends ApiV1Controller {
       note: data.note,
     });
 
-    this.renderJson(
-      {
-        success: true,
-        message: "Đã thêm món vào giỏ hàng",
-        data: cartItem,
-      },
-      201
-    );
+    this.renderJson(cartItem, 201);
   }
 
   /**
@@ -232,11 +201,7 @@ export class CartControllerV1 extends ApiV1Controller {
 
     const updatedItem = await this.cartService.updateItem(cartItemId, profileId, data);
 
-    this.renderJson({
-      success: true,
-      message: "Đã cập nhật món trong giỏ hàng",
-      data: updatedItem,
-    });
+    this.renderJson(updatedItem);
   }
 
   /**

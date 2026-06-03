@@ -62,7 +62,6 @@ export class FavoriteRestaurantControllerV1 extends ApiV1Controller {
     }
 
     this.renderJson({
-      success: true,
       favorited,
       message: favorited ? "Đã thêm vào danh sách yêu thích" : "Đã xóa khỏi danh sách yêu thích",
     });

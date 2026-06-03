@@ -90,5 +90,24 @@ export class AuthRoute extends RailsRoute {
         },
       },
     });
+    this.post("/change-password", [action(AuthMiddleware), action(AuthController, "changePassword")], {
+      document: {
+        summary: "Change user password",
+        tags: ["Auth"],
+        body: {
+          type: "object",
+          properties: {
+            currentPassword: { type: "string" },
+            newPassword: { type: "string" },
+          },
+          required: ["currentPassword", "newPassword"],
+        },
+        responses: {
+          200: "Success",
+          400: "Bad Request",
+          401: "Unauthorized",
+        },
+      },
+    });
   }
 }

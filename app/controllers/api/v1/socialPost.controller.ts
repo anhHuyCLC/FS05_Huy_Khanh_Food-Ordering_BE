@@ -162,7 +162,6 @@ export class SocialPostControllerV1 extends ApiV1Controller {
     }));
 
     this.renderJson({
-      success: true,
       data: result,
       meta: {
         total,
@@ -845,7 +844,6 @@ export class SocialPostControllerV1 extends ApiV1Controller {
     });
 
     this.renderJson({
-      success: true,
       message: "Đã gửi báo cáo bài viết thành công. Ban quản trị sẽ sớm xem xét.",
       data: report
     }, 201);
@@ -926,7 +924,6 @@ export class SocialPostControllerV1 extends ApiV1Controller {
     }
 
     this.renderJson({
-      success: true,
       trendingTags,
       postingStreak: streak,
     });

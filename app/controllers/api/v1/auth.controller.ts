@@ -200,4 +200,41 @@ export class AuthController extends ApiV1Controller {
       },
     }, 201);
   }
+
+  async changePassword() {
+    const userId = this.currentUser?.id;
+    if (!userId) {
+      throw new UnauthorizedError("Not authenticated");
+    }
+
+    const { currentPassword, newPassword } = this.req.body || {};
+
+    if (!currentPassword || !newPassword) {
+      throw new BadRequestError("Thiếu mật khẩu hiện tại hoặc mật khẩu mới");
+    }
+
+    // Lấy password hiện tại
+    const passwordRecord = await models.password.findFirst({
+      where: {
+        userId,
+        type: PasswordType.PASSWORD,
+        deleted: false,
+      },
+    });
+
+    if (!passwordRecord || !(await Security.verifyPassword(currentPassword, passwordRecord.password))) {
+      throw new BadRequestError("Mật khẩu hiện tại không chính xác");
+    }
+
+    // Hash mật khẩu mới
+    const hashed = await Security.hashPassword(newPassword);
+
+    // Cập nhật mật khẩu mới
+    await models.password.update({
+      where: { id: passwordRecord.id },
+      data: { password: hashed },
+    });
+
+    this.renderJson({ success: true, message: "Đổi mật khẩu thành công!" });
+  }
 }

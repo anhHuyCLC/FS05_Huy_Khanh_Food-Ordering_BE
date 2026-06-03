@@ -1,10 +1,10 @@
 import { ProfileControllerV1 } from "@controllers/api/v1/profile.controller";
-import { RailsRoute } from "ts-rails";
+import { action, RailsRoute } from "ts-rails";
 
 export class ProfileRouteV1 extends RailsRoute {
   public draw() {
-      this.resource(ProfileControllerV1, {
-        document: { tags: ["Profile"] },
-      });
-    }
+    this.get("/:userId", action(ProfileControllerV1, "show"));
+    this.put("/:userId", action(ProfileControllerV1, "update"));
+    return this;
   }
+}

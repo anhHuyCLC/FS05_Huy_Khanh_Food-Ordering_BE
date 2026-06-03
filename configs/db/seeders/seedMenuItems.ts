@@ -529,6 +529,27 @@ export async function seedMenuItems() {
         img: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=400&q=80",
       },
     ],
+    // ─── Combo ────────────────────────────────────────────────────────────────
+    Combo: [
+      {
+        name: "Combo Gà Giòn Độc Quyền",
+        desc: "2 Gà Giòn + Pepsi mát lạnh chuẩn vị KFC",
+        price: 59000,
+        img: "https://images.unsplash.com/photo-1562802378-063ec186a863?w=400&q=80",
+      },
+      {
+        name: "Combo Pizza Tiệc Tùng",
+        desc: "1 Pizza cỡ vừa + 1 Khoai tây chiên + 1 Pepsi lon",
+        price: 199000,
+        img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80",
+      },
+      {
+        name: "Combo Cơm Tấm Đôi Bạn",
+        desc: "2 Cơm Tấm Sườn Bì Chả + 2 Ly Nước Ngọt mát lạnh",
+        price: 110000,
+        img: "https://images.unsplash.com/photo-1599046679481-60e1f9c6b0c8?w=400&q=80",
+      },
+    ],
     // ─── Bia & Nước phụ ──────────────────────────────────────────────────────
     "Bia & Nước Ngọt": [
       {

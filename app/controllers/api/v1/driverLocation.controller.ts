@@ -41,7 +41,7 @@ export class DriverLocationController extends ApiV1Controller {
       }
     } catch (_) { }
 
-    this.renderJson({ success: true, data: result });
+    this.renderJson(result);
     console.log(result);
   }
 
@@ -58,13 +58,13 @@ export class DriverLocationController extends ApiV1Controller {
   async getDriverLocation() {
     const driverId = this.req.params.driverId;
     const result = await this.service.getLocation(driverId);
-    this.renderJson({ success: true, data: result });
+    this.renderJson(result);
   }
 
   /** GET /api/v1/driver/heatmap */
   async heatmap() {
     const result = await this.service.getDemandHeatmap();
-    this.renderJson({ success: true, data: result, count: result.length });
+    this.renderJson(result);
   }
 
   /** POST /api/v1/driver/route-optimize */
@@ -72,6 +72,6 @@ export class DriverLocationController extends ApiV1Controller {
     const profileId = (this.req as any).driverProfileId as string;
     const { orderIds } = await this.params(RouteOptimizationValidator).permit("orderIds");
     const result = await this.service.optimizeRoute(profileId, orderIds);
-    this.renderJson({ success: true, data: result });
+    this.renderJson(result);
   }
 }

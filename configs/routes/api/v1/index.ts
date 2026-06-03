@@ -33,6 +33,9 @@ export class ApiV1Route extends RailsRoute {
     // Permission routes - action(Controller, "index") tạo instance mới mỗi request
     this.get("/permissions/me", action(MyPermissionController, "index"));
 
+    // Favorite routes
+    this.path("/", FavoriteRouteV1.draw());
+
     // Profile routes
     this.path("/profiles", ProfileRouteV1.draw());
 
@@ -68,9 +71,6 @@ export class ApiV1Route extends RailsRoute {
 
     // Address routes
     this.path("/", AddressRouteV1.draw());
-
-    // Favorite routes
-    this.path("/", FavoriteRouteV1.draw());
 
     // Map routes
     this.path("/", MapRouteV1.draw());
