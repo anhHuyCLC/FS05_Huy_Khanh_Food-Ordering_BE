@@ -6,12 +6,16 @@ import { join, resolve } from "path";
  */
 export const rootPath = (...paths: string[]) => {
   const isDist = __dirname.includes("dist");
-  const base = isDist ? resolve(__dirname, "..") : resolve(".");
+  const base = isDist ? resolve(__dirname, "..", "..", "..") : resolve(".");
 
   return join(base, ...paths);
 };
 
-export const appPath = (...paths: string[]) => join(rootPath("app"), ...paths);
+export const appPath = (...paths: string[]) => {
+  const isDist = __dirname.includes("dist");
+  const base = isDist ? resolve(__dirname, "..", "..") : resolve(".");
+  return join(base, "app", ...paths);
+};
 
 export const vendorPath = (packageName: string, ...subPaths: string[]) => {
   const actualRoot = __dirname.includes("dist")
