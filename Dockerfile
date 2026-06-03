@@ -49,9 +49,7 @@ COPY --from=builder /app/app/models/schema.prisma ./app/models/schema.prisma
 # Copy public assets
 COPY --from=builder /app/public ./public
 
-# Copy node_modules/@prisma from builder to ensure runtime sub-packages are present
-# (@prisma/client-runtime-utils is a sub-package installed alongside @prisma/client)
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+
 
 # Expose port (Railway injects PORT env variable automatically)
 EXPOSE 3000
