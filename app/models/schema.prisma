@@ -12,7 +12,7 @@ generator dbml {
 
 datasource db {
   provider = "postgresql"
-  url       = env("DATABASE_URL")
+  // url is configured in prisma.config.ts (required by Prisma 7+)
 }
 
 model User {
