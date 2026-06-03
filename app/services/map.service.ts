@@ -206,7 +206,7 @@ export class MapService {
       try {
         // OpenRouteService expects coordinates in [longitude, latitude] order
         const response = await axios.post(
-          "https://api.openrouteservice.org/v2/directions/driving-car",
+          "https://api.openrouteservice.org/v2/directions/driving-car/geojson",
           {
             coordinates: [
               [startLon, startLat],

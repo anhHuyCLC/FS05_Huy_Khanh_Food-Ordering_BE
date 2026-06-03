@@ -1,7 +1,7 @@
 import { ApiV1Controller } from "./apiV1.controller";
 import { RestaurantService } from "@services/restaurant.service"
 import { RecommendationService } from "@services/recommendation.service";
-import { UnauthorizedError } from "ts-rails";
+import { UnauthorizedError, NotFoundError } from "ts-rails";
 import models from "@models";
 
 export class ApiV1RestaurantController extends ApiV1Controller {
@@ -141,5 +141,30 @@ export class ApiV1RestaurantController extends ApiV1Controller {
     }
 
     this.renderJson(result);
+  }
+
+  async updateStatus() {
+    const profileId = await this.getProfileId();
+    if (!profileId) {
+      throw new UnauthorizedError("Cần đăng nhập");
+    }
+
+    const restaurant = await models.restaurant.findFirst({
+      where: { ownerId: profileId },
+      select: { id: true },
+    });
+
+    if (!restaurant) {
+      throw new NotFoundError("Không tìm thấy nhà hàng");
+    }
+
+    const isActive = this.req.body.isActive === true;
+
+    const updated = await models.restaurant.update({
+      where: { id: restaurant.id },
+      data: { isActive },
+    });
+
+    this.renderJson(updated);
   }
 }

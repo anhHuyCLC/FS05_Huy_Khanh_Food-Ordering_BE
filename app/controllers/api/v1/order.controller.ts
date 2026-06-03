@@ -1113,7 +1113,6 @@ export class OrderControllerV1 extends ApiV1Controller {
     );
 
     this.renderJson({
-      success: true,
       message: "Đánh giá thành công",
       data: result,
     });
