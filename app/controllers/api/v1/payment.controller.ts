@@ -64,7 +64,7 @@ export class PaymentControllerV1 extends ApiV1Controller {
 
       return this.res.redirect(`${frontendUrl}?orderId=${orderId}&paymentStatus=success`);
     } else {
-      // Payment failed / cancelled
+      // Payment failed / cancelled -> cancel the order
       await models.$transaction(async (tx) => {
         const currentPayment = await tx.payment.findUnique({ where: { id: payment.id } });
         if (currentPayment && currentPayment.status === "pending") {
@@ -79,15 +79,17 @@ export class PaymentControllerV1 extends ApiV1Controller {
           await tx.order.update({
             where: { id: orderId },
             data: {
-              paymentStatus: "failed"
+              paymentStatus: "failed",
+              status: "cancelled",
+              cancelledAt: new Date()
             }
           });
 
           await tx.orderStatusHistory.create({
             data: {
               orderId,
-              status: "pending",
-              note: `Thanh toán VNPay thất bại. Mã phản hồi: ${result.rspCode}`
+              status: "cancelled",
+              note: `Thanh toán VNPay thất bại hoặc bị hủy bởi người dùng. Mã phản hồi: ${result.rspCode}`
             }
           });
         }
@@ -159,6 +161,7 @@ export class PaymentControllerV1 extends ApiV1Controller {
         });
       });
     } else {
+      // IPN: payment failed -> cancel the order
       await models.$transaction(async (tx) => {
         await tx.payment.update({
           where: { id: payment.id },
@@ -171,14 +174,16 @@ export class PaymentControllerV1 extends ApiV1Controller {
         await tx.order.update({
           where: { id: orderId },
           data: {
-            paymentStatus: "failed"
+            paymentStatus: "failed",
+            status: "cancelled",
+            cancelledAt: new Date()
           }
         });
 
         await tx.orderStatusHistory.create({
           data: {
             orderId,
-            status: "pending",
+            status: "cancelled",
             note: `Thanh toán VNPay thất bại (IPN). Mã phản hồi: ${result.rspCode}`
           }
         });
