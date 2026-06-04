@@ -303,6 +303,7 @@ model DriverProfile {
   licensePlate  String?  @map("license_plate") @db.VarChar(50)
   currentStatus String?  @default("offline") @map("current_status") @db.VarChar(50)
   walletBalance Decimal? @default(0.0) @map("wallet_balance") @db.Decimal(15, 2)
+  codDebt       Decimal? @default(0.0) @map("cod_debt") @db.Decimal(15, 2)
   rating        Decimal? @default(0.0) @db.Decimal(3, 2)
   // [BỔ SUNG MỚI] Phục vụ tính năng Duyệt tài xế & Hoa hồng giao hàng
   approvalStatus  String   @default("PENDING") @map("approval_status") // PENDING, APPROVED, REJECTED

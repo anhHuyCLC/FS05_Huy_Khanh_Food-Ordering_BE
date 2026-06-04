@@ -77,3 +77,12 @@ export class EarningFilterValidator {
   @IsString()
   period?: string; // "today" | "week" | "month"
 }
+
+// -----------------------------------------------------------------------
+// 5.3 Nạp/Rút ví tài xế
+// -----------------------------------------------------------------------
+export class TransactionValidator {
+  @IsNumber()
+  @Min(1)
+  amount!: number;
+}

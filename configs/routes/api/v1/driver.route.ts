@@ -4,6 +4,7 @@ import { DriverStatusController } from "@controllers/api/v1/driverStatus.control
 import { DriverOrderController } from "@controllers/api/v1/driverOrder.controller";
 import { DriverLocationController } from "@controllers/api/v1/driverLocation.controller";
 import { DriverEarningController } from "@controllers/api/v1/driverEarning.controller";
+import { DriverWalletController } from "@controllers/api/v1/driverWallet.controller";
 import { AuthMiddleware } from "@middlewares/auth.middleware";
 
 /**
@@ -71,6 +72,10 @@ export class DriverRouteV1 extends RailsRoute {
 
     // ── 5.2 Thu nhập ────────────────────────────────────────────────────
     this.get("/earnings", action(DriverEarningController, "index"));
+
+    // ── 5.3 Ví tài xế ───────────────────────────────────────────────────
+    this.post("/wallet/deposit", action(DriverWalletController, "deposit"));
+    this.post("/wallet/withdraw", action(DriverWalletController, "withdraw"));
 
     return this;
   }

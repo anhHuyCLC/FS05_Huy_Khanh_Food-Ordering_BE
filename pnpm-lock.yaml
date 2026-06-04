@@ -118,7 +118,7 @@ importers:
         version: 6.10.1
       openai:
         specifier: ^6.38.0
-        version: 6.38.0(ws@8.20.0)
+        version: 6.38.0(ws@8.20.0)(zod@4.4.3)
       path:
         specifier: ^0.12.7
         version: 0.12.7
@@ -164,6 +164,9 @@ importers:
       vue:
         specifier: ^3.5.32
         version: 3.5.32(typescript@5.9.3)
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       '@faker-js/faker':
         specifier: ^8.4.1
@@ -5319,6 +5322,9 @@ packages:
     resolution: {integrity: sha512-9qv4rlDiopXg4E69k+vMHjNN63YFMe9sZMrdlvKnCjlCRWeCBswPPMPUfx+ipsAWq1LXHe70RcbaHdJJpS6hyQ==}
     engines: {node: '>= 10'}
 
+  zod@4.4.3:
+    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
+
 snapshots:
 
   '@antfu/ni@0.21.4': {}
@@ -9992,9 +9998,10 @@ snapshots:
       is-docker: 2.2.1
       is-wsl: 2.2.0
 
-  openai@6.38.0(ws@8.20.0):
+  openai@6.38.0(ws@8.20.0)(zod@4.4.3):
     optionalDependencies:
       ws: 8.20.0
+      zod: 4.4.3
 
   p-filter@2.1.0:
     dependencies:
@@ -11314,3 +11321,5 @@ snapshots:
       archiver-utils: 3.0.4
       compress-commons: 4.1.2
       readable-stream: 3.6.2
+
+  zod@4.4.3: {}

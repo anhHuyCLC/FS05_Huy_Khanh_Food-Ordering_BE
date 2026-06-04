@@ -224,6 +224,7 @@ Table driver_profiles {
   licensePlate String
   currentStatus String [default: 'offline']
   walletBalance Decimal [default: 0]
+  codDebt Decimal [default: 0]
   rating Decimal [default: 0]
   approvalStatus String [not null, default: 'PENDING']
   rejectionReason String

@@ -53,6 +53,7 @@ export class DriverOrderService {
           include: { menuItem: { select: { name: true } } },
         },
         customer: { select: { fullName: true, phone: true } },
+        payment: { select: { method: true, amount: true, status: true } },
       },
       orderBy: { createdAt: "asc" },
     });
@@ -96,6 +97,7 @@ export class DriverOrderService {
         restaurant: { select: { name: true, address: true, latitude: true, longitude: true } },
         customer: { select: { fullName: true, phone: true } },
         orderItems: { include: { menuItem: { select: { name: true } } } },
+        payment: { select: { method: true, amount: true, status: true } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -184,6 +186,7 @@ export class DriverOrderService {
         restaurant: { select: { name: true, address: true, latitude: true, longitude: true } },
         customer: { select: { fullName: true, phone: true } },
         orderItems: { include: { menuItem: { select: { name: true } } } },
+        payment: { select: { method: true, amount: true, status: true } },
       },
     });
 
@@ -230,7 +233,7 @@ export class DriverOrderService {
    * status: "picked_up" => delivering, "delivering" => delivering, "completed" => completed
    */
   async updateDeliveryStatus(profileId: string, orderId: string, status: string) {
-    const order = await models.order.findUnique({ where: { id: orderId } });
+    const order = await models.order.findUnique({ where: { id: orderId }, include: { payment: true } });
     if (!order) throw new NotFoundError("Đơn hàng không tìm thấy");
     if (order.driverId !== profileId) {
       throw new ForbiddenError("Đây không phải đơn hàng của bạn");
@@ -260,29 +263,58 @@ export class DriverOrderService {
 
   if (status === "completed") {
     const driver = await tx.driverProfile.findUnique({ where: { id: profileId } });
-     if (driver) {
-          // ✅ Fix: commissionRate là % hệ thống thu — tài xế nhận phần còn lại
-          const commissionRate = Number(driver.commissionRate) / 100; // vd: 0.15
-          const earning =
-            Number(order.finalAmount) * (1 - commissionRate); // tài xế nhận 85%
+    if (driver) {
+      // 1. Calculate Delivery Fee
+      const deliveryFee = Number(order.finalAmount) - Number(order.totalAmount) + Number(order.discountAmount || 0);
 
-          await tx.driverProfile.update({
-            where: { id: profileId },
-            data: {
-              currentStatus: "online",
-              walletBalance: { increment: earning },
-            },
-          });
+      // 2. Calculate Driver Earning based on Delivery Fee
+      const commissionRate = Number(driver.commissionRate) / 100;
+      const earning = deliveryFee * (1 - commissionRate);
 
-          await tx.walletTransaction.create({
-            data: {
-              driverId: profileId,
-              amount: earning,
-              transactionType: "earning",
-              description: `Thu nhập từ đơn #${orderId.slice(0, 8).toUpperCase()}`,
-            },
-          });
-        }
+      // 3. Determine Payment Method
+      const isCOD = order.payment && order.payment.length > 0 && order.payment[0].method === "cash";
+
+      if (isCOD) {
+        // Option A: Ghi nhận công nợ đúng bằng tổng tiền thu hộ, cộng tiền ví đúng bằng thu nhập
+        await tx.driverProfile.update({
+          where: { id: profileId },
+          data: {
+            currentStatus: "online",
+            walletBalance: { increment: earning },
+            codDebt: { increment: Number(order.finalAmount) },
+          },
+        });
+
+        // Ghi transaction thu nhập
+        await tx.walletTransaction.create({
+          data: {
+            driverId: profileId,
+            amount: earning,
+            transactionType: "earning",
+            description: `Thu nhập từ đơn COD #${orderId.slice(0, 8).toUpperCase()}`,
+          },
+        });
+
+      } else {
+        // Online payment
+        await tx.driverProfile.update({
+          where: { id: profileId },
+          data: {
+            currentStatus: "online",
+            walletBalance: { increment: earning },
+          },
+        });
+
+        await tx.walletTransaction.create({
+          data: {
+            driverId: profileId,
+            amount: earning,
+            transactionType: "earning",
+            description: `Thu nhập từ đơn Online #${orderId.slice(0, 8).toUpperCase()}`,
+          },
+        });
+      }
+    }
   }
 
   return updated;
