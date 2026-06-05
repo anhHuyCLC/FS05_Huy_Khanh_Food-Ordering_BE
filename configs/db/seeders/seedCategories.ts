@@ -30,13 +30,13 @@ const restaurantCategoryMap: Record<string, string[]> = {
   "Trà Sữa Gong Cha": ["Trà sữa", "Milk Tea", "Boba", "Tráng miệng"],
   "Highlands Coffee": ["Coffee", "Cà phê", "Bánh", "Drinks"],
   "Bánh Tráng Cuốn Thịt Heo Trần": ["Món Việt", "Vietnamese"],
-  "Phở 29": ["Pho", "Noodles", "Vietnamese"],
-  "Bánh Mì Phượng": ["Bánh", "Fast Food", "Burger"],
+  "Phở Lộc": ["Pho", "Noodles", "Vietnamese"],
+  "Bánh Mì Đồng Tiến": ["Bánh", "Fast Food", "Burger"],
   "Domino's Pizza Đà Nẵng": ["Pizza", "Burger", "Fast Food", "American", "Combo"],
   "Lẩu Thái Mama": ["Lẩu", "Hotpot", "BBQ", "Seafood"],
-  "Sakura Sushi": ["Sushi", "Japanese", "Seafood", "Asian"],
-  "KFC Đà Nẵng": ["Chicken", "Gà", "Fried", "Fast Food", "Combo"],
-  "Cơm Hộp Bà Năm": ["Cơm", "Rice", "Món Việt", "Vietnamese"],
+  "Sakura Sushi Shop": ["Sushi", "Japanese", "Seafood", "Asian"],
+  "KFC Nguyễn Văn Linh": ["Chicken", "Gà", "Fried", "Fast Food", "Combo"],
+  "Cơm Hộp Văn Phòng Bà Năm": ["Cơm", "Rice", "Món Việt", "Vietnamese"],
   "Green Bite – Healthy Bowl": ["Healthy", "Salad", "Vegetarian", "Chay"],
 };
 

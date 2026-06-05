@@ -160,6 +160,7 @@ export class OrderControllerV1 extends ApiV1Controller {
               address: true,
               latitude: true,
               longitude: true,
+              imageUrl: true,
             },
           },
           orderItems: {
@@ -233,6 +234,7 @@ export class OrderControllerV1 extends ApiV1Controller {
             ownerId: true,
             latitude: true,
             longitude: true,
+            imageUrl: true,
           },
         },
         customer: { select: { id: true, fullName: true, phone: true } },

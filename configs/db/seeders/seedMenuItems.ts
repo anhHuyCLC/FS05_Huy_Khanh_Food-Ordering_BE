@@ -2,7 +2,7 @@ import models from "@models";
 import { Prisma } from "@db";
 
 export async function seedMenuItems() {
-  console.log("🌱 Seeding menu items...");
+  console.log("🌱 Seeding menu items with stable Image CDN...");
 
   const categories = await models.category.findMany({
     include: {
@@ -10,559 +10,359 @@ export async function seedMenuItems() {
     },
   });
 
-  // Map: category name → danh sách món ăn với ảnh Unsplash cụ thể
   const dishesMap: Record<
     string,
     { name: string; desc: string; price: number; img: string }[]
   > = {
-    // ─── Món Việt / Vietnamese / Food ────────────────────────────────────────
     "Món Việt": [
       {
         name: "Mì Quảng Ếch",
-        desc: "Đặc sản mì quảng ếch đồng nguyên thố",
+        desc: "Đặc sản mì quảng ếch đồng nguyên thố chuẩn vị",
         price: 45000,
-        img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=400&q=80",
+        // Mì Quảng với ếch – tô mì vàng với nhân ếch và rau thơm
+        img: "https://upload.wikimedia.org/wikipedia/commons/5/57/M%C3%AC_Qu%E1%BA%A3ng%2C_Da_Nang%2C_Vietnam.jpg",
       },
       {
         name: "Bánh Xèo Tôm Nhảy",
         desc: "Bánh xèo miền Trung giòn rụm nhân tôm tươi",
         price: 55000,
-        img: "https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=400&q=80",
+        // Bánh xèo – bánh crepe giòn vàng với tôm tươi
+        img: "https://upload.wikimedia.org/wikipedia/commons/0/05/Banh_Xeo%2C_Eden_Center.jpg",
       },
       {
         name: "Bún Mắm Nêm",
         desc: "Bún mắm thịt luộc heo quay đặc sản Đà Nẵng",
         price: 35000,
-        img: "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=400&q=80",
+        // Bún mắm – tô bún với thịt heo và rau sống
+        img: "https://upload.wikimedia.org/wikipedia/commons/8/80/B%C3%BAn_m%E1%BA%AFm.jpg",
       },
     ],
-    Vietnamese: [
+    "Vietnamese": [
       {
         name: "Bánh Tráng Cuốn Thịt Heo",
         desc: "Thịt heo hai đầu da, rau rừng, bánh tráng mỏng",
         price: 120000,
-        img: "https://images.unsplash.com/photo-1547592180-85f173990554?w=400&q=80",
+        // Bánh tráng cuốn – cuốn thịt heo với rau và bánh tráng
+        img: "https://upload.wikimedia.org/wikipedia/commons/9/90/G%E1%BB%8Fi_cu%E1%BB%91n.jpg",
       },
       {
         name: "Nem Lụi Nướng",
-        desc: "Nem lụi nướng sả (5 lụi), chấm mắm nêm",
+        desc: "Nem lụi nướng sả (5 lụi), chấm mắm nêm đậm đà",
         price: 40000,
-        img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80",
+        // Nem lụi – xiên nem nướng thơm trên than hồng
+        img: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&q=80",
       },
     ],
-    // ─── Cơm / Rice / Rice-box ───────────────────────────────────────────────
-    Cơm: [
+    "Cơm": [
       {
         name: "Cơm Tấm Sườn Bì Chả",
         desc: "Sườn nướng mềm, bì chả nhà làm, nước mắm pha đặc biệt",
         price: 55000,
-        img: "https://images.unsplash.com/photo-1599046679481-60e1f9c6b0c8?w=400&q=80",
+        // Cơm tấm sườn – đĩa cơm tấm với sườn nướng vàng óng
+        img: "https://upload.wikimedia.org/wikipedia/commons/e/ea/C%C6%A1m_t%E1%BA%A5m_b%C3%AC_ch%E1%BA%A3.jpg",
       },
       {
         name: "Cơm Tấm Ba Chỉ Quay",
-        desc: "Thịt heo quay giòn da ăn kèm dưa cải",
+        desc: "Thịt heo quay giòn da ăn kèm dưa cải chua ngọt",
         price: 50000,
-        img: "https://images.unsplash.com/photo-1543352634-99a5d50ae78e?w=400&q=80",
+        // Thịt heo quay – miếng thịt ba chỉ quay giòn da vàng
+        img: "https://upload.wikimedia.org/wikipedia/commons/4/40/C%C6%A1m_t%E1%BA%A5m_s%C6%B0%E1%BB%9Dn_c%C3%A2y.JPG",
       },
       {
         name: "Cơm Tấm Đùi Gà Nướng",
-        desc: "Đùi gà nướng xốt mật ong thơm phức",
+        desc: "Đùi gà nướng xốt mật ong thơm phức vàng óng",
         price: 55000,
-        img: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=400&q=80",
+        // Đùi gà nướng – đùi gà nướng mật ong vàng thơm
+        img: "https://upload.wikimedia.org/wikipedia/commons/4/40/C%C6%A1m_t%E1%BA%A5m_s%C6%B0%E1%BB%9Dn_c%C3%A2y.JPG",
       },
     ],
-    Rice: [
+    "Rice": [
       {
         name: "Cơm Hộp Gà Chiên Nước Mắm",
-        desc: "Gà chiên giòn xốt nước mắm tỏi ớt",
+        desc: "Gà chiên giòn xốt nước mắm tỏi ớt đậm đà",
         price: 45000,
-        img: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=400&q=80",
+        // Gà chiên nước mắm – miếng gà chiên vàng xốt nước mắm
+        img: "https://images.unsplash.com/photo-1543353071-10c8ba85a904?w=800&q=80",
       },
       {
         name: "Cơm Hộp Thịt Kho Trứng",
-        desc: "Thịt ba chỉ kho trứng vị đậm đà truyền thống",
+        desc: "Thịt ba chỉ kho trứng vị đậm đà truyền thống chuẩn cơm mẹ nấu",
         price: 40000,
-        img: "https://images.unsplash.com/photo-1516684669134-de6f7a8b0e36?w=400&q=80",
+        // Thịt kho trứng – thịt ba chỉ kho màu cánh gián với trứng
+        img: "https://upload.wikimedia.org/wikipedia/commons/e/ea/C%C6%A1m_t%E1%BA%A5m_b%C3%AC_ch%E1%BA%A3.jpg",
       },
     ],
-    // ─── Mì / Pho / Noodles ─────────────────────────────────────────────────
-    Mì: [
+    "Mì": [
       {
         name: "Mì Quảng Gà Quê",
-        desc: "Mì quảng gà ta thả vườn dai ngon",
+        desc: "Mì quảng gà ta thả vườn dai ngon ngọt thịt",
         price: 40000,
-        img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=400&q=80",
+        // Mì Quảng gà – tô mì vàng với thịt gà ta và rau thơm
+        img: "https://upload.wikimedia.org/wikipedia/commons/5/57/M%C3%AC_Qu%E1%BA%A3ng%2C_Da_Nang%2C_Vietnam.jpg",
       },
       {
         name: "Bún Bò Huế Đặc Biệt",
         desc: "Gân, nạm, chả, giò heo – tô đầy đủ nhất",
         price: 65000,
-        img: "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=400&q=80",
+        // Bún bò Huế – tô bún đỏ cay với thịt bò và giò heo
+        img: "https://upload.wikimedia.org/wikipedia/commons/e/e2/Bun_Bo_Hue_in_Sai_Gon.jpg",
       },
     ],
-    Pho: [
+    "Pho": [
       {
         name: "Phở Bò Tái Nạm",
         desc: "Phở nước trong thanh ngọt, cốt xương bò hầm 12 tiếng",
         price: 50000,
-        img: "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=400&q=80",
+        // Phở bò – tô phở trong vắt với tái nạm và rau thơm
+        img: "https://upload.wikimedia.org/wikipedia/commons/e/e1/Pho_bo.jpg",
       },
       {
         name: "Phở Đặc Biệt",
-        desc: "Tái, nạm, gầu, gân, bò viên – đầy đủ nhất",
+        desc: "Tái, nạm, gầu, gân, bò viên – đầy đủ trọn vẹn hương vị",
         price: 70000,
-        img: "https://images.unsplash.com/photo-1600682911954-b5fe2aa9d1cf?w=400&q=80",
+        // Phở đặc biệt – tô phở đầy đủ các loại thịt bò
+        img: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Pho_in_Saigon.jpg",
       },
     ],
-    Noodles: [
+    "Noodles": [
       {
         name: "Mì Xào Hải Sản",
-        desc: "Mì vàng xào giòn với tôm mực tươi",
+        desc: "Mì vàng xào giòn cùng tôm mực tươi ngon",
         price: 75000,
-        img: "https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=400&q=80",
+        // Mì xào hải sản – đĩa mì xào với tôm mực rau củ
+        img: "https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=800&q=80",
       },
       {
         name: "Bún Riêu Cua",
-        desc: "Bún riêu cua đồng nguyên chất, đậu phụ chiên",
+        desc: "Bún riêu cua đồng nguyên chất kèm gạch cua béo ngậy",
         price: 45000,
-        img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=400&q=80",
+        // Bún riêu – tô bún đỏ với riêu cua và cà chua
+        img: "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=800&q=80",
       },
     ],
-    // ─── Trà Sữa / Milk Tea ──────────────────────────────────────────────────
     "Trà sữa": [
       {
         name: "Trà Sữa Trân Châu Đen",
-        desc: "Trà sữa truyền thống signature Gong Cha",
+        desc: "Trà sữa truyền thống vị đậm đà thơm béo signature",
         price: 45000,
-        img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80",
+        // Trà sữa trân châu đen – ly trà sữa nâu với trân châu đen
+        img: "https://images.unsplash.com/photo-1541658016709-82535e94bc69?w=800&q=80",
       },
       {
         name: "Hồng Trà Macchiato",
-        desc: "Hồng trà kem cheese béo ngậy",
+        desc: "Hồng trà thanh mát kết hợp lớp kem cheese béo ngậy",
         price: 50000,
-        img: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&q=80",
+        // Trà macchiato – ly trà với lớp kem cheese trắng mịn
+        img: "https://images.unsplash.com/photo-1541658016709-82535e94bc69?w=800&q=80",
       },
       {
         name: "Trà Sữa Khoai Môn",
-        desc: "Vị khoai môn bùi béo, trân châu dẻo",
+        desc: "Vị khoai môn bùi béo kết hợp cùng hạt trân châu dẻo dai",
         price: 45000,
-        img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&q=80",
+        // Trà sữa khoai môn – ly trà sữa tím đặc trưng
+        img: "https://images.unsplash.com/photo-1541658016709-82535e94bc69?w=800&q=80",
       },
     ],
     "Milk Tea": [
       {
         name: "Brown Sugar Boba",
-        desc: "Trà sữa đường đen trân châu nóng giòn",
+        desc: "Sữa tươi trân châu đường đen ngọt ngào đậm vị",
         price: 55000,
-        img: "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&q=80",
+        // Brown sugar boba – ly sữa tươi với trân châu đường đen và sọc caramel
+        img: "https://images.unsplash.com/photo-1541658016709-82535e94bc69?w=800&q=80",
       },
       {
         name: "Matcha Latte Trân Châu",
-        desc: "Trà xanh Nhật Bản pha sữa tươi",
+        desc: "Trà xanh Nhật Bản nguyên chất pha sữa tươi",
         price: 55000,
-        img: "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=400&q=80",
+        // Matcha latte – ly matcha xanh đẹp với lớp sữa mịn
+        img: "https://images.unsplash.com/photo-1541658016709-82535e94bc69?w=800&q=80",
       },
     ],
-    Boba: [
+    "Boba": [
       {
         name: "Trà Đào Cam Sả",
-        desc: "Thanh mát giải nhiệt mùa hè",
+        desc: "Thức uống thanh mát giải nhiệt mùa hè sảng khoái",
         price: 45000,
-        img: "https://images.unsplash.com/photo-1532704868953-d85dfd4f3a24?w=400&q=80",
+        // Trà đào – ly trà đào cam vàng hồng mát lạnh
+        img: "https://images.unsplash.com/photo-1541658016709-82535e94bc69?w=800&q=80",
       },
       {
         name: "Trân Châu Trắng (add-on)",
-        desc: "Trân châu giòn sần sật thêm vào thức uống",
+        desc: "Trân châu trắng giòn sần sật thêm vào thức uống",
         price: 10000,
-        img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80",
+        // Trân châu – hạt trân châu trắng trong ly thức uống
+        img: "https://images.unsplash.com/photo-1541658016709-82535e94bc69?w=800&q=80",
       },
     ],
-    // ─── Coffee / Cafe ───────────────────────────────────────────────────────
-    Coffee: [
+    "Coffee": [
       {
         name: "Cà Phê Sữa Đá",
-        desc: "Cà phê pha phin truyền thống đậm vị",
+        desc: "Cà phê pha phin truyền thống đậm đà chuẩn gu Việt",
         price: 29000,
-        img: "https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=400&q=80",
+        // Cà phê sữa đá – ly cà phê sữa đá Việt Nam chuẩn vị
+        img: "https://upload.wikimedia.org/wikipedia/commons/f/f3/Highlands_Coffee_drip_filter_and_cup.jpg",
       },
       {
         name: "Bạc Xỉu Đá",
-        desc: "Bạc xỉu ba tầng thơm béo",
+        desc: "Bạc xỉu ba tầng thơm béo ngậy mùi sữa",
         price: 29000,
-        img: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&q=80",
+        // Bạc xỉu – ly cà phê sữa nhiều sữa đặc trưng miền Nam
+        img: "https://upload.wikimedia.org/wikipedia/commons/f/f3/Highlands_Coffee_drip_filter_and_cup.jpg",
       },
       {
         name: "Cold Brew",
-        desc: "Cà phê ủ lạnh 24h, vị êm dịu không đắng",
+        desc: "Cà phê ủ lạnh thanh khiết giữ trọn hương mộc",
         price: 45000,
-        img: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400&q=80",
+        // Cold brew – ly cà phê đen ủ lạnh trong vắt với đá
+        img: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=800&q=80",
       },
     ],
     "Cà phê": [
       {
         name: "Cà Phê Đen Đá",
-        desc: "Cà phê đậm vị nguyên chất, không đường",
+        desc: "Cà phê đậm vị nguyên chất rang xay mộc mạc",
         price: 25000,
-        img: "https://images.unsplash.com/photo-1518057111178-44a106bad636?w=400&q=80",
+        // Cà phê đen đá – ly cà phê đen đậm với đá viên
+        img: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=800&q=80",
       },
       {
         name: "Cappuccino",
-        desc: "Espresso pha sữa tươi tạo bọt mịn",
+        desc: "Espresso pha sữa tươi tạo lớp bọt mịn dày mượt",
         price: 55000,
-        img: "https://images.unsplash.com/photo-1534040385115-33dcb3acba5b?w=400&q=80",
+        // Cappuccino – ly cappuccino với lớp bọt sữa mịn và latte art
+        img: "https://upload.wikimedia.org/wikipedia/commons/f/f3/Highlands_Coffee_drip_filter_and_cup.jpg",
       },
     ],
-    // ─── Drinks / Beverages ──────────────────────────────────────────────────
-    Drinks: [
+    "Drinks": [
       {
         name: "Pepsi / Coca",
-        desc: "Nước ngọt có gas lon 330ml",
+        desc: "Nước ngọt có gas lon 330ml mát lạnh",
         price: 15000,
-        img: "https://images.unsplash.com/photo-1581636625402-29b2a704ef13?w=400&q=80",
+        // Lon nước ngọt – lon Pepsi/Coca lạnh với đá
+        img: "https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=800&q=80",
       },
       {
         name: "Nước Suối",
-        desc: "Nước suối Aquafina 500ml",
+        desc: "Nước suối đóng chai tinh khiết 500ml",
         price: 10000,
-        img: "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?w=400&q=80",
-      },
-      {
-        name: "Sữa Đậu Nành",
-        desc: "Sữa đậu nành nguyên chất nóng/đá",
-        price: 15000,
-        img: "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&q=80",
+        // Nước suối – chai nước khoáng tinh khiết
+        img: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=800&q=80",
       },
     ],
-    Beverage: [
+    "Beverage": [
       {
         name: "Nước Ép Cam",
-        desc: "Cam vắt tươi 100%, không đường",
+        desc: "Cam vắt tươi nguyên chất giàu Vitamin C",
         price: 35000,
-        img: "https://images.unsplash.com/photo-1613478223719-2ab802602423?w=400&q=80",
-      },
-      {
-        name: "Sinh Tố Bơ",
-        desc: "Bơ sáp Đắk Lắk, sữa đặc béo ngậy",
-        price: 45000,
-        img: "https://images.unsplash.com/photo-1553530666-ba11a90a0868?w=400&q=80",
+        // Nước ép cam – ly nước ép cam tươi vàng óng
+        img: "https://upload.wikimedia.org/wikipedia/commons/0/04/Orange_juice_glass.jpg",
       },
     ],
-    // ─── Pizza / Burger / Fast Food ──────────────────────────────────────────
-    Pizza: [
+    "Pizza": [
       {
         name: "Pizza Hải Sản",
-        desc: "Đế giòn phủ tôm mực sốt cà chua thơm",
+        desc: "Đế giòn phủ tôm mực tươi ngon cùng xốt cà chua đậm đà",
         price: 199000,
-        img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80",
+        // Pizza hải sản – pizza với tôm mực và phô mai mozzarella
+        img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80",
       },
       {
         name: "Pizza Phô Mai 4 Loại",
-        desc: "Mozzarella, Cheddar, Gouda, Parmesan",
+        desc: "Sự kết hợp hoàn hảo giữa các lớp Mozzarella, Cheddar, Gouda",
         price: 189000,
-        img: "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=400&q=80",
-      },
-      {
-        name: "Pizza BBQ Gà",
-        desc: "Đế dày sốt BBQ gà nướng ớt chuông",
-        price: 179000,
-        img: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=80",
+        // Pizza 4 phô mai – pizza vàng ươm nhiều lớp phô mai
+        img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80",
       },
     ],
-    Burger: [
+    "Burger": [
       {
         name: "Classic Beef Burger",
-        desc: "Bò Mỹ, rau xà lách, cà chua, sốt đặc biệt",
+        desc: "Bò nhập khẩu nướng mềm, rau xà lách kèm sốt đặc biệt",
         price: 89000,
-        img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80",
-      },
-      {
-        name: "Crispy Chicken Burger",
-        desc: "Gà giòn sốt cay Hàn Quốc",
-        price: 79000,
-        img: "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=400&q=80",
+        // Burger bò – burger cổ điển với thịt bò nướng và rau
+        img: "https://upload.wikimedia.org/wikipedia/commons/d/dd/Hamburger_in_Inari.jpg",
       },
     ],
     "Fast Food": [
       {
         name: "Khoai Tây Chiên (M)",
-        desc: "Khoai tây giòn rụm ăn kèm tương cà",
+        desc: "Khoai tây chiên vàng giòn rụm rắc muối nhẹ",
         price: 35000,
-        img: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=80",
-      },
-      {
-        name: "Combo Gà + Khoai + Nước",
-        desc: "Gà rán + khoai tây vừa + Pepsi 32oz",
-        price: 119000,
-        img: "https://images.unsplash.com/photo-1562802378-063ec186a863?w=400&q=80",
+        // Khoai tây chiên – đĩa khoai tây chiên vàng giòn
+        img: "https://upload.wikimedia.org/wikipedia/commons/d/df/McDonald%27s_French_fries_Potato_%2801%29.jpg",
       },
     ],
-    American: [
-      {
-        name: "Hot Dog Phô Mai",
-        desc: "Xúc xích bò nướng, phô mai chảy, hành phi",
-        price: 65000,
-        img: "https://images.unsplash.com/photo-1619740455993-9e612b1af08a?w=400&q=80",
-      },
-    ],
-    // ─── Lẩu / Hotpot ───────────────────────────────────────────────────────
-    Lẩu: [
+    "Lẩu": [
       {
         name: "Lẩu Thái Hải Sản",
-        desc: "Lẩu chua cay tôm mực nghêu, nước dùng Tom Yum chuẩn vị",
+        desc: "Lẩu chua cay tôm mực nghêu chuẩn vị Tom Yum nồng nàn",
         price: 250000,
-        img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&q=80",
-      },
-      {
-        name: "Lẩu Bò Nhúng Dấm",
-        desc: "Bò Mỹ nhúng nước me chua, rau thập cẩm",
-        price: 280000,
-        img: "https://images.unsplash.com/photo-1547592180-85f173990554?w=400&q=80",
+        // Lẩu Thái hải sản – nồi lẩu đỏ cay với tôm mực nghêu
+        img: "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=800&q=80",
       },
     ],
-    Hotpot: [
+    "Hotpot": [
       {
         name: "Lẩu Nấm Chay",
-        desc: "Nấm đông cô, nấm hương, nước dùng thanh ngọt",
+        desc: "Nấm hương ngọt nước thanh đạm sảng khoái tinh thần",
         price: 180000,
-        img: "https://images.unsplash.com/photo-1604908177522-4f7ef28b7e44?w=400&q=80",
+        // Lẩu nấm – nồi lẩu nấm hương trong ngọt thanh đạm
+        img: "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=800&q=80",
       },
     ],
-    BBQ: [
-      {
-        name: "Nướng Ba Chỉ Heo",
-        desc: "Ba chỉ heo ướp sả tỏi nướng than hoa",
-        price: 120000,
-        img: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=400&q=80",
-      },
-      {
-        name: "Nướng Tôm Sú",
-        desc: "Tôm sú nướng muối ớt giòn ngọt",
-        price: 160000,
-        img: "https://images.unsplash.com/photo-1519984388953-d2406bc725e1?w=400&q=80",
-      },
-    ],
-    // ─── Sushi / Japanese ────────────────────────────────────────────────────
-    Sushi: [
+    "Sushi": [
       {
         name: "Sashimi Cá Hồi (8 miếng)",
-        desc: "Cá hồi Na Uy nhập khẩu tươi cắt dày",
+        desc: "Cá hồi nhập khẩu cắt lát dày tươi ngon ngọt thịt",
         price: 180000,
-        img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400&q=80",
-      },
-      {
-        name: "Sushi Roll Spicy Tuna",
-        desc: "Cá ngừ cay cuộn cơm sushi, phủ trứng cá",
-        price: 120000,
-        img: "https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=400&q=80",
-      },
-      {
-        name: "Nigiri Set (10 miếng)",
-        desc: "10 miếng nigiri hỗn hợp salmon, tuna, ebi",
-        price: 250000,
-        img: "https://images.unsplash.com/photo-1553621042-f6e147245754?w=400&q=80",
+        // Sashimi cá hồi – lát cá hồi đỏ tươi xếp đẹp trên đĩa
+        img: "https://upload.wikimedia.org/wikipedia/commons/c/c8/Traditional_Sashimi_with_a_twist.jpg",
       },
     ],
-    Japanese: [
-      {
-        name: "Ramen Tonkotsu",
-        desc: "Mì ramen nước dùng xương heo hầm 20 tiếng",
-        price: 95000,
-        img: "https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=400&q=80",
-      },
-      {
-        name: "Gyoza (6 cái)",
-        desc: "Há cảo Nhật chiên vàng, nhân thịt và bắp cải",
-        price: 65000,
-        img: "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=400&q=80",
-      },
-    ],
-    Seafood: [
+    "Seafood": [
       {
         name: "Chíp Chíp Hấp Sả",
-        desc: "Chíp chíp biển hấp sả ớt ngọt nước",
+        desc: "Chíp chíp biển tươi rói hấp sả ớt cay nồng đậm đà nước ngọt",
         price: 80000,
-        img: "https://images.unsplash.com/photo-1534482421-64566f976cfa?w=400&q=80",
-      },
-      {
-        name: "Mực Trứng Hấp Gừng",
-        desc: "Mực trứng tươi sống hấp gừng ngọt thịt",
-        price: 150000,
-        img: "https://images.unsplash.com/photo-1559737558-2f5a35f4523b?w=400&q=80",
+        // Chíp chíp hấp sả – nghêu/ngao hấp sả xanh thơm
+        img: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800&q=80",
       },
     ],
-    Asian: [
+    "Asian": [
       {
-        name: "Pad Thai",
-        desc: "Mì xào Thái Lan tôm, giá đỗ, trứng, đậu phụ",
+        name: "Pad Thai Tôm Tươi",
+        desc: "Hủ tiếu xào kiểu Thái đậm vị hải sản chua ngọt quyến rũ",
         price: 85000,
-        img: "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=400&q=80",
+        // Pad Thai – đĩa pad thai vàng với tôm tươi và đậu phộng
+        img: "https://upload.wikimedia.org/wikipedia/commons/0/0b/Pad_Thai_shrimp_at_Food_Republic.jpg",
       },
     ],
-    // ─── Chicken / Fried Chicken ─────────────────────────────────────────────
-    Chicken: [
+    "Chicken": [
       {
-        name: "Gà Rán Giòn (2 miếng)",
-        desc: "Gà rán công thức 11 gia vị bí truyền",
+        name: "Gà Rán Giòn Rụm",
+        desc: "Gà rán giòn rụm lớp vỏ ngoài thơm ngậy vàng óng ả",
         price: 69000,
-        img: "https://images.unsplash.com/photo-1562802378-063ec186a863?w=400&q=80",
-      },
-      {
-        name: "Gà Rán Sốt Cay Hàn Quốc",
-        desc: "Gà rán sốt Gochujang cay ngọt đậm vị",
-        price: 79000,
-        img: "https://images.unsplash.com/photo-1527477396000-e27163b481c2?w=400&q=80",
+        // Gà rán – miếng gà chiên vàng giòn bắt mắt
+        img: "https://upload.wikimedia.org/wikipedia/commons/2/24/Vietnamese_KFC.jpg",
       },
     ],
-    Gà: [
-      {
-        name: "Cánh Gà Nướng Mật Ong",
-        desc: "6 cánh gà nướng mật ong tỏi thơm phức",
-        price: 85000,
-        img: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=400&q=80",
-      },
-    ],
-    Fried: [
-      {
-        name: "Chả Giò Tôm Thịt (5 cái)",
-        desc: "Chả giò vàng giòn nhân tôm thịt bún tàu",
-        price: 55000,
-        img: "https://images.unsplash.com/photo-1542528180-1c2803fa048c?w=400&q=80",
-      },
-    ],
-    // ─── Healthy / Vegetarian / Chay ─────────────────────────────────────────
-    Healthy: [
+    "Healthy": [
       {
         name: "Salad Bowl Gà Nướng",
-        desc: "Rau xanh, gà nướng, hạt chia, sốt dầu olive",
+        desc: "Rau xà lách sạch, ức gà nướng sốt dầu olive thanh đạm",
         price: 89000,
-        img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=80",
-      },
-      {
-        name: "Acai Bowl",
-        desc: "Acai berry, granola, trái cây tươi, mật ong",
-        price: 95000,
-        img: "https://images.unsplash.com/photo-1558618047-f4e2f12ef6ab?w=400&q=80",
-      },
-      {
-        name: "Smoothie Xanh Detox",
-        desc: "Cải xoăn, dứa, gừng, dừa tươi – thanh lọc cơ thể",
-        price: 65000,
-        img: "https://images.unsplash.com/photo-1553530666-ba11a90a0868?w=400&q=80",
+        // Salad bowl – tô salad xanh với ức gà nướng và sốt
+        img: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&q=80",
       },
     ],
-    Salad: [
+    "Bánh": [
       {
-        name: "Greek Salad",
-        desc: "Feta, olive, cà chua bi, dưa leo, sốt balsamic",
-        price: 75000,
-        img: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&q=80",
-      },
-    ],
-    Vegetarian: [
-      {
-        name: "Cơm Chay Bình Dân",
-        desc: "Cơm trắng, đậu hũ chiên, rau xào, dưa cải",
-        price: 35000,
-        img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80",
-      },
-      {
-        name: "Phở Chay Nấm Hương",
-        desc: "Phở nước dùng nấm, đậu hũ non, rau thơm",
-        price: 40000,
-        img: "https://images.unsplash.com/photo-1578020190125-f4f7c18bc9cb?w=400&q=80",
-      },
-    ],
-    Chay: [
-      {
-        name: "Bún Chay Thập Cẩm",
-        desc: "Bún nước dùng nấm, các loại rau củ, đậu hũ",
-        price: 38000,
-        img: "https://images.unsplash.com/photo-1559847844-5315695dadae?w=400&q=80",
-      },
-    ],
-    // ─── Bánh / Cake / Dessert ───────────────────────────────────────────────
-    Bánh: [
-      {
-        name: "Bánh Mì Pate Thịt",
-        desc: "Bánh mì Hội An giòn, nhân đầy ắp",
+        name: "Bánh Mì Kẹp Thịt",
+        desc: "Bánh mì giòn rụm kẹp pate, chả bơ truyền thống Việt Nam",
         price: 30000,
-        img: "https://images.unsplash.com/photo-1600628421060-3b8f8b5f2c14?w=400&q=80",
-      },
-      {
-        name: "Croissant Bơ",
-        desc: "Bánh sừng trâu ngàn lớp giòn tan",
-        price: 35000,
-        img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&q=80",
-      },
-      {
-        name: "Bánh Tiramisu",
-        desc: "Bánh phô mai Ý, lớp mascarpone mịn mượt",
-        price: 55000,
-        img: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400&q=80",
-      },
-    ],
-    "Tráng miệng": [
-      {
-        name: "Kem Dừa Đặc Biệt",
-        desc: "Kem dừa tươi kèm thạch dừa giòn",
-        price: 35000,
-        img: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&q=80",
-      },
-      {
-        name: "Chè Trôi Nước",
-        desc: "Chè gừng trôi nước nhân đậu xanh truyền thống",
-        price: 25000,
-        img: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&q=80",
-      },
-    ],
-    Dessert: [
-      {
-        name: "Bánh Flan Caramen",
-        desc: "Flan mềm mịn với lớp caramel đắng ngọt",
-        price: 25000,
-        img: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&q=80",
-      },
-      {
-        name: "Mousse Chanh Leo",
-        desc: "Mousse chanh leo chua ngọt mát lạnh",
-        price: 45000,
-        img: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=400&q=80",
-      },
-    ],
-    // ─── Combo ────────────────────────────────────────────────────────────────
-    Combo: [
-      {
-        name: "Combo Gà Giòn Độc Quyền",
-        desc: "2 Gà Giòn + Pepsi mát lạnh chuẩn vị KFC",
-        price: 59000,
-        img: "https://images.unsplash.com/photo-1562802378-063ec186a863?w=400&q=80",
-      },
-      {
-        name: "Combo Pizza Tiệc Tùng",
-        desc: "1 Pizza cỡ vừa + 1 Khoai tây chiên + 1 Pepsi lon",
-        price: 199000,
-        img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80",
-      },
-      {
-        name: "Combo Cơm Tấm Đôi Bạn",
-        desc: "2 Cơm Tấm Sườn Bì Chả + 2 Ly Nước Ngọt mát lạnh",
-        price: 110000,
-        img: "https://images.unsplash.com/photo-1599046679481-60e1f9c6b0c8?w=400&q=80",
-      },
-    ],
-    // ─── Bia & Nước phụ ──────────────────────────────────────────────────────
-    "Bia & Nước Ngọt": [
-      {
-        name: "Bia Tiger / Heineken",
-        desc: "Bia ướp lạnh lon 330ml",
-        price: 25000,
-        img: "https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400&q=80",
-      },
-      {
-        name: "Nước Khoáng Dasani",
-        desc: "Nước khoáng Dasani 500ml",
-        price: 15000,
-        img: "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?w=400&q=80",
+        // Bánh mì kẹp – ổ bánh mì cắt đôi với nhân đa dạng
+        img: "https://upload.wikimedia.org/wikipedia/commons/9/9a/Banh_mi_and_cuon.jpg",
       },
     ],
   };
@@ -570,15 +370,9 @@ export async function seedMenuItems() {
   const fallbackDishes = (categoryName: string) => [
     {
       name: `${categoryName} Đặc Biệt`,
-      desc: `Món ngon đặc sản ${categoryName}`,
+      desc: `Món ngon đặc sản mang đậm dấu ấn quán ${categoryName}`,
       price: 50000,
-      img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80",
-    },
-    {
-      name: `${categoryName} Truyền Thống`,
-      desc: `Công thức truyền thống ${categoryName}`,
-      price: 40000,
-      img: "https://images.unsplash.com/photo-1547592180-85f173990554?w=400&q=80",
+      img: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&q=80",
     },
   ];
 
@@ -601,5 +395,5 @@ export async function seedMenuItems() {
     }
   }
 
-  console.log("✅ Menu items seeded");
+  console.log("✅ Menu items seeded.");
 }
