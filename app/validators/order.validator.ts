@@ -70,6 +70,10 @@ export class CreateOrderValidator {
   promotionCode?: string;
 
   @IsOptional()
+  @IsString({ message: "shippingPromotionCode phải là chuỗi" })
+  shippingPromotionCode?: string;
+
+  @IsOptional()
   @IsString({ message: "note phải là chuỗi" })
   @MaxLength(1000, { message: "Ghi chú không quá 1000 ký tự" })
   note?: string;

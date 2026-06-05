@@ -73,9 +73,10 @@ export class DriverRouteV1 extends RailsRoute {
     // ── 5.2 Thu nhập ────────────────────────────────────────────────────
     this.get("/earnings", action(DriverEarningController, "index"));
 
-    // ── 5.3 Ví tài xế ───────────────────────────────────────────────────
-    this.post("/wallet/deposit", action(DriverWalletController, "deposit"));
-    this.post("/wallet/withdraw", action(DriverWalletController, "withdraw"));
+    // ── 5.3 Ví tài xế ───────────────────────────────────────────────────────
+    this.get("/wallet/requests", action(DriverWalletController, "getWalletRequests"));
+    this.post("/wallet/deposit", action(DriverWalletController, "requestDeposit"));
+    this.post("/wallet/withdraw", action(DriverWalletController, "requestWithdraw"));
 
     return this;
   }

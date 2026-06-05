@@ -181,6 +181,13 @@ export class OrderControllerV1 extends ApiV1Controller {
               fixedDiscount: true,
             },
           },
+          shippingPromotion: {
+            select: {
+              code: true,
+              discountPercentage: true,
+              fixedDiscount: true,
+            },
+          },
           payment: { select: { status: true, method: true, amount: true } },
         },
         orderBy: { createdAt: "desc" },
@@ -252,6 +259,7 @@ export class OrderControllerV1 extends ApiV1Controller {
           },
         },
         promotion: true,
+        shippingPromotion: true,
         payment: true,
         orderStatusHistories: { orderBy: { createdAt: "asc" } },
       },
@@ -293,6 +301,7 @@ export class OrderControllerV1 extends ApiV1Controller {
       "deliveryLongitude",
       "customerPhone",
       "promotionCode",
+      "shippingPromotionCode",
       "note",
       "tableNumber",
       "reservationTime",
@@ -439,7 +448,9 @@ export class OrderControllerV1 extends ApiV1Controller {
 
     // Xử lý mã khuyến mãi sau khi có deliveryFee
     let promotionId: string | null = null;
-    let promotionType = "food";
+    let shippingPromotionId: string | null = null;
+    let foodDiscount = 0;
+    let shippingDiscount = 0;
 
     if (data.promotionCode) {
       const promo = await models.promotion.findFirst({
@@ -448,6 +459,7 @@ export class OrderControllerV1 extends ApiV1Controller {
           isActive: true,
           validFrom: { lte: new Date() },
           validTo: { gte: new Date() },
+          promotionType: "food",
           OR: [
             { restaurantId: data.restaurantId },
             { restaurantId: null }, // global promotion
@@ -459,7 +471,7 @@ export class OrderControllerV1 extends ApiV1Controller {
         return this.renderJson(
           {
             success: false,
-            message: "Mã khuyến mãi không hợp lệ hoặc đã hết hạn",
+            message: "Mã giảm giá món ăn không hợp lệ hoặc đã hết hạn",
           },
           400,
         );
@@ -470,45 +482,71 @@ export class OrderControllerV1 extends ApiV1Controller {
         return this.renderJson(
           {
             success: false,
-            message: `Đơn hàng tối thiểu ${minOrder.toLocaleString("vi-VN")}đ để dùng mã này`,
+            message: `Đơn hàng tối thiểu ${minOrder.toLocaleString("vi-VN")}đ để dùng mã giảm giá đồ ăn`,
           },
           400,
         );
       }
 
       promotionId = promo.id;
-      promotionType = promo.promotionType;
-      if (promo.promotionType === "shipping") {
-        if (promo.discountPercentage) {
-          orderLevelDiscount =
-            (deliveryFee * Number(promo.discountPercentage)) / 100;
-        } else if (promo.fixedDiscount) {
-          orderLevelDiscount = Math.min(
-            Number(promo.fixedDiscount),
-            deliveryFee,
-          );
-        }
-      } else {
-        if (promo.discountPercentage) {
-          orderLevelDiscount =
-            (totalAmount * Number(promo.discountPercentage)) / 100;
-        } else if (promo.fixedDiscount) {
-          orderLevelDiscount = Math.min(
-            Number(promo.fixedDiscount),
-            totalAmount,
-          );
-        }
+      if (promo.discountPercentage) {
+        foodDiscount = (totalAmount * Number(promo.discountPercentage)) / 100;
+      } else if (promo.fixedDiscount) {
+        foodDiscount = Math.min(Number(promo.fixedDiscount), totalAmount);
       }
     }
 
-    const discountAmount = itemLevelDiscount + orderLevelDiscount;
+    if (data.shippingPromotionCode) {
+      const promo = await models.promotion.findFirst({
+        where: {
+          code: data.shippingPromotionCode,
+          isActive: true,
+          validFrom: { lte: new Date() },
+          validTo: { gte: new Date() },
+          promotionType: "shipping",
+          OR: [
+            { restaurantId: data.restaurantId },
+            { restaurantId: null }, // global promotion
+          ],
+        },
+      });
+
+      if (!promo) {
+        return this.renderJson(
+          {
+            success: false,
+            message: "Mã vận chuyển không hợp lệ hoặc đã hết hạn",
+          },
+          400,
+        );
+      }
+
+      const minOrder = Number(promo.minOrderValue ?? 0);
+      if (totalAmount < minOrder) {
+        return this.renderJson(
+          {
+            success: false,
+            message: `Đơn hàng tối thiểu ${minOrder.toLocaleString("vi-VN")}đ để dùng mã vận chuyển`,
+          },
+          400,
+        );
+      }
+
+      shippingPromotionId = promo.id;
+      if (promo.discountPercentage) {
+        shippingDiscount = (deliveryFee * Number(promo.discountPercentage)) / 100;
+      } else if (promo.fixedDiscount) {
+        shippingDiscount = Math.min(Number(promo.fixedDiscount), deliveryFee);
+      }
+    }
+
+    const totalFoodDiscount = itemLevelDiscount + foodDiscount;
+    const discountAmount = totalFoodDiscount + shippingDiscount;
     const finalAmount = Math.max(0, totalAmount - discountAmount + deliveryFee);
     const rate = restaurant.commissionRate
       ? Number(restaurant.commissionRate) / 100
       : 0.1;
-    const foodDiscount =
-      promotionType === "shipping" ? itemLevelDiscount : discountAmount;
-    const foodTotalAfterDiscount = Math.max(0, totalAmount - foodDiscount);
+    const foodTotalAfterDiscount = Math.max(0, totalAmount - totalFoodDiscount);
     const platformFee = foodTotalAfterDiscount * rate;
     const restaurantNet = foodTotalAfterDiscount - platformFee;
 
@@ -553,6 +591,7 @@ export class OrderControllerV1 extends ApiV1Controller {
             platformFee,
             restaurantNet,
             promotionId,
+            shippingPromotionId,
             deliveryAddress: data.deliveryAddress ?? null,
             deliveryLatitude: data.deliveryLatitude
               ? new Prisma.Decimal(data.deliveryLatitude)
@@ -891,73 +930,124 @@ export class OrderControllerV1 extends ApiV1Controller {
   // ─────────────────────────────────────────────────────────────
   async checkPromotion() {
     const data = this.req.body;
-    const { promotionCode, restaurantId, totalAmount, deliveryFee } = data;
+    const { promotionCode, shippingPromotionCode, restaurantId, totalAmount, deliveryFee } = data;
 
-    if (!promotionCode || !totalAmount) {
+    if (!promotionCode && !shippingPromotionCode) {
       return this.renderJson(
         {
           success: false,
-          message: "Thiếu thông tin (promotionCode, totalAmount)",
+          message: "Thiếu thông tin mã giảm giá",
+        },
+        400,
+      );
+    }
+    if (!totalAmount) {
+      return this.renderJson(
+        {
+          success: false,
+          message: "Thiếu thông tin (totalAmount)",
         },
         400,
       );
     }
 
-    const promo = await models.promotion.findFirst({
-      where: {
-        code: promotionCode,
-        isActive: true,
-        validFrom: { lte: new Date() },
-        validTo: { gte: new Date() },
-        OR: [{ restaurantId: restaurantId || null }, { restaurantId: null }],
-      },
-    });
+    let foodDiscountAmount = 0;
+    let shippingDiscountAmount = 0;
+    let foodPromo = null;
+    let shippingPromo = null;
 
-    if (!promo) {
-      return this.renderJson(
-        {
-          success: false,
-          message: "Mã khuyến mãi không hợp lệ hoặc đã hết hạn",
+    if (promotionCode) {
+      const promo = await models.promotion.findFirst({
+        where: {
+          code: promotionCode,
+          isActive: true,
+          validFrom: { lte: new Date() },
+          validTo: { gte: new Date() },
+          promotionType: "food",
+          OR: [{ restaurantId: restaurantId || null }, { restaurantId: null }],
         },
-        400,
-      );
+      });
+
+      if (!promo) {
+        return this.renderJson(
+          {
+            success: false,
+            message: `Mã giảm giá đồ ăn '${promotionCode}' không hợp lệ hoặc đã hết hạn`,
+          },
+          400,
+        );
+      }
+
+      const minOrder = Number(promo.minOrderValue ?? 0);
+      if (totalAmount < minOrder) {
+        return this.renderJson(
+          {
+            success: false,
+            message: `Đơn hàng tối thiểu ${minOrder.toLocaleString("vi-VN")}đ để dùng mã giảm giá món ăn`,
+          },
+          400,
+        );
+      }
+
+      foodPromo = promo;
+      if (promo.discountPercentage) {
+        foodDiscountAmount = (Number(totalAmount) * Number(promo.discountPercentage)) / 100;
+      } else if (promo.fixedDiscount) {
+        foodDiscountAmount = Math.min(Number(promo.fixedDiscount), Number(totalAmount));
+      }
     }
 
-    const minOrder = Number(promo.minOrderValue ?? 0);
-    if (totalAmount < minOrder) {
-      return this.renderJson(
-        {
-          success: false,
-          message: `Đơn hàng tối thiểu ${minOrder.toLocaleString("vi-VN")}đ để dùng mã này`,
+    if (shippingPromotionCode) {
+      const promo = await models.promotion.findFirst({
+        where: {
+          code: shippingPromotionCode,
+          isActive: true,
+          validFrom: { lte: new Date() },
+          validTo: { gte: new Date() },
+          promotionType: "shipping",
+          OR: [{ restaurantId: restaurantId || null }, { restaurantId: null }],
         },
-        400,
-      );
-    }
+      });
 
-    let discountAmount = 0;
-    if (promo.promotionType === "shipping") {
+      if (!promo) {
+        return this.renderJson(
+          {
+            success: false,
+            message: `Mã vận chuyển '${shippingPromotionCode}' không hợp lệ hoặc đã hết hạn`,
+          },
+          400,
+        );
+      }
+
+      const minOrder = Number(promo.minOrderValue ?? 0);
+      if (totalAmount < minOrder) {
+        return this.renderJson(
+          {
+            success: false,
+            message: `Đơn hàng tối thiểu ${minOrder.toLocaleString("vi-VN")}đ để dùng mã vận chuyển`,
+          },
+          400,
+        );
+      }
+
+      shippingPromo = promo;
       const fee = Number(deliveryFee ?? 0);
       if (promo.discountPercentage) {
-        discountAmount = (fee * Number(promo.discountPercentage)) / 100;
+        shippingDiscountAmount = (fee * Number(promo.discountPercentage)) / 100;
       } else if (promo.fixedDiscount) {
-        discountAmount = Math.min(Number(promo.fixedDiscount), fee);
-      }
-    } else {
-      if (promo.discountPercentage) {
-        discountAmount =
-          (Number(totalAmount) * Number(promo.discountPercentage)) / 100;
-      } else if (promo.fixedDiscount) {
-        discountAmount = Math.min(
-          Number(promo.fixedDiscount),
-          Number(totalAmount),
-        );
+        shippingDiscountAmount = Math.min(Number(promo.fixedDiscount), fee);
       }
     }
 
     return this.renderJson({
-      discountAmount: Math.round(discountAmount),
-      promotionCode: promo.code,
-      promotionType: promo.promotionType,
+      success: true,
+      discountAmount: Math.round(foodDiscountAmount + shippingDiscountAmount),
+      promotionCode: foodPromo ? foodPromo.code : (shippingPromo ? shippingPromo.code : undefined),
+      promotionType: foodPromo ? foodPromo.promotionType : (shippingPromo ? shippingPromo.promotionType : undefined),
+      foodDiscount: Math.round(foodDiscountAmount),
+      shippingDiscount: Math.round(shippingDiscountAmount),
+      foodPromo: foodPromo ? { code: foodPromo.code, promotionType: foodPromo.promotionType } : null,
+      shippingPromo: shippingPromo ? { code: shippingPromo.code, promotionType: shippingPromo.promotionType } : null,
     });
   }
 

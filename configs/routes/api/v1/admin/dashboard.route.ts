@@ -83,6 +83,20 @@ export class ApiV1AdminDashboardRoute extends RailsRoute {
     this.patch("/reports/:id", action(ApiV1AdminDashboardController, "moderateReport"), {
       setPermissionForAny: [Feature.AdministrationManagement],
     });
+
+    // ── Wallet Requests (Yêu cầu nạp/rút ví tài xế) ─────────────────────────
+    this.get("/wallet-requests", action(ApiV1AdminDashboardController, "walletRequests"), {
+      setPermissionForAny: [Feature.AdministrationManagement],
+    });
+
+    this.patch("/wallet-requests/:requestId/approve", action(ApiV1AdminDashboardController, "approveWalletRequest"), {
+      setPermissionForAny: [Feature.AdministrationManagement],
+    });
+
+    this.patch("/wallet-requests/:requestId/reject", action(ApiV1AdminDashboardController, "rejectWalletRequest"), {
+      setPermissionForAny: [Feature.AdministrationManagement],
+    });
   }
 }
+
 

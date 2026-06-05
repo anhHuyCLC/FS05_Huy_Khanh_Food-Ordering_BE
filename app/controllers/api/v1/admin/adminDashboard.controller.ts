@@ -523,4 +523,77 @@ export class ApiV1AdminDashboardController extends ApiV1Controller {
       data: updatedReport
     });
   }
+
+  // ─── Wallet Requests ─────────────────────────────────────────────────────────
+
+  // GET /api/v1/admin/wallet-requests
+  async walletRequests() {
+    const { status } = this.req.query as { status?: string };
+
+    const requests = await models.walletRequest.findMany({
+      where: status ? { status } : undefined,
+      orderBy: { createdAt: "desc" },
+      include: {
+        driver: {
+          include: {
+            profile: { select: { fullName: true, phone: true, avatarUrl: true } },
+          },
+        },
+      },
+    });
+
+    const result = requests.map((r: any) => ({
+      id: r.id,
+      type: r.type,
+      amount: Number(r.amount),
+      status: r.status,
+      note: r.note,
+      adminNote: r.adminNote,
+      bankName: r.bankName,
+      bankAccount: r.bankAccount,
+      bankOwner: r.bankOwner,
+      reviewedAt: r.reviewedAt,
+      createdAt: r.createdAt,
+      driver: {
+        id: r.driver.id,
+        fullName: r.driver.profile?.fullName ?? "—",
+        phone: r.driver.profile?.phone ?? "—",
+        avatarUrl: r.driver.profile?.avatarUrl ?? null,
+        walletBalance: Number(r.driver.walletBalance ?? 0),
+        codDebt: Number(r.driver.codDebt ?? 0),
+      },
+    }));
+
+    this.renderJson({ success: true, data: result });
+  }
+
+  // PATCH /api/v1/admin/wallet-requests/:requestId/approve
+  async approveWalletRequest() {
+    const { requestId } = this.req.params;
+    const { adminNote } = this.req.body;
+
+    const { DriverWalletService } = await import("@services/driverWallet.service");
+    const walletService = new DriverWalletService();
+    await walletService.approveWalletRequest(requestId, adminNote);
+
+    this.renderJson({
+      success: true,
+      message: "Đã duyệt yêu cầu và cập nhật số dư ví tài xế.",
+    });
+  }
+
+  // PATCH /api/v1/admin/wallet-requests/:requestId/reject
+  async rejectWalletRequest() {
+    const { requestId } = this.req.params;
+    const { adminNote } = this.req.body;
+
+    const { DriverWalletService } = await import("@services/driverWallet.service");
+    const walletService = new DriverWalletService();
+    await walletService.rejectWalletRequest(requestId, adminNote);
+
+    this.renderJson({
+      success: true,
+      message: "Đã từ chối yêu cầu ví.",
+    });
+  }
 }

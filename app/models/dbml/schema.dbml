@@ -234,6 +234,7 @@ Table driver_profiles {
   profile profiles [not null]
   orders orders [not null]
   transactions wallet_transactions [not null]
+  walletRequests wallet_requests [not null]
   reviews driver_reviews [not null]
   locations driver_locations [not null]
 }
@@ -313,7 +314,8 @@ Table promotions {
   isActive Boolean [default: true]
   promotionType String [not null, default: 'food']
   restaurant restaurants
-  orders orders [not null]
+  foodOrders orders [not null]
+  shippingOrders orders [not null]
   applicableItems menu_items [not null]
 }
 
@@ -349,6 +351,7 @@ Table orders {
   restaurantId String [not null]
   driverId String
   promotionId String
+  shippingPromotionId String
   orderType OrderType [not null, default: 'standard_delivery']
   tableNumber String
   reservationTime DateTime
@@ -385,6 +388,7 @@ Table orders {
   restaurant restaurants [not null]
   driver driver_profiles
   promotion promotions
+  shippingPromotion promotions
   orderItems order_items [not null]
   payment payments [not null]
   restaurantReviews restaurant_reviews [not null]
@@ -410,6 +414,23 @@ Table wallet_transactions {
   amount Decimal [not null]
   transactionType String [not null]
   description String
+  createdAt DateTime [default: `now()`, not null]
+  driver driver_profiles [not null]
+}
+
+Table wallet_requests {
+  id String [pk]
+  driverId String [not null]
+  type String [not null]
+  amount Decimal [not null]
+  status String [not null, default: 'pending']
+  note String
+  adminNote String
+  paymentCode String
+  bankName String
+  bankAccount String
+  bankOwner String
+  reviewedAt DateTime
   createdAt DateTime [default: `now()`, not null]
   driver driver_profiles [not null]
 }
@@ -827,11 +848,15 @@ Ref: orders.driverId > driver_profiles.id [delete: Set Null]
 
 Ref: orders.promotionId > promotions.id [delete: Set Null]
 
+Ref: orders.shippingPromotionId > promotions.id [delete: Set Null]
+
 Ref: order_items.orderId > orders.id [delete: Cascade]
 
 Ref: order_items.menuItemId > menu_items.id [delete: Restrict]
 
 Ref: wallet_transactions.driverId > driver_profiles.id [delete: Cascade]
+
+Ref: wallet_requests.driverId > driver_profiles.id [delete: Cascade]
 
 Ref: chatbot_sessions.userId > profiles.id [delete: Cascade]
 

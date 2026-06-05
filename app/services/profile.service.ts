@@ -52,8 +52,40 @@ export class ProfileService {
     if (data.rewardPoints !== undefined) updateData.rewardPoints = data.rewardPoints;
     if (data.badgeLevel !== undefined) updateData.badgeLevel = data.badgeLevel;
 
+    // Sync với table user nếu cần
+    const userUpdateData: any = {};
+    if (data.fullName !== undefined) {
+      const nameParts = data.fullName.trim().split(/\s+/);
+      if (nameParts.length === 1) {
+        userUpdateData.firstName = nameParts[0];
+        userUpdateData.lastName = "";
+        userUpdateData.middleName = null;
+      } else if (nameParts.length === 2) {
+        userUpdateData.firstName = nameParts[0];
+        userUpdateData.lastName = nameParts[1];
+        userUpdateData.middleName = null;
+      } else {
+        userUpdateData.firstName = nameParts[0];
+        userUpdateData.lastName = nameParts[nameParts.length - 1];
+        userUpdateData.middleName = nameParts.slice(1, nameParts.length - 1).join(" ");
+      }
+    }
+    if (data.phone !== undefined) {
+      userUpdateData.phoneNumber = data.phone;
+    }
+    if (data.avatarUrl !== undefined) {
+      userUpdateData.avatarUrl = data.avatarUrl;
+    }
+
+    if (Object.keys(userUpdateData).length > 0) {
+      await models.user.update({
+        where: { id: userId },
+        data: userUpdateData,
+      });
+    }
+
     // Nếu không có thay đổi
-    if (Object.keys(updateData).length === 0) {
+    if (Object.keys(updateData).length === 0 && Object.keys(userUpdateData).length === 0) {
       return profile;
     }
 
